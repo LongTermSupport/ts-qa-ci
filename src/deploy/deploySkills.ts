@@ -61,8 +61,19 @@ export async function deploySkills(options: DeployOptions): Promise<void> {
   // Step 5: must never write to settings.local.json — only settings.json and project-handlers/.
   const settingsLocalPath = join(claudeDir, 'settings.local.json');
   if (existsSync(settingsLocalPath)) {
-    const settingsLocal = JSON.parse(readFileSync(settingsLocalPath, 'utf-8')) as Record<string, unknown>;
-    if ('hooks' in settingsLocal) {
+    // This file is only read for an advisory "hooks key present" warning, so a
+    // malformed or empty settings.local.json must never abort the deploy: guard
+    // the read+parse, warn, and continue.
+    let settingsLocal: Record<string, unknown> | undefined;
+    try {
+      settingsLocal = JSON.parse(readFileSync(settingsLocalPath, 'utf-8')) as Record<string, unknown>;
+    } catch (cause) {
+      console.warn(
+        `ts-qa: WARNING — could not parse ${settingsLocalPath} — skipping hooks-key advisory ` +
+          `(${cause instanceof Error ? cause.message : String(cause)}).`,
+      );
+    }
+    if (settingsLocal !== undefined && 'hooks' in settingsLocal) {
       console.warn(
         `ts-qa: WARNING — ${settingsLocalPath} contains a "hooks" key. ts-qa-ci will never write there; ` +
           'this pre-existing entry is a policy violation independent of this deploy (see hook_registration_checker).',

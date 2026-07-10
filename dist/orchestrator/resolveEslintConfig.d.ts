@@ -28,6 +28,12 @@ interface TierAOverride {
     files: string[];
 }
 export declare function findTierARuleOverrides(configEntries: FlatConfigEntry[]): TierAOverride[];
-export declare function resolveEslintConfig(projectRoot: string, platform: Platform, packageRoot: string): Promise<FlatConfigEntry[]>;
+/**
+ * `quiet` (BUG A) suppresses the Tier A exemption diagnostics under `--json`,
+ * so the machine-readable output on stdout is never prepended with human text.
+ * It defaults to the env flag runPipeline sets, because this function is also
+ * re-entered inside a spawned eslint subprocess that only inherits the env.
+ */
+export declare function resolveEslintConfig(projectRoot: string, platform: Platform, packageRoot: string, quiet?: boolean): Promise<FlatConfigEntry[]>;
 export {};
 //# sourceMappingURL=resolveEslintConfig.d.ts.map

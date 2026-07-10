@@ -17,14 +17,23 @@ const rule: Rule.RuleModule = {
     },
   },
   create(context) {
+    const check = (node: VariableDeclarator): void => {
+      if (node.id.type !== 'Identifier') return;
+      if (!node.init || (node.init.type !== 'ObjectExpression' && node.init.type !== 'ArrayExpression')) return;
+      const hasAnnotation = (node.id as unknown as { typeAnnotation?: unknown }).typeAnnotation !== undefined;
+      if (!hasAnnotation) {
+        context.report({ node: node as unknown as Rule.Node, messageId: 'missingAnnotation', data: { name: node.id.name } });
+      }
+    };
     return {
-      'Program > VariableDeclaration > VariableDeclarator'(node: VariableDeclarator) {
-        if (node.id.type !== 'Identifier') return;
-        if (!node.init || (node.init.type !== 'ObjectExpression' && node.init.type !== 'ArrayExpression')) return;
-        const hasAnnotation = (node.id as unknown as { typeAnnotation?: unknown }).typeAnnotation !== undefined;
-        if (!hasAnnotation) {
-          context.report({ node: node as unknown as Rule.Node, messageId: 'missingAnnotation', data: { name: node.id.name } });
-        }
+      // Top-level `const` (`Program > ...`) and its exported form
+      // (`export const ...` parses as ExportNamedDeclaration > VariableDeclaration
+      // > VariableDeclarator) must both be covered — exported data literals are
+      // the ones most likely to need an explicit type.
+      ':matches(Program, ExportNamedDeclaration) > VariableDeclaration > VariableDeclarator'(
+        node: VariableDeclarator,
+      ) {
+        check(node);
       },
     };
   },

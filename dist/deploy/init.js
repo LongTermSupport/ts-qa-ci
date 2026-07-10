@@ -1,5 +1,5 @@
-import { join } from 'node:path';
-import { writeIfChanged } from './fsUtils.js';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 const HOOK_PRE_STUB = `import type { HookContext } from '@longtermsupport/ts-qa-ci';
 
 export default async function hookPre(_ctx: HookContext): Promise<void> {
@@ -29,9 +29,17 @@ export async function init(options) {
         [join(configDir, 'tier-a-exemptions.json'), EXEMPTIONS_STUB],
         [join(configDir, 'eslint.config.js'), ESLINT_CONFIG_STUB],
     ];
+    // init is a scaffold command: create only missing files. It must NEVER
+    // overwrite a file the user has already customised - re-running init after an
+    // upgrade would otherwise silently clobber their config with the empty stub.
     for (const [path, content] of files) {
-        const { written } = writeIfChanged(path, content);
-        console.log(`ts-qa init: ${path} ${written ? 'written' : 'already present, unchanged'}.`);
+        if (existsSync(path)) {
+            console.log(`ts-qa init: ${path} already present, left untouched.`);
+            continue;
+        }
+        mkdirSync(dirname(path), { recursive: true });
+        writeFileSync(path, content);
+        console.log(`ts-qa init: ${path} written.`);
     }
     console.log('ts-qa init: complete. Edit tsQaConfig/ to customize — see docs/configuration.md.');
 }

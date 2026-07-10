@@ -52,6 +52,20 @@ export interface PipelineResult {
 export async function runPipeline(options: PipelineOptions): Promise<PipelineResult> {
   const ci = detectCi(process.env, Boolean(process.stdin.isTTY), Boolean(process.stdout.isTTY));
 
+  // BUG A: surface CLAUDECODE-triggered CI mode, but never on `--json` runs
+  // (an unconditional log in detectCi prepended non-JSON text to stdout). The
+  // condition mirrors detectCi: CI=true wins first, so this only fires when
+  // CLAUDECODE alone enabled CI mode.
+  if (!options.json && process.env.CI !== 'true' && process.env.CLAUDECODE === '1') {
+    console.log('Claude Code environment detected - enabling CI mode');
+  }
+
+  // BUG A: the eslint tools re-enter resolveEslintConfig inside a spawned
+  // subprocess (via the generated flat config), which inherits this process's
+  // env but not `options.json`. Propagate the json flag through the environment
+  // so the subprocess suppresses its Tier A exemption diagnostics too.
+  if (options.json) process.env.TSQA_JSON = '1';
+
   // CLI --write/--read-only (forceWrite/forceReadOnly) override the env-derived value,
   // equivalent to QA_READONLY=0/1 in php-qa-ci. Both are only ever `true` or `undefined`
   // (set when the corresponding flag is passed, never explicitly `false`).

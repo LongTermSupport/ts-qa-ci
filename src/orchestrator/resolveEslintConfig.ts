@@ -88,7 +88,18 @@ async function importConfig(path: string): Promise<FlatConfigEntry[]> {
   return mod.default;
 }
 
-export async function resolveEslintConfig(projectRoot: string, platform: Platform, packageRoot: string): Promise<FlatConfigEntry[]> {
+/**
+ * `quiet` (BUG A) suppresses the Tier A exemption diagnostics under `--json`,
+ * so the machine-readable output on stdout is never prepended with human text.
+ * It defaults to the env flag runPipeline sets, because this function is also
+ * re-entered inside a spawned eslint subprocess that only inherits the env.
+ */
+export async function resolveEslintConfig(
+  projectRoot: string,
+  platform: Platform,
+  packageRoot: string,
+  quiet: boolean = process.env.TSQA_JSON === '1',
+): Promise<FlatConfigEntry[]> {
   const platformBasePath = join(packageRoot, 'configDefaults', platform, 'eslint.config.js');
   const genericBasePath = join(packageRoot, 'configDefaults', 'generic', 'eslint.config.js');
   const basePath = existsSync(platformBasePath) ? platformBasePath : genericBasePath;
@@ -113,7 +124,7 @@ export async function resolveEslintConfig(projectRoot: string, platform: Platfor
     );
   }
 
-  if (exemptions.length > 0) {
+  if (exemptions.length > 0 && !quiet) {
     for (const exemption of exemptions) {
       console.log(`ts-qa: Tier A exemption active — ${exemption.ruleId} on ${exemption.files.join(',')} — "${exemption.justification}"`);
     }

@@ -44,7 +44,13 @@ async function importConfig(path) {
     const mod = (await import(pathToFileURL(path).href));
     return mod.default;
 }
-export async function resolveEslintConfig(projectRoot, platform, packageRoot) {
+/**
+ * `quiet` (BUG A) suppresses the Tier A exemption diagnostics under `--json`,
+ * so the machine-readable output on stdout is never prepended with human text.
+ * It defaults to the env flag runPipeline sets, because this function is also
+ * re-entered inside a spawned eslint subprocess that only inherits the env.
+ */
+export async function resolveEslintConfig(projectRoot, platform, packageRoot, quiet = process.env.TSQA_JSON === '1') {
     const platformBasePath = join(packageRoot, 'configDefaults', platform, 'eslint.config.js');
     const genericBasePath = join(packageRoot, 'configDefaults', 'generic', 'eslint.config.js');
     const basePath = existsSync(platformBasePath) ? platformBasePath : genericBasePath;
@@ -61,7 +67,7 @@ export async function resolveEslintConfig(projectRoot, platform, packageRoot) {
         throw new Error(`ts-qa: tsQaConfig/eslint.config.js attempts to override Tier A rule(s) ${ruleList} ` +
             `with no matching tsQaConfig/tier-a-exemptions.json entry. Add a justified exemption or remove the override.`);
     }
-    if (exemptions.length > 0) {
+    if (exemptions.length > 0 && !quiet) {
         for (const exemption of exemptions) {
             console.log(`ts-qa: Tier A exemption active — ${exemption.ruleId} on ${exemption.files.join(',')} — "${exemption.justification}"`);
         }

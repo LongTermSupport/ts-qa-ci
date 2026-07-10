@@ -85,6 +85,14 @@ const rule: Rule.RuleModule = {
         if (!BROWSER_GLOBALS.has(node.name)) return;
         const parent = (node as unknown as { parent?: Rule.Node }).parent;
         if (parent?.type === 'MemberExpression' && (parent as unknown as MemberExpression).object !== node) return;
+        // A non-computed object-literal / class member key named after a browser
+        // global (e.g. `{ document: 1 }`) is just an identifier key, not a read.
+        if (
+          (parent?.type === 'Property' || parent?.type === 'MethodDefinition') &&
+          (parent as unknown as { key?: unknown }).key === node &&
+          !(parent as unknown as { computed?: boolean }).computed
+        )
+          return;
         if (isDeferred(node as unknown as Rule.Node)) return;
         context.report({ node: node as unknown as Rule.Node, messageId: 'browserGlobal', data: { name: node.name } });
       },

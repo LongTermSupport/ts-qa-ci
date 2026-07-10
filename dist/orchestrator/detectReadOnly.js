@@ -7,10 +7,11 @@
 export function detectCi(env, stdinIsTTY, stdoutIsTTY) {
     if (env.CI === 'true')
         return true;
-    if (env.CLAUDECODE === '1') {
-        console.log('Claude Code environment detected - enabling CI mode');
+    // BUG A: this used to console.log unconditionally, corrupting `--json` output.
+    // detectCi is now pure; the CLAUDECODE diagnostic lives in runPipeline, where
+    // the json flag is known and the message can be gated on non-json runs.
+    if (env.CLAUDECODE === '1')
         return true;
-    }
     if (!stdinIsTTY || !stdoutIsTTY)
         return true;
     return false;
