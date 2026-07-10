@@ -44,31 +44,41 @@ import type { Linter } from 'eslint';
  * a rule, and ships always-on in the generic base config alongside
  * `no-eslint-disable`.
  */
+/**
+ * `no-restricted-syntax` selectors for the total `as`/enum ban
+ * (rule-classification.md §2e, §3). Purely SYNTACTIC — a core-ESLint rule over
+ * the TS AST the consumer's parser already produces, needing NO type information
+ * and NO plugin. It is therefore shipped ALWAYS-ON in the Tier A generic base
+ * config (unlike the type-aware severities below), and this constant is exported
+ * so a consumer that wants ADDITIONAL restricted-syntax patterns can compose
+ * `[...AS_ENUM_BAN_SELECTORS, ...ownSelectors]` instead of clobbering the ban
+ * (`no-restricted-syntax` is last-entry-wins and single-instance).
+ */
+export const AS_ENUM_BAN_SELECTORS = [
+  {
+    selector: "TSAsExpression:not([typeAnnotation.typeName.name='const'])",
+    message:
+      'Type assertions are banned. Use a type guard, a schema parse, or fix the upstream type. `as const` only.',
+  },
+  {
+    selector: 'TSTypeAssertion',
+    message: 'Angle-bracket type assertions are banned. `as const` only.',
+  },
+  {
+    selector: 'TSEnumDeclaration',
+    message: 'Enums are banned — use a union of string literals or an `as const` object.',
+  },
+] as const;
+
 export const STRICT_TYPESCRIPT_RULES: Linter.RulesRecord = {
   // --- The total `as`/enum ban (rule-classification.md §2e, §3) --------------
-  // typescript-eslint's `consistent-type-assertions: { assertionStyle: 'never' }`
-  // also flags the legitimate `as const`, so the ban is expressed in two layers:
-  //   layer 1: forbid object-literal assertions + angle-bracket form
-  //   layer 2 (no-restricted-syntax): forbid every non-const `as`, plus enums.
+  // The syntactic half (non-const `as`, angle-bracket, enum) ships ALWAYS-ON in
+  // the Tier A base config via AS_ENUM_BAN_SELECTORS — NOT duplicated here. This
+  // preset carries the type-aware half: `consistent-type-assertions` forbids
+  // object-literal assertions (which `as const` alone can't express).
   '@typescript-eslint/consistent-type-assertions': [
     'error',
     { assertionStyle: 'as', objectLiteralTypeAssertions: 'never' },
-  ],
-  'no-restricted-syntax': [
-    'error',
-    {
-      selector: "TSAsExpression:not([typeAnnotation.typeName.name='const'])",
-      message:
-        'Type assertions are banned. Use a type guard, a schema parse, or fix the upstream type. `as const` only.',
-    },
-    {
-      selector: 'TSTypeAssertion',
-      message: 'Angle-bracket type assertions are banned. `as const` only.',
-    },
-    {
-      selector: 'TSEnumDeclaration',
-      message: 'Enums are banned — use a union of string literals or an `as const` object.',
-    },
   ],
 
   // --- Comment-suppression lockdown (§2c, §3) --------------------------------

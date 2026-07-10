@@ -8,6 +8,7 @@
 // TypeScript build step.
 import eslintConfigPrettier from 'eslint-config-prettier';
 import { tsQaPlugin, TIER_A_ESLINT_RULES } from '../../dist/rules/index.js';
+import { AS_ENUM_BAN_SELECTORS } from '../../dist/configs/strictTypescript.js';
 
 export default [
   {
@@ -15,14 +16,27 @@ export default [
   },
   {
     // Tier A always-on (Plan 00004 Task 1.4): flag any eslint-disable/ts-* directive
-    // that suppresses nothing. Zero-dependency, zero-type-info linter option that
-    // purely complements the always-on `no-eslint-disable` comment scan — it cannot
-    // newly break a consumer that `no-eslint-disable` already governs. The rest of
-    // the strict-TS baseline is TYPE-AWARE and ships as the opt-in
-    // STRICT_TYPESCRIPT_RULES preset (see src/configs/strictTypescript.ts), because
-    // it requires the consumer's own parserServices/projectService wiring.
+    // that suppresses nothing — the native complement to `no-eslint-disable`.
+    // Zero-dependency, zero-type-info. NOTE this applies to ALL files (no `files`
+    // filter — linterOptions is global), including .js/.mjs; and a directive that is
+    // UNUSED inside a `no-eslint-disable` tier-a-exemption still errors here (the
+    // exemption covers the comment scan, not this option). Guarded by the override
+    // gate (resolveEslintConfig.ts) so a consumer cannot silently downgrade it.
     linterOptions: {
       reportUnusedDisableDirectives: 'error',
+    },
+  },
+  {
+    // Tier A always-on (Plan 00004 Task 1.4, per rule-classification.md §3/§4):
+    // the total `as`/enum ban. Purely SYNTACTIC (core no-restricted-syntax over the
+    // TS AST the consumer's parser already emits) — no type info, no plugin, never
+    // crashes — so unlike the type-aware strict severities it is safe to force on.
+    // Consumers needing extra patterns compose AS_ENUM_BAN_SELECTORS rather than
+    // re-declaring no-restricted-syntax (which would clobber the ban); overriding it
+    // requires a tier-a-exemptions.json entry.
+    files: ['**/*.{ts,tsx,mts,cts}'],
+    rules: {
+      'no-restricted-syntax': ['error', ...AS_ENUM_BAN_SELECTORS],
     },
   },
   // Disables every ESLint stylistic rule that conflicts with Prettier - must run

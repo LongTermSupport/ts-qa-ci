@@ -1,5 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { STRICT_TYPESCRIPT_RULES, STRICT_TYPESCRIPT_STYLISTIC_RULES } from './strictTypescript.js';
+import {
+  STRICT_TYPESCRIPT_RULES,
+  STRICT_TYPESCRIPT_STYLISTIC_RULES,
+  AS_ENUM_BAN_SELECTORS,
+} from './strictTypescript.js';
 
 /**
  * These assertions PIN the preset contents. admin-ts previously pinned the same
@@ -7,18 +11,22 @@ import { STRICT_TYPESCRIPT_RULES, STRICT_TYPESCRIPT_STYLISTIC_RULES } from './st
  * never silently drop them" — that guarantee moves upstream with the doctrine.
  * A drop of any load-bearing rule (or a severity downgrade) fails the build.
  */
-describe('STRICT_TYPESCRIPT_RULES (load-bearing strict-TS baseline)', () => {
-  it('bans every non-const `as`, angle-bracket assertions, and enums via no-restricted-syntax', () => {
-    const entry = STRICT_TYPESCRIPT_RULES['no-restricted-syntax'];
-    expect(Array.isArray(entry)).toBe(true);
-    const [severity, ...selectors] = entry as [string, ...{ selector: string }[]];
-    expect(severity).toBe('error');
-    const selectorStrings = selectors.map((s) => s.selector);
+describe('AS_ENUM_BAN_SELECTORS (always-on Tier A syntactic ban)', () => {
+  it('bans every non-const `as`, angle-bracket assertions, and enums', () => {
+    const selectorStrings = AS_ENUM_BAN_SELECTORS.map((s) => s.selector);
     expect(selectorStrings).toContain("TSAsExpression:not([typeAnnotation.typeName.name='const'])");
     expect(selectorStrings).toContain('TSTypeAssertion');
     expect(selectorStrings).toContain('TSEnumDeclaration');
+    // Every selector must carry a human message (no bare selector strings).
+    for (const s of AS_ENUM_BAN_SELECTORS) expect(typeof s.message).toBe('string');
   });
 
+  it('is NOT duplicated inside the opt-in preset (lives always-on in the base config)', () => {
+    expect(STRICT_TYPESCRIPT_RULES['no-restricted-syntax']).toBeUndefined();
+  });
+});
+
+describe('STRICT_TYPESCRIPT_RULES (load-bearing strict-TS baseline)', () => {
   it('locks down every ts-comment directive (ban-ts-comment all false)', () => {
     const entry = STRICT_TYPESCRIPT_RULES['@typescript-eslint/ban-ts-comment'];
     const [severity, options] = entry as [string, Record<string, boolean>];
@@ -29,10 +37,11 @@ describe('STRICT_TYPESCRIPT_RULES (load-bearing strict-TS baseline)', () => {
     expect(options['ts-check']).toBe(false);
   });
 
-  it('forbids object-literal type assertions', () => {
+  it('forbids object-literal type assertions (assertionStyle as, objectLiteral never)', () => {
     const entry = STRICT_TYPESCRIPT_RULES['@typescript-eslint/consistent-type-assertions'];
-    const [severity, options] = entry as [string, { objectLiteralTypeAssertions: string }];
+    const [severity, options] = entry as [string, { assertionStyle: string; objectLiteralTypeAssertions: string }];
     expect(severity).toBe('error');
+    expect(options.assertionStyle).toBe('as');
     expect(options.objectLiteralTypeAssertions).toBe('never');
   });
 
@@ -80,9 +89,16 @@ describe('STRICT_TYPESCRIPT_STYLISTIC_RULES (opt-in stylistic layer)', () => {
   it('carries the opinionated elevations at error', () => {
     expect(STRICT_TYPESCRIPT_STYLISTIC_RULES['@typescript-eslint/explicit-module-boundary-types']).toBe('error');
     expect(STRICT_TYPESCRIPT_STYLISTIC_RULES['@typescript-eslint/prefer-readonly']).toBe('error');
+    expect(STRICT_TYPESCRIPT_STYLISTIC_RULES['@typescript-eslint/no-import-type-side-effects']).toBe('error');
+    expect(STRICT_TYPESCRIPT_STYLISTIC_RULES['@typescript-eslint/no-useless-empty-export']).toBe('error');
+    expect(STRICT_TYPESCRIPT_STYLISTIC_RULES['@typescript-eslint/default-param-last']).toBe('error');
     expect(STRICT_TYPESCRIPT_STYLISTIC_RULES['@typescript-eslint/method-signature-style']).toEqual([
       'error',
       'property',
+    ]);
+    expect(STRICT_TYPESCRIPT_STYLISTIC_RULES['@typescript-eslint/consistent-type-exports']).toEqual([
+      'error',
+      { fixMixedExportsWithInlineTypeSpecifier: true },
     ]);
   });
 

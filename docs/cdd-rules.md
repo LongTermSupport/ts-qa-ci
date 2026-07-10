@@ -131,6 +131,10 @@ Flags a PascalCase component declared inside another component/function — it i
 
 **Scaffolded stub** (reports nothing). Registered as Tier A so its severity slot is reserved; the real check (exhaustive discriminated-union narrowing) needs type-aware linting the package does not yet wire. Safe at `error` today — zero coverage, zero false positives.
 
+### `no-restricted-syntax` as/enum ban (Tier A)
+
+The generic base config wires `no-restricted-syntax` at `error` with three selectors: non-`const` `TSAsExpression`, angle-bracket `TSTypeAssertion`, and `TSEnumDeclaration`. An `as` cast is a typing lie — use a type guard, a schema parse, or fix the upstream type (`as const` is allowed); use unions / `as const` objects instead of enums. This is the one strict-TS-baseline rule that is **always-on** (not opt-in) because it is purely syntactic: it reads the TS AST your parser already emits, needs no `projectService`, and cannot crash. Compose extra patterns with the exported `AS_ENUM_BAN_SELECTORS` (`['error', ...AS_ENUM_BAN_SELECTORS, ...yourSelectors]`) rather than re-declaring `no-restricted-syntax`, which is single-instance/last-wins and would clobber the ban. Overriding it needs a `tsQaConfig/tier-a-exemptions.json` entry.
+
 ## Tier B rules (opt-in CDD)
 
 ### `no-ad-hoc-classnames`
@@ -151,7 +155,7 @@ Arrow-form components in scope need an explicit `Foo.displayName`, or minified R
 
 ### `no-error-hiding-fallback`
 
-Bans silent empty-value fallbacks (`?? []`, `|| ''`, `?? 0`, …) that collapse the loading/error/empty distinction into "looks fine but empty". The escape hatch is a `tsQaConfig/tier-a-exemptions.json`-style config surface, never an inline comment.
+Bans silent empty-value fallbacks (`?? []`, `|| ''`, `?? 0`, …) that collapse the loading/error/empty distinction into "looks fine but empty". Tier B with no options (`schema: []`): where the fallback is genuinely correct, model it explicitly (handle the empty/error state) rather than suppressing — the rule has no inline escape hatch by design.
 
 ### `no-dom-classname-mutation`
 
@@ -179,7 +183,9 @@ Bans `../`-climbing imports that cross a top-level module boundary; use the `~/`
 
 Two opt-in severity maps exported from the package: `STRICT_TYPESCRIPT_RULES` (load-bearing) and `STRICT_TYPESCRIPT_STYLISTIC_RULES` (opinionated, further opt-in). They are **not** always-on Tier A because they are type-aware `@typescript-eslint` rules: they require the consumer's own `parserOptions.projectService`/`.project` (ESLint hard-crashes without it) and the `@typescript-eslint` plugin registered. Shipping them as plain severity maps keeps `ts-qa-ci` free of a `typescript-eslint` dependency — the consumer's own plugin supplies the rule definitions; the package supplies the opinion.
 
-`STRICT_TYPESCRIPT_RULES` includes: the total `as`/enum ban (`no-restricted-syntax` on `TSAsExpression`/`TSTypeAssertion`/`TSEnumDeclaration`, except `as const`, plus `consistent-type-assertions`), `ban-ts-comment` lockdown, the cast-safety cluster, and the load-bearing severities (`no-explicit-any`, `no-non-null-assertion`, `no-unsafe-*`, `strict-boolean-expressions`, `no-floating-promises`, `no-misused-promises`, `switch-exhaustiveness-check`, `restrict-template-expressions`, `no-unnecessary-condition`, `consistent-type-imports`, `promise-function-async`, `require-await`). Stylistic elevations (`explicit-module-boundary-types`, `method-signature-style`, `prefer-readonly`, type-export/import-side-effect hygiene) live in the stylistic map so the correctness ratchet doesn't force stylistic churn.
+The **syntactic** half of the ban is **always-on Tier A**, not part of these opt-in maps: the generic base config wires `no-restricted-syntax` with the `TSAsExpression` (except `as const`) / `TSTypeAssertion` / `TSEnumDeclaration` selectors — a core-ESLint rule over the TS AST needing no type info, so it is safe to force on every consumer (see [as/enum ban](#no-restricted-syntax-asenum-ban-tier-a)). The exported `AS_ENUM_BAN_SELECTORS` constant lets you compose extra restricted-syntax patterns without clobbering it.
+
+`STRICT_TYPESCRIPT_RULES` carries the **type-aware** half: `consistent-type-assertions` (forbids object-literal assertions — `as const` can't express that), `ban-ts-comment` lockdown, the cast-safety cluster, and the load-bearing severities (`no-explicit-any`, `no-non-null-assertion`, `no-unsafe-*`, `strict-boolean-expressions`, `no-floating-promises`, `no-misused-promises`, `switch-exhaustiveness-check`, `restrict-template-expressions`, `no-unnecessary-condition`, `consistent-type-imports`, `promise-function-async`, `require-await`). Stylistic elevations (`explicit-module-boundary-types`, `method-signature-style`, `prefer-readonly`, type-export/import-side-effect hygiene) live in the stylistic map so the correctness ratchet doesn't force stylistic churn.
 
 Adopt inside a type-aware, TS-scoped config block:
 

@@ -130,7 +130,12 @@ function isComponentDefinitionFile(filename: string, exportedNames: string[], ex
 }
 
 function pathIncludesAny(filename: string, globs: string[]): boolean {
-  return globs.some((glob) => filename.includes(glob.replace(/\*+$/, '')));
+  // Segment-anchored: prefix a leading slash to both the filename and each glob
+  // so `src/ui/` matches `/proj/src/ui/…` but NOT `…/adsrc/ui/…` (substring-only).
+  // An unanchored `includes` would wrongly scope/exempt any dir ending in the
+  // glob's leading segment.
+  const anchored = `/${filename.replace(/^\/+/, '')}`;
+  return globs.some((glob) => anchored.includes(`/${glob.replace(/^\/+/, '').replace(/\*+$/, '')}`));
 }
 
 const rule: Rule.RuleModule = {

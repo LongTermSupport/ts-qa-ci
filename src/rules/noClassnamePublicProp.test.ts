@@ -20,6 +20,17 @@ ruleTester.run('no-classname-public-prop', rule, {
       code: 'interface FooProps { classNames?: string[]; }\n',
       filename: '/proj/src/ui/Foo.tsx',
     },
+    // Custom scopeGlobs: file not under the configured scope → not policed.
+    {
+      code: 'interface FooProps { className?: string; }\n',
+      filename: '/proj/src/ui/Foo.tsx',
+      options: [{ scopeGlobs: ['packages/'] }],
+    },
+    // Anchoring: `adsrc/` must NOT satisfy the default `src/` scope.
+    {
+      code: 'interface FooProps { className?: string; }\n',
+      filename: '/proj/adsrc/Foo.tsx',
+    },
   ],
   invalid: [
     // Interface member — flagged.
@@ -38,6 +49,13 @@ ruleTester.run('no-classname-public-prop', rule, {
     {
       code: "interface FooProps { 'className': string; }\n",
       filename: '/proj/src/ui/Foo.tsx',
+      errors: [{ messageId: 'classNameDeclared' }],
+    },
+    // Custom scopeGlobs matching the file → policed, flagged.
+    {
+      code: 'interface FooProps { className?: string; }\n',
+      filename: '/proj/packages/ui/Foo.tsx',
+      options: [{ scopeGlobs: ['packages/'] }],
       errors: [{ messageId: 'classNameDeclared' }],
     },
   ],

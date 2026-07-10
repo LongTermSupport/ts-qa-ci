@@ -23,6 +23,11 @@ export interface TierAExemption {
     files: string[];
     justification: string;
 }
+interface TierAOverride {
+    ruleId: string;
+    files: string[];
+}
+export declare function findTierARuleOverrides(configEntries: FlatConfigEntry[]): TierAOverride[];
 export declare function resolveEslintConfig(projectRoot: string, platform: Platform, packageRoot: string): Promise<FlatConfigEntry[]>;
 export {};
 //# sourceMappingURL=resolveEslintConfig.d.ts.map

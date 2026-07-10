@@ -15,16 +15,27 @@ function loadExemptions(projectRoot) {
     }
     return raw;
 }
-function findTierARuleOverrides(configEntries) {
+export function findTierARuleOverrides(configEntries) {
     const overrides = [];
     for (const entry of configEntries) {
-        if (!entry.rules)
-            continue;
         const files = entry.files ?? ['**/*'];
-        for (const ruleId of Object.keys(entry.rules)) {
-            if (TIER_A_RULE_IDS.includes(ruleId)) {
-                overrides.push({ ruleId, files });
+        if (entry.rules) {
+            for (const ruleId of Object.keys(entry.rules)) {
+                if (TIER_A_RULE_IDS.includes(ruleId)) {
+                    overrides.push({ ruleId, files });
+                }
             }
+        }
+        // reportUnusedDisableDirectives is a linterOption (not a rule) that the base
+        // config ships always-on as Tier A. It is last-entry-wins like everything in
+        // flat config, so a project appending it would silently downgrade the always-on
+        // protection unless the same override gate applies. Treat any value other than
+        // 'error' as a Tier A override of the pseudo-rule 'reportUnusedDisableDirectives'.
+        const linterOptions = entry.linterOptions;
+        if (linterOptions?.reportUnusedDisableDirectives !== undefined &&
+            linterOptions.reportUnusedDisableDirectives !== 'error' &&
+            TIER_A_RULE_IDS.includes('reportUnusedDisableDirectives')) {
+            overrides.push({ ruleId: 'reportUnusedDisableDirectives', files });
         }
     }
     return overrides;

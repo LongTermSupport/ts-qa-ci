@@ -43,6 +43,26 @@ import type { Linter } from 'eslint';
  * a rule, and ships always-on in the generic base config alongside
  * `no-eslint-disable`.
  */
+/**
+ * `no-restricted-syntax` selectors for the total `as`/enum ban
+ * (rule-classification.md §2e, §3). Purely SYNTACTIC — a core-ESLint rule over
+ * the TS AST the consumer's parser already produces, needing NO type information
+ * and NO plugin. It is therefore shipped ALWAYS-ON in the Tier A generic base
+ * config (unlike the type-aware severities below), and this constant is exported
+ * so a consumer that wants ADDITIONAL restricted-syntax patterns can compose
+ * `[...AS_ENUM_BAN_SELECTORS, ...ownSelectors]` instead of clobbering the ban
+ * (`no-restricted-syntax` is last-entry-wins and single-instance).
+ */
+export declare const AS_ENUM_BAN_SELECTORS: readonly [{
+    readonly selector: "TSAsExpression:not([typeAnnotation.typeName.name='const'])";
+    readonly message: "Type assertions are banned. Use a type guard, a schema parse, or fix the upstream type. `as const` only.";
+}, {
+    readonly selector: "TSTypeAssertion";
+    readonly message: "Angle-bracket type assertions are banned. `as const` only.";
+}, {
+    readonly selector: "TSEnumDeclaration";
+    readonly message: "Enums are banned — use a union of string literals or an `as const` object.";
+}];
 export declare const STRICT_TYPESCRIPT_RULES: Linter.RulesRecord;
 /**
  * Opinionated / stylistic elevations (rule-classification.md §3, "kept optional

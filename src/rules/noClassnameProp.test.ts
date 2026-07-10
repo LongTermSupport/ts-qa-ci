@@ -52,5 +52,19 @@ ruleTester.run('no-classname-prop', rule, {
       options: [{ scopeGlobs: ['src/'], uiDirs: ['src/primitives/'] }],
       errors: [{ messageId: 'classNameOnComponent' }],
     },
+    // The uiDir carve-out is MEMBER-EXPRESSION-only: a plain PascalCase component
+    // inside a uiDir is still flagged (pins that `insideUi` is not a blanket skip).
+    {
+      code: 'const a = <Button className="x" />;\n',
+      filename: '/proj/src/ui/Modal.tsx',
+      errors: [{ messageId: 'classNameOnComponent' }],
+    },
+    // Anchoring: `adsrc/ui/` must NOT satisfy the `src/ui/` carve-out (it only
+    // contains the substring) — member-expression className is still flagged.
+    {
+      code: 'const a = <Dialog.Title className={cls} />;\n',
+      filename: '/proj/src/components/adsrc/ui/X.tsx',
+      errors: [{ messageId: 'classNameOnComponent' }],
+    },
   ],
 });

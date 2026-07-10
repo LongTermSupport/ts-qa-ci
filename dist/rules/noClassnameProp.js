@@ -1,5 +1,10 @@
 function pathIncludesAny(filename, globs) {
-    return globs.some((glob) => filename.includes(glob.replace(/\*+$/, '')));
+    // Segment-anchored: prefix a leading slash to both the filename and each glob
+    // so `src/ui/` matches `/proj/src/ui/…` but NOT `…/adsrc/ui/…` (which merely
+    // contains the substring). Reproduces the dbf originals' /\/src\/…\// anchoring
+    // — an unanchored `includes` would wrongly carve out any dir ending in `src`.
+    const anchored = `/${filename.replace(/^\/+/, '')}`;
+    return globs.some((glob) => anchored.includes(`/${glob.replace(/^\/+/, '').replace(/\*+$/, '')}`));
 }
 const rule = {
     meta: {
@@ -50,6 +55,9 @@ const rule = {
                 if (tag.length === 0)
                     return;
                 // Lowercase first char → raw HTML/SVG; native className is allowed.
+                // ASCII-only by design: a unicode-lowercase tag (`<über>`) is treated as
+                // a component and flagged. Stricter than the dbf original's locale-aware
+                // test — ratchet-legal, and no real HTML/JSX tag starts non-ASCII.
                 if (/^[a-z]/.test(tag))
                     return;
                 context.report({ node: node, messageId: 'classNameOnComponent', data: { component: tag } });

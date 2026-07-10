@@ -34,10 +34,14 @@
     "eslint": ">=9.7.0",
     "prettier": ">=3.9.0",
     "typescript": ">=6.0.0",
+    "typescript-eslint": ">=8.0.0",
     "vite": ">=8.0.0",
     "vitest": ">=4.0.0"
   },
   "peerDependenciesMeta": {
+    "typescript-eslint": {
+      "optional": true
+    },
     "vite": {
       "optional": true
     },

@@ -34,7 +34,11 @@ interface TSPropertySignatureNode {
 }
 
 function pathIncludesAny(filename: string, globs: string[]): boolean {
-  return globs.some((glob) => filename.includes(glob.replace(/\*+$/, '')));
+  // Segment-anchored (see noClassnameProp.ts): prefix a leading slash to both
+  // sides so `src/` matches `/proj/src/…` but NOT `…/adsrc/…`. Reproduces the
+  // dbf original's /\/src\// anchoring; an unanchored `includes` over-matches.
+  const anchored = `/${filename.replace(/^\/+/, '')}`;
+  return globs.some((glob) => anchored.includes(`/${glob.replace(/^\/+/, '').replace(/\*+$/, '')}`));
 }
 
 const rule: Rule.RuleModule = {

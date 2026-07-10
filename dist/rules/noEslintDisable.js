@@ -24,7 +24,7 @@ const rule = {
     meta: {
         type: 'problem',
         docs: {
-            description: 'Disallow eslint-disable* and @ts-ignore/@ts-expect-error suppression comments',
+            description: 'Disallow eslint-disable*, eslint-enable, and @ts-ignore/@ts-expect-error/@ts-nocheck suppression comments',
         },
         schema: [],
         messages: {
