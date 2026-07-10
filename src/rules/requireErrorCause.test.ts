@@ -30,6 +30,22 @@ ruleTester.run('require-error-cause', rule, {
     {
       code: 'try { doThing(); } catch (e) { throw new CustomFailure("x"); }\n',
     },
+    // A `new Error` with no cause but at the TOP LEVEL (no enclosing catch) —
+    // the rule only polices throws inside a catch clause.
+    {
+      code: 'throw new Error("startup failed");\n',
+    },
+    // Member-expression callee (`ns.ApiError`) is NOT an Identifier, so the rule
+    // does not reach into it. Documents the identifier-only limitation: this is a
+    // known blind spot shared with the source rule (no type-awareness).
+    {
+      code: 'try { load(); } catch (err) { throw new errors.ApiError("boom"); }\n',
+    },
+    // cause supplied in a deeply-nested inner catch — the sanctioned form still
+    // satisfies the rule at any catch depth.
+    {
+      code: 'try { a(); } catch (e) { try { b(); } catch (inner) { throw new Error("x", { cause: inner }); } }\n',
+    },
   ],
   invalid: [
     // Built-in Error rethrown from a catch with no cause — the core bug.
@@ -55,6 +71,24 @@ ruleTester.run('require-error-cause', rule, {
     // Nested catch: the inner throw is still inside a catch and must thread cause.
     {
       code: 'try { a(); } catch (e) { try { b(); } catch (inner) { throw new Error("inner"); } }\n',
+      errors: [{ messageId: 'missing' }],
+    },
+    // Param-less catch (`catch { ... }`) still counts as being inside a catch —
+    // the source rule pushes a null name but keeps enforcing.
+    {
+      code: 'try { doThing(); } catch { throw new Error("no param"); }\n',
+      errors: [{ messageId: 'missing' }],
+    },
+    // A `cause` key written as a STRING literal (`"cause"`) is not recognised —
+    // the check only matches Identifier keys, so this is still flagged. Locks in
+    // parity with the source rule (both treat only bare-identifier `cause`).
+    {
+      code: 'try { load(); } catch (err) { throw new Error("boom", { "cause": err }); }\n',
+      errors: [{ messageId: 'missing' }],
+    },
+    // Custom typed error with an options object that omits `cause`.
+    {
+      code: 'try { load(); } catch (err) { throw new ValidationError("bad", 422, { field: "x" }); }\n',
       errors: [{ messageId: 'missing' }],
     },
   ],

@@ -30,6 +30,22 @@ ruleTester.run('no-error-hiding-fallback', rule, {
       code: 'counts.set(key, (counts.get(key) ?? 0) + 1);\n',
       filename: IN_SCOPE,
     },
+    // Map upsert idiom through a Binary arithmetic chain other than `+`.
+    {
+      code: 'counts.set(key, (counts.get(key) ?? 0) - 1);\n',
+      filename: IN_SCOPE,
+    },
+    // Map upsert idiom through a Unary operator ancestor.
+    {
+      code: 'counts.set(key, -(counts.get(key) ?? 0));\n',
+      filename: IN_SCOPE,
+    },
+    // A non-empty array literal fallback is a genuine default, not an error-hider.
+    { code: 'const rows = data ?? [1, 2, 3];\n', filename: IN_SCOPE },
+    // A non-empty object literal fallback is a genuine default, not an error-hider.
+    { code: 'const meta = data ?? { page: 1 };\n', filename: IN_SCOPE },
+    // A non-zero / non-empty primitive fallback is a genuine default.
+    { code: 'const size = pageSize ?? 25;\n', filename: IN_SCOPE },
   ],
   invalid: [
     // The core bug: `?? []` masks loading/error/empty for a list.
@@ -87,6 +103,22 @@ ruleTester.run('no-error-hiding-fallback', rule, {
     {
       code: 'const rows = data ?? [];\n',
       filename: '/repo/src/api-client/hooks/useTickets.ts',
+      errors: [{ messageId: 'hiding' }],
+    },
+    // `m.get(k) ?? 0` that does NOT feed a `.set(...)` is a plain read with an
+    // error-hiding fallback — the Map-upsert allowlist must not exempt it.
+    {
+      code: 'const current = counts.get(key) ?? 0;\n',
+      filename: IN_SCOPE,
+      errors: [{ messageId: 'hiding' }],
+    },
+    // PORT PARITY: the source rule honoured a `// dbf-fallback-justification:`
+    // inline-comment escape hatch. That hatch is deliberately DROPPED in this
+    // port, so the same comment must NOT exempt the fallback — the port is
+    // strictly stronger here.
+    {
+      code: '// dbf-fallback-justification: legacy caller\nconst rows = tickets ?? [];\n',
+      filename: IN_SCOPE,
       errors: [{ messageId: 'hiding' }],
     },
   ],
