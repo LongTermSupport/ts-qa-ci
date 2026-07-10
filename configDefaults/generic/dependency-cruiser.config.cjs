@@ -12,5 +12,10 @@ module.exports = {
   options: {
     tsPreCompilationDeps: true,
     tsConfig: { fileName: 'tsconfig.json' },
+    // Without this, dependency-cruiser follows the FULL resolved graph into
+    // node_modules and reports circular deps inside third-party packages' own
+    // internals (e.g. zod, @testing-library) - real, but not this project's to fix.
+    // Standard dependency-cruiser recommendation (its own --init default).
+    doNotFollow: { path: 'node_modules' },
   },
 };
