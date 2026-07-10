@@ -13,6 +13,18 @@ export default [
   {
     ignores: ['dist/**', 'node_modules/**', 'var/**'],
   },
+  {
+    // Tier A always-on (Plan 00004 Task 1.4): flag any eslint-disable/ts-* directive
+    // that suppresses nothing. Zero-dependency, zero-type-info linter option that
+    // purely complements the always-on `no-eslint-disable` comment scan — it cannot
+    // newly break a consumer that `no-eslint-disable` already governs. The rest of
+    // the strict-TS baseline is TYPE-AWARE and ships as the opt-in
+    // STRICT_TYPESCRIPT_RULES preset (see src/configs/strictTypescript.ts), because
+    // it requires the consumer's own parserServices/projectService wiring.
+    linterOptions: {
+      reportUnusedDisableDirectives: 'error',
+    },
+  },
   // Disables every ESLint stylistic rule that conflicts with Prettier - must run
   // before project additions so a project can still re-enable a specific stylistic
   // rule deliberately (last-entry-wins), not to defeat this baseline silently.

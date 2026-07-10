@@ -17,4 +17,13 @@ export const TIER_A_RULE_IDS: readonly string[] = [
   'ts-qa/ssr-safe-hooks',
   'ts-qa/validate-lazy-imports',
   'ts-qa/no-ad-hoc-html',
+  // Tier A rules ported from admin-ts's eslint-plugin-dbf (Plan 00004). These
+  // are wired into TIER_A_ESLINT_RULES + the generic base config, so they MUST
+  // be listed here too or the override-guard would let a consumer silently
+  // downgrade them.
+  'ts-qa/require-error-cause',
+  'ts-qa/no-typed-query-selector',
+  'ts-qa/jsx-truthy-narrow',
+  'ts-qa/no-inline-component-decl-in-render',
+  'ts-qa/exhaustive-discriminated',
 ];
