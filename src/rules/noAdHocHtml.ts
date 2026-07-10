@@ -1,3 +1,4 @@
+import { basename, extname } from 'node:path';
 import type { Rule } from 'eslint';
 import type { JSXElement, JSXOpeningElement } from 'estree-jsx';
 
@@ -6,11 +7,18 @@ import type { JSXElement, JSXOpeningElement } from 'estree-jsx';
  * outside designated component-definition files. Component-Driven
  * Development's central enforcement point — ad hoc <div>/<span>/<button>
  * soup in a page or page-composing component is banned; only imported,
- * PascalCase custom components are allowed there. A file counts as
- * "component-defining" (and so exempt) when its default export's name
- * matches the filename, which is this package's own convention, not
- * ec-site's — written fresh per the Task 3.0 sign-off's "clean, free of
- * proprietary stuff" requirement.
+ * PascalCase custom components are allowed there.
+ *
+ * A file counts as "component-defining" (and so exempt) when ANY of its
+ * top-level exports — default or named — has an identifier matching the
+ * filename (extension stripped). Checking named exports too, not just
+ * default, was added after dogfooding on lts-commerce-site (Plan 011 Task
+ * 4.2/4.3) found every component in that repo uses `export function Foo()`/
+ * `export const Foo = ...`, never `export default` — a default-export-only
+ * check would have exempted zero files, flagging every component's own
+ * internal JSX including its base layout primitives (an infinite regress:
+ * Container.tsx's own <div> would need "a typed component instead", which
+ * itself has to be defined with a <div> somewhere).
  *
  * Scoped per Decision 3 (Plan 011): JSX only. String/template-literal HTML
  * content (e.g. an articles.ts data file) is invisible to this AST rule by
@@ -30,8 +38,65 @@ interface RuleOptions {
   exemptFileSuffixes?: string[];
 }
 
-function isComponentDefinitionFile(filename: string, exemptSuffixes: string[]): boolean {
-  return exemptSuffixes.some((suffix) => filename.endsWith(suffix));
+// Minimal shape for the export-declaration forms this rule needs to recognise -
+// narrower than pulling in a full estree-flavoured Program type just for this scan.
+interface Identifier {
+  type: 'Identifier';
+  name: string;
+}
+interface VariableDeclarator {
+  id: Identifier | { type: string };
+}
+interface FunctionDeclarationNode {
+  type: 'FunctionDeclaration';
+  id: Identifier | null;
+}
+interface VariableDeclarationNode {
+  type: 'VariableDeclaration';
+  declarations: VariableDeclarator[];
+}
+interface ExportDefaultDeclarationNode {
+  type: 'ExportDefaultDeclaration';
+  declaration: FunctionDeclarationNode | Identifier | { type: string };
+}
+interface ExportNamedDeclarationNode {
+  type: 'ExportNamedDeclaration';
+  declaration: FunctionDeclarationNode | VariableDeclarationNode | { type: string } | null;
+}
+type ProgramStatement = ExportDefaultDeclarationNode | ExportNamedDeclarationNode | { type: string };
+interface ProgramNode {
+  body: ProgramStatement[];
+}
+
+function getExportedNames(program: ProgramNode): string[] {
+  const names: string[] = [];
+  for (const stmt of program.body) {
+    if (stmt.type === 'ExportDefaultDeclaration') {
+      const decl = (stmt as ExportDefaultDeclarationNode).declaration;
+      if (decl.type === 'FunctionDeclaration' && (decl as FunctionDeclarationNode).id) {
+        names.push((decl as FunctionDeclarationNode).id!.name);
+      } else if (decl.type === 'Identifier') {
+        names.push((decl as Identifier).name);
+      }
+    } else if (stmt.type === 'ExportNamedDeclaration') {
+      const decl = (stmt as ExportNamedDeclarationNode).declaration;
+      if (!decl) continue;
+      if (decl.type === 'FunctionDeclaration' && (decl as FunctionDeclarationNode).id) {
+        names.push((decl as FunctionDeclarationNode).id!.name);
+      } else if (decl.type === 'VariableDeclaration') {
+        for (const declarator of (decl as VariableDeclarationNode).declarations) {
+          if (declarator.id.type === 'Identifier') names.push((declarator.id as Identifier).name);
+        }
+      }
+    }
+  }
+  return names;
+}
+
+function isComponentDefinitionFile(filename: string, exportedNames: string[], exemptSuffixes: string[]): boolean {
+  if (exemptSuffixes.some((suffix) => filename.endsWith(suffix))) return true;
+  const basenameNoExt = basename(filename, extname(filename));
+  return exportedNames.includes(basenameNoExt);
 }
 
 function isInScope(filename: string, scopeGlobs: string[]): boolean {
@@ -65,16 +130,21 @@ const rule: Rule.RuleModule = {
     const options = (context.options[0] ?? {}) as RuleOptions;
     const scopeGlobs = options.scopeGlobs ?? ['src/pages/', 'src/components/'];
     const allowedElements = new Set(options.allowedElements ?? []);
-    // Any component's OWN definition file (e.g. src/components/Button/Button.tsx
-    // defining <button>) is exempt by convention - the raw element there IS the
-    // component's internal implementation, not a CDD violation.
     const exemptFileSuffixes = options.exemptFileSuffixes ?? [];
 
     if (!isInScope(context.filename, scopeGlobs)) return {};
-    if (isComponentDefinitionFile(context.filename, exemptFileSuffixes)) return {};
+
+    // Computed once the Program node is visited (always the first node ESLint
+    // visits, before any JSX inside it) - a file's own component-defining exports
+    // aren't knowable from its filename alone, only from its AST.
+    let exempt = false;
 
     return {
+      Program(node: ProgramNode) {
+        exempt = isComponentDefinitionFile(context.filename, getExportedNames(node), exemptFileSuffixes);
+      },
       JSXOpeningElement(node: JSXOpeningElement) {
+        if (exempt) return;
         if (node.name.type !== 'JSXIdentifier') return;
         const tag = node.name.name;
         // PascalCase = custom component (always allowed); lowercase = raw HTML element.
