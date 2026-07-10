@@ -47,3 +47,15 @@ env var override  >  tsQaConfig/*.json  >  built-in default
 ## Platform detection
 
 `ts-qa` checks for `vite.config.{ts,js,mjs}` + a `vite` dependency to pick the Vite-specific config tier; otherwise it uses the generic tier. No manual configuration needed.
+
+## Troubleshooting
+
+Lessons from dogfooding `ts-qa-ci` on a real, pre-existing codebase (`lts-commerce-site`, Plan 011 Task 4.3) — the failure modes below were all real bugs, now fixed, but the symptoms are worth knowing if something in a fork or a future tool addition regresses the same way.
+
+**ESLint seems to ignore your `tsQaConfig/eslint.config.js` entirely, or a Tier A rule you'd expect to fire doesn't.** Every `ts-qa` ESLint invocation generates a resolved config file under `node_modules/.cache/ts-qa/eslint.config.generated.mjs` and passes it explicitly via `--config`. If you're invoking `eslint` directly (bypassing `ts-qa`), you'll get ESLint's native config discovery instead — that's expected, not a bug, but it means `eslint .` and `ts-qa -t eslintReport` are not equivalent commands. Always go through `ts-qa` to get the Tier A guarantee.
+
+**The first real run reports a huge number of CDD violations (hundreds, not a handful).** Treat this as at least as likely to be a rule bug as real debt. Spot-check 5-10 flagged files by hand before assuming the codebase needs mass remediation — an exemption-logic bug that makes a rule fire on files it should skip produces exactly this signature (see Plan 011's retrospective: an early run reported 320 violations from one such bug; the true count was 0).
+
+**A tool (`oxlint`, `knip`, `dependency-cruiser`, `remark-validate-links`) reports on files you expected it to ignore** (vendored code, build output, archived directories). Each of these resolves its own config file (`.oxlintrc.json`, `knip.json`, `dependency-cruiser.config.cjs`, `remark-ignore.json`) through the same cascade as everything else in this doc — add or extend a `tsQaConfig/<file>` override rather than assuming the generic default's ignore list matches your repo's layout.
+
+**Installing against an existing codebase fails on peer-dependency conflicts.** Check the *actual* constraining package, not just `ts-qa-ci`'s own floors — a peer plugin one level removed (e.g. `typescript-eslint` capping `typescript`, `eslint-plugin-react` capping `eslint`) can lag behind the tool it wraps by a major version or more. `npm view <the-actual-constraining-package> peerDependencies` tells you the real floor.
