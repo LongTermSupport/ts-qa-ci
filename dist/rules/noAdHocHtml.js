@@ -41,17 +41,27 @@ function getExportedNames(program) {
             }
         }
         else if (stmt.type === 'ExportNamedDeclaration') {
-            const decl = stmt.declaration;
-            if (!decl)
-                continue;
-            if (decl.type === 'FunctionDeclaration' && decl.id) {
-                names.push(decl.id.name);
-            }
-            else if (decl.type === 'VariableDeclaration') {
-                for (const declarator of decl.declarations) {
-                    if (declarator.id.type === 'Identifier')
-                        names.push(declarator.id.name);
+            const namedStmt = stmt;
+            const decl = namedStmt.declaration;
+            if (decl) {
+                if (decl.type === 'FunctionDeclaration' && decl.id) {
+                    names.push(decl.id.name);
                 }
+                else if (decl.type === 'VariableDeclaration') {
+                    for (const declarator of decl.declarations) {
+                        if (declarator.id.type === 'Identifier')
+                            names.push(declarator.id.name);
+                    }
+                }
+            }
+            // Grouped re-export form (e.g. `export { Carousel, CarouselContent };` at the
+            // bottom of a file) has no `.declaration` at all - the names live in
+            // `.specifiers` instead. Found missing while dogfooding on lts-commerce-site
+            // (Plan 011 Task 4.2/4.3): Carousel.tsx uses exactly this shape and was still
+            // being flagged for its own internal JSX despite exporting `Carousel`.
+            for (const specifier of namedStmt.specifiers ?? []) {
+                if (specifier.exported.type === 'Identifier')
+                    names.push(specifier.exported.name);
             }
         }
     }

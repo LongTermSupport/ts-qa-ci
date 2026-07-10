@@ -59,9 +59,13 @@ interface ExportDefaultDeclarationNode {
   type: 'ExportDefaultDeclaration';
   declaration: FunctionDeclarationNode | Identifier | { type: string };
 }
+interface ExportSpecifierNode {
+  exported: Identifier | { type: string; value?: string };
+}
 interface ExportNamedDeclarationNode {
   type: 'ExportNamedDeclaration';
   declaration: FunctionDeclarationNode | VariableDeclarationNode | { type: string } | null;
+  specifiers: ExportSpecifierNode[];
 }
 type ProgramStatement = ExportDefaultDeclarationNode | ExportNamedDeclarationNode | { type: string };
 interface ProgramNode {
@@ -79,14 +83,24 @@ function getExportedNames(program: ProgramNode): string[] {
         names.push((decl as Identifier).name);
       }
     } else if (stmt.type === 'ExportNamedDeclaration') {
-      const decl = (stmt as ExportNamedDeclarationNode).declaration;
-      if (!decl) continue;
-      if (decl.type === 'FunctionDeclaration' && (decl as FunctionDeclarationNode).id) {
-        names.push((decl as FunctionDeclarationNode).id!.name);
-      } else if (decl.type === 'VariableDeclaration') {
-        for (const declarator of (decl as VariableDeclarationNode).declarations) {
-          if (declarator.id.type === 'Identifier') names.push((declarator.id as Identifier).name);
+      const namedStmt = stmt as ExportNamedDeclarationNode;
+      const decl = namedStmt.declaration;
+      if (decl) {
+        if (decl.type === 'FunctionDeclaration' && (decl as FunctionDeclarationNode).id) {
+          names.push((decl as FunctionDeclarationNode).id!.name);
+        } else if (decl.type === 'VariableDeclaration') {
+          for (const declarator of (decl as VariableDeclarationNode).declarations) {
+            if (declarator.id.type === 'Identifier') names.push((declarator.id as Identifier).name);
+          }
         }
+      }
+      // Grouped re-export form (e.g. `export { Carousel, CarouselContent };` at the
+      // bottom of a file) has no `.declaration` at all - the names live in
+      // `.specifiers` instead. Found missing while dogfooding on lts-commerce-site
+      // (Plan 011 Task 4.2/4.3): Carousel.tsx uses exactly this shape and was still
+      // being flagged for its own internal JSX despite exporting `Carousel`.
+      for (const specifier of namedStmt.specifiers ?? []) {
+        if (specifier.exported.type === 'Identifier') names.push((specifier.exported as Identifier).name);
       }
     }
   }
