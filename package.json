@@ -26,9 +26,9 @@
     "test": "vitest run",
     "prepublishOnly": "npm run build"
   },
-  "_peerDependenciesPolicy": "Floors are set to the CURRENT major generation as of the last version check (npm view <pkg> version), not an old baseline carried forward out of habit — ts-qa-ci should push consumers toward current stable tooling, not accommodate years-old installs. Re-run `npm view <pkg> version` for every peerDependency before each ts-qa-ci release and bump these floors to the then-current major; do not silently let them go stale.",
+  "_peerDependenciesPolicy": "Floors are set to the CURRENT major generation as of the last version check (npm view <pkg> version), not an old baseline carried forward out of habit — ts-qa-ci should push consumers toward current stable tooling, not accommodate years-old installs. Re-run `npm view <pkg> version` for every peerDependency before each ts-qa-ci release and bump these floors to the then-current major; do not silently let them go stale. EXCEPTION: typescript is capped below its own latest major when the typescript-eslint ecosystem hasn't caught up yet (checked via `npm view @typescript-eslint/parser peerDependencies` — its typescript range is the real ceiling, not TypeScript's own release cadence). Found 2026-07-10: typescript 7.x shipped as stable but typescript-eslint 8.63.0 (latest, and its canary) still caps at `typescript >=4.8.4 <6.1.0` — using 7.x would break type-aware linting for every consumer running typescript-eslint. Floor set to the newest version actually inside that ceiling (6.0.3), not 5.x (stale) or 7.x (unsupported).",
   "peerDependencies": {
-    "typescript": ">=7.0.0",
+    "typescript": ">=6.0.0",
     "eslint": ">=10.0.0",
     "@types/node": ">=22.0.0",
     "vite": ">=8.0.0",
@@ -53,7 +53,7 @@
     "eslint-config-prettier": "^10.0.0"
   },
   "devDependencies": {
-    "typescript": "^7.0.0",
+    "typescript": "^6.0.3",
     "eslint": "^10.0.0",
     "@types/node": "^22.0.0",
     "@types/estree": "^1.0.0",

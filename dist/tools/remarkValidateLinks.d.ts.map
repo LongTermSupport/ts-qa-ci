@@ -1,1 +1,1 @@
-{"version":3,"file":"remarkValidateLinks.d.ts","sourceRoot":"","sources":["../../src/tools/remarkValidateLinks.ts"],"names":[],"mappings":"AAKA,OAAO,KAAK,EAAc,UAAU,EAAc,MAAM,0BAA0B,CAAC;AAEnF;;;;;;GAMG;AACH,QAAA,MAAM,IAAI,EAAE,UAiCX,CAAC;eAEa,IAAI"}
+{"version":3,"file":"remarkValidateLinks.d.ts","sourceRoot":"","sources":["../../src/tools/remarkValidateLinks.ts"],"names":[],"mappings":"AAKA,OAAO,KAAK,EAAc,UAAU,EAAc,MAAM,0BAA0B,CAAC;AAEnF;;;;;;GAMG;AACH,QAAA,MAAM,IAAI,EAAE,UAiCX,CAAC;AAEF,eAAe,IAAI,CAAC"}

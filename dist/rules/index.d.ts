@@ -19,18 +19,18 @@ export declare const tsQaPlugin: {
 };
 /** Tier A rule IDs, namespaced as they appear in a consumer's flat config (ts-qa/<rule>). */
 export declare const TIER_A_ESLINT_RULES: {
-    readonly 'ts-qa/no-eslint-disable': 'error';
-    readonly 'ts-qa/no-duplicate-section-ids': 'error';
-    readonly 'ts-qa/no-placeholder': 'error';
-    readonly 'ts-qa/require-explicit-type-annotations': 'error';
-    readonly 'ts-qa/require-exported-component-types': 'error';
-    readonly 'ts-qa/ssr-safe-hooks': 'error';
-    readonly 'ts-qa/validate-lazy-imports': 'error';
-    readonly 'ts-qa/no-ad-hoc-html': 'error';
+    readonly 'ts-qa/no-eslint-disable': "error";
+    readonly 'ts-qa/no-duplicate-section-ids': "error";
+    readonly 'ts-qa/no-placeholder': "error";
+    readonly 'ts-qa/require-explicit-type-annotations': "error";
+    readonly 'ts-qa/require-exported-component-types': "error";
+    readonly 'ts-qa/ssr-safe-hooks': "error";
+    readonly 'ts-qa/validate-lazy-imports': "error";
+    readonly 'ts-qa/no-ad-hoc-html': "error";
 };
 /** Tier B rule IDs — opt-in, NOT spread by default (consumer must enable explicitly). */
 export declare const TIER_B_ESLINT_RULES: {
-    readonly 'ts-qa/no-ad-hoc-classnames': 'warn';
-    readonly 'ts-qa/variant-api-enforcement': 'off';
+    readonly 'ts-qa/no-ad-hoc-classnames': "warn";
+    readonly 'ts-qa/variant-api-enforcement': "off";
 };
 //# sourceMappingURL=index.d.ts.map
