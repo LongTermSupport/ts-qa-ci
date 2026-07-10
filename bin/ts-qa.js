@@ -33,6 +33,9 @@ function parseArgs(argv) {
       case '-p':
         options.path = argv[++i];
         break;
+      case '--skip':
+        (options.skipTools ??= []).push(argv[++i]);
+        break;
       case '--phase': {
         const phase = Number(argv[++i]);
         if (![0, 1, 2, 3, 4].includes(phase)) {

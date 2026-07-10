@@ -37,7 +37,10 @@ Override with `--write` / `--read-only` (or `TSQA_READONLY=0`/`1`).
 ts-qa --phase 0        # just the fast-fail gate
 ts-qa -t eslintReport   # bypass phase grouping entirely, run one tool
 ts-qa -t eslintReport -p src/components  # scope to a path (only tools that support it)
+ts-qa --skip playwright # run everything EXCEPT the named tool(s); repeatable
 ```
+
+To disable a tool persistently (e.g. run browser tests in a separate CI job), use `disabledTools` in `tsQaConfig/ts-qa.json` — see [`configuration.md`](configuration.md#disabling-tools-tsqaconfigts-qajson).
 
 ## Retry behaviour
 

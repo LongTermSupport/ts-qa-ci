@@ -10,6 +10,8 @@ export interface PipelineOptions {
     forceReadOnly?: boolean;
     aggregate?: boolean;
     json?: boolean;
+    /** Tool names to skip this run (CLI `--skip`), merged with tsQaConfig/ts-qa.json `disabledTools`. */
+    skipTools?: string[];
 }
 export interface PipelineResult {
     phases: PhaseResult[];

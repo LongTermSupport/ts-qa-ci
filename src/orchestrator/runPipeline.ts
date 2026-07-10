@@ -1,5 +1,6 @@
 import { detectCi, detectReadOnly } from './detectReadOnly.js';
 import { detectPlatform } from './detectPlatform.js';
+import { resolveDisabledTools } from './resolveDisabledTools.js';
 import { runPhase, type PhaseResult } from './runPhase.js';
 import { runPreHook, runPostHook } from './hooks.js';
 import { RESTART_WARNING } from './retryGate.js';
@@ -30,6 +31,8 @@ export interface PipelineOptions {
   forceReadOnly?: boolean;
   aggregate?: boolean;
   json?: boolean;
+  /** Tool names to skip this run (CLI `--skip`), merged with tsQaConfig/ts-qa.json `disabledTools`. */
+  skipTools?: string[];
 }
 
 export interface PipelineResult {
@@ -77,7 +80,24 @@ export async function runPipeline(options: PipelineOptions): Promise<PipelineRes
   await runPreHook(options.cwd, { phases: PHASES.map((p) => p.number), platform, ci, readOnly, toolResults: {} });
 
   // Explicit undefined check, not truthiness — options.onlyPhase can legitimately be 0.
-  const phasesToRun = options.onlyPhase !== undefined ? PHASES.filter((p) => p.number === options.onlyPhase) : PHASES;
+  const selectedPhases = options.onlyPhase !== undefined ? PHASES.filter((p) => p.number === options.onlyPhase) : PHASES;
+
+  // Tool opt-out (tsQaConfig/ts-qa.json `disabledTools` + CLI `--skip`). Filter each
+  // phase's tool list; a phase whose every tool is disabled is dropped entirely. The
+  // canonical case is Playwright, which needs a served instance and is often run as a
+  // separate served-instance CI job. Log each disabled tool once, like Tier A exemptions
+  // are logged — never silently skip a tool.
+  const { disabled, sources } = resolveDisabledTools(options.cwd, options.skipTools ?? []);
+  if (!ctx.json && disabled.size > 0) {
+    for (const name of disabled) {
+      const via = sources.get(name) === 'cli' ? '--skip' : 'tsQaConfig/ts-qa.json';
+      console.log(`ts-qa: ${name}: disabled (${via})`);
+    }
+  }
+  const phasesToRun: PhaseDefinition[] = selectedPhases
+    .map((p) => ({ ...p, tools: p.tools.filter((t) => !disabled.has(t)) }))
+    .filter((p) => p.tools.length > 0);
+
   const results: PhaseResult[] = [];
 
   for (const phaseDef of phasesToRun) {

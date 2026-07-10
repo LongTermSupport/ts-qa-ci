@@ -32,6 +32,25 @@ ESLint carries `ts-qa-ci`'s always-on core rules (Tier A — see [`cdd-rules.md`
 
 Every active exemption is printed on every `ts-qa` run — never silent.
 
+## Disabling tools (`tsQaConfig/ts-qa.json`)
+
+Some projects can't run every tool in a single `ts-qa` invocation. The canonical case is **Playwright**: it needs a served site, so a project may run browser tests as a separate CI job (build → serve → `BASE_URL` → `playwright test`) and want `ts-qa` itself to cover only the static + unit surface.
+
+Opt a tool out with a `disabledTools` array in `tsQaConfig/ts-qa.json` (a pipeline-level config, distinct from the per-tool config files above):
+
+```json
+// tsQaConfig/ts-qa.json
+{
+  "disabledTools": ["playwright"]
+}
+```
+
+- A phase whose every tool is disabled is dropped entirely — so `disabledTools: ["playwright"]` leaves Phase 4 running just Vitest, and `["vitest", "playwright"]` skips Phase 4 altogether.
+- Each disabled tool is **logged on every run** (`ts-qa: playwright: disabled (tsQaConfig/ts-qa.json)`) — never silently skipped, same principle as Tier A exemptions.
+- An unknown tool name **fails loudly** rather than silently disabling nothing. Valid names: `oxlint`, `prettier`, `eslintFix`, `eslintReport`, `remarkValidateLinks`, `knip`, `tsc`, `dependencyCruiser`, `vitest`, `playwright`, `stryker`.
+
+For a one-off run, `--skip <tool>` does the same without touching config (repeatable): `ts-qa --skip playwright`.
+
 ## Scalar/list config values
 
 Things like banned-classname lists or path globs use a plain merge, highest precedence wins:
