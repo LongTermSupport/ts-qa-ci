@@ -14,9 +14,9 @@ Top-level `const` object/array literals need an explicit type annotation. This i
 
 `window`, `document`, `localStorage`, and non-deterministic values (`new Date()`, `Math.random()`) can't be read directly in a component's render path — only inside `useEffect`/`useLayoutEffect`/`useSyncExternalStore`. If your project doesn't do SSR/SSG at all, this rule still catches real bugs (React strict-mode double-invocation, for one) — it's not solely an SSR concern.
 
-## No type assertions or enums (strict-TS preset)
+## No type assertions or enums
 
-The opt-in `STRICT_TYPESCRIPT_RULES` preset bans every non-`const` `as` assertion, angle-bracket assertions, and `enum` declarations, and pins the load-bearing `@typescript-eslint` type-aware severities at `error`. It's opt-in (not always-on) because those rules need your project's own type-aware parser wiring; see [`cdd-rules.md`](cdd-rules.md#strict-typescript-baseline-preset). The doctrine: an `as` cast is a typing lie — reach for a type guard, a schema parse (Zod), or fix the upstream type; use `as const` and union-of-literals instead of enums.
+The doctrine: an `as` cast is a typing lie — reach for a type guard, a schema parse (Zod), or fix the upstream type; use `as const` and union-of-literals instead of enums. The **syntactic** ban (non-`const` `as`, angle-bracket assertions, `enum` declarations) is **always-on Tier A** via `no-restricted-syntax` in the base config — it needs no type information. The **type-aware** reinforcements (`consistent-type-assertions`, `no-unsafe-*`, `strict-boolean-expressions`, …) and the rest of the strict severities ship in the opt-in `STRICT_TYPESCRIPT_RULES` preset, which needs your project's own type-aware parser wiring. See [`cdd-rules.md`](cdd-rules.md#strict-typescript-baseline-preset).
 
 ## Component-Driven Development
 
