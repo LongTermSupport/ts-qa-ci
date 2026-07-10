@@ -1,0 +1,49 @@
+import type { RunContext, ToolModule, ToolResult } from '../orchestrator/types.js';
+import { execTool } from './execTool.js';
+
+/**
+ * Phase 0 — Fast Fail (added 2026-07-10 per maintainer direction, see
+ * PLAN.md Decision 7). oxlint is a Rust-based linter (the Oxc project)
+ * that reimplements a large subset of ESLint's core + popular-plugin
+ * rules natively — 50-100x faster than ESLint, but it does NOT support
+ * arbitrary custom JS-authored ESLint rule plugins. That makes it a
+ * pre-filter, not a replacement: it cannot run ts-qa-ci's own CDD/Tier A
+ * rules (src/rules/*.ts), so full ESLint (eslintFix/eslintReport) still
+ * runs in Phase 1/2 regardless.
+ *
+ * This directly carries over php-qa-ci's verified cheap-before-expensive
+ * ordering (bin/qa: allCodingStandardsTools -> allLintingTools, with the
+ * trivial phpLint syntax check ordered ahead of the pricier
+ * composerRequireChecker/markdownLinks within that phase, -> the much
+ * more expensive allStaticAnalysisTools -> allTestingTools). oxlint is
+ * the TS-side equivalent of that "run the near-instant check first" step:
+ * if it fails, the pipeline aborts before spending time on Prettier, the
+ * full type-aware ESLint pass, tsc, or tests.
+ */
+const tool: ToolModule = {
+  name: 'oxlint',
+  phase: 0,
+  mutates: true,
+  pathSupporting: true,
+
+  async run(ctx: RunContext): Promise<ToolResult> {
+    const target = ctx.path ?? '.';
+    // --deny-warnings is NOT optional: oxlint's default behaviour is exit 0 even when
+    // warning-severity violations are found (empirically verified — most of its rules,
+    // including no-unused-vars, are warning-severity by default). Without this flag,
+    // Phase 0 would silently pass on real problems, defeating the entire fail-fast
+    // premise (see PLAN.md Decision 7 — "fail fast and cheap" is the point).
+    const args = ctx.readOnly ? ['--deny-warnings', target] : ['--deny-warnings', '--fix', target];
+    const result = await execTool('npx', ['oxlint', ...args], ctx.cwd);
+
+    // oxlint: exit 0 = clean, exit 1 = lint problems found (with --deny-warnings, this
+    // includes warnings), anything else = crash/config error.
+    if (result.exitCode === 0) return { exitClass: 'clean', stdout: result.stdout, stderr: result.stderr };
+    if (result.exitCode === 1) {
+      return { exitClass: 'failure', stdout: result.stdout, stderr: result.stderr, diffPending: ctx.readOnly };
+    }
+    return { exitClass: 'crash', stdout: result.stdout, stderr: result.stderr };
+  },
+};
+
+export default tool;

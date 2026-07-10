@@ -1,0 +1,8 @@
+node_modules/
+var/
+*.log
+.DS_Store
+
+# NOTE: dist/ is intentionally NOT gitignored here - Decision 6 (Plan 011) commits
+# built output so a git-dependency install ("github:LongTermSupport/ts-qa-ci#<sha>")
+# needs no build step and doesn't rely on the flaky npm `prepare` lifecycle hook.

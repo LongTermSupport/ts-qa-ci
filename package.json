@@ -1,0 +1,66 @@
+{
+  "name": "@longtermsupport/ts-qa-ci",
+  "version": "0.1.0",
+  "description": "Orchestrated QA/CI pipeline for TypeScript/React projects - the TS analogue of lts/php-qa-ci",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "ts-qa": "bin/ts-qa.js"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "bin",
+    "configDefaults",
+    "docs"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "prepublishOnly": "npm run build"
+  },
+  "_peerDependenciesPolicy": "Floors are set to the CURRENT major generation as of the last version check (npm view <pkg> version), not an old baseline carried forward out of habit — ts-qa-ci should push consumers toward current stable tooling, not accommodate years-old installs. Re-run `npm view <pkg> version` for every peerDependency before each ts-qa-ci release and bump these floors to the then-current major; do not silently let them go stale.",
+  "peerDependencies": {
+    "typescript": ">=7.0.0",
+    "eslint": ">=10.0.0",
+    "@types/node": ">=22.0.0",
+    "vite": ">=8.0.0",
+    "prettier": ">=3.9.0",
+    "vitest": ">=4.0.0",
+    "@playwright/test": ">=1.60.0",
+    "@stryker-mutator/core": ">=9.0.0"
+  },
+  "peerDependenciesMeta": {
+    "vite": { "optional": true },
+    "vitest": { "optional": true },
+    "@playwright/test": { "optional": true },
+    "@stryker-mutator/core": { "optional": true }
+  },
+  "dependencies": {
+    "oxlint": "^1.73.0",
+    "knip": "^6.0.0",
+    "remark": "^15.0.0",
+    "remark-validate-links": "^13.0.0",
+    "vfile": "^6.0.0",
+    "dependency-cruiser": "^18.0.0",
+    "eslint-config-prettier": "^10.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.0",
+    "eslint": "^10.0.0",
+    "@types/node": "^22.0.0",
+    "@types/estree": "^1.0.0",
+    "@types/estree-jsx": "^1.0.0",
+    "vitest": "^4.0.0"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  }
+}

@@ -1,0 +1,1 @@
+{"version":3,"file":"detectReadOnly.d.ts","sourceRoot":"","sources":["../../src/orchestrator/detectReadOnly.ts"],"names":[],"mappings":"AAAA;;;;;GAKG;AAEH,wBAAgB,QAAQ,CAAC,GAAG,EAAE,MAAM,CAAC,UAAU,EAAE,UAAU,EAAE,OAAO,EAAE,WAAW,EAAE,OAAO,GAAG,OAAO,CAQnG;AAED,wBAAgB,cAAc,CAAC,GAAG,EAAE,MAAM,CAAC,UAAU,GAAG,OAAO,CAK9D"}

@@ -1,0 +1,23 @@
+import { execTool } from './execTool.js';
+/**
+ * ESLint Phase 2 pass (phase2-design.md §2.2): pure report pass over
+ * whatever the Phase 1 --fix pass could not resolve, including the CDD
+ * tier. Never mutates - runs the same rules with no --fix flag at all.
+ */
+const tool = {
+    name: 'eslintReport',
+    phase: 2,
+    mutates: false,
+    pathSupporting: true,
+    async run(ctx) {
+        const target = ctx.path ?? '.';
+        const result = await execTool('npx', ['eslint', target], ctx.cwd);
+        if (result.exitCode === 0)
+            return { exitClass: 'clean', stdout: result.stdout, stderr: result.stderr };
+        if (result.exitCode === 2)
+            return { exitClass: 'crash', stdout: result.stdout, stderr: result.stderr };
+        return { exitClass: 'failure', stdout: result.stdout, stderr: result.stderr };
+    },
+};
+export default tool;
+//# sourceMappingURL=eslintReport.js.map

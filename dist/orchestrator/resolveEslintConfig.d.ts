@@ -1,0 +1,28 @@
+import type { Platform } from './types.js';
+/**
+ * ESLint config resolution (phase2-design.md §2.4/§4). This is the ONE
+ * deliberate exception to resolveConfigPath.ts's wholesale first-match-wins
+ * cascade: eslint.config.js is the delivery mechanism for Tier A's
+ * always-on guarantee, so a project override may only ADD to the base
+ * config, and any attempt to override a Tier A rule's severity is rejected
+ * unless a matching, justified entry exists in tsQaConfig/tier-a-exemptions.json.
+ *
+ * IMPORTANT (pass-2 Fable audit finding B1): array-level append alone does
+ * NOT stop per-rule overrides - ESLint flat config resolves rule severity
+ * last-entry-wins, per rule, across every config object whose `files` glob
+ * matches. This function explicitly scans for and gates that case; do not
+ * "simplify" this back down to a plain array spread.
+ */
+interface FlatConfigEntry {
+    files?: string[];
+    rules?: Record<string, unknown>;
+    [key: string]: unknown;
+}
+export interface TierAExemption {
+    ruleId: string;
+    files: string[];
+    justification: string;
+}
+export declare function resolveEslintConfig(projectRoot: string, platform: Platform, packageRoot: string): Promise<FlatConfigEntry[]>;
+export {};
+//# sourceMappingURL=resolveEslintConfig.d.ts.map
