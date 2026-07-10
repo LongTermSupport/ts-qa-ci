@@ -6,16 +6,24 @@ import { basename, extname } from 'node:path';
  * soup in a page or page-composing component is banned; only imported,
  * PascalCase custom components are allowed there.
  *
- * A file counts as "component-defining" (and so exempt) when ANY of its
- * top-level exports — default or named — has an identifier matching the
- * filename (extension stripped). Checking named exports too, not just
- * default, was added after dogfooding on lts-commerce-site (Plan 011 Task
- * 4.2/4.3) found every component in that repo uses `export function Foo()`/
- * `export const Foo = ...`, never `export default` — a default-export-only
- * check would have exempted zero files, flagging every component's own
- * internal JSX including its base layout primitives (an infinite regress:
- * Container.tsx's own <div> would need "a typed component instead", which
- * itself has to be defined with a <div> somewhere).
+ * Two exemption models, selected by config:
+ *
+ * 1. Component-definition model (DEFAULT, backwards-compatible). A file counts
+ *    as "component-defining" (and so exempt) when ANY of its top-level exports —
+ *    default or named — has an identifier matching the filename (extension
+ *    stripped). This is the original lts-commerce-site behaviour (Plan 011): a
+ *    default-export-only check would exempt zero files in a repo that uses
+ *    `export function Foo()` / `export const Foo = ...`, flagging every
+ *    component's own internal JSX (an infinite regress — Container.tsx's own
+ *    <div> would need "a typed component instead").
+ *
+ * 2. Allowlist-dir model (opt-in via `uiDirs`). Raw HTML/SVG is legal ONLY in
+ *    files under one of `uiDirs`; EVERY other file in scope is policed with NO
+ *    per-file component-definition exemption. This is the stricter admin-ts
+ *    doctrine (Plan 00004, reconciling dbf/no-raw-html-outside-ui): the base UI
+ *    primitives live in one place and everything else composes them. Combine
+ *    with `bannedElements: ['*']` to ban ALL lowercase JSX identifiers, closing
+ *    the fixed-list hole (svg, path, main, figure, custom hyphenated elements).
  *
  * Scoped per Decision 3 (Plan 011): JSX only. String/template-literal HTML
  * content (e.g. an articles.ts data file) is invisible to this AST rule by
@@ -28,6 +36,9 @@ const DEFAULT_BANNED_ELEMENTS = [
     'form', 'input', 'select', 'textarea', 'label', 'table', 'tr', 'td', 'th',
     'img', 'video', 'audio', 'iframe',
 ];
+// Sentinel in `bannedElements` meaning "ban every lowercase JSX identifier"
+// (rather than only the fixed DEFAULT_BANNED_ELEMENTS list).
+const BAN_ALL = '*';
 function getExportedNames(program) {
     const names = [];
     for (const stmt of program.body) {
@@ -73,14 +84,14 @@ function isComponentDefinitionFile(filename, exportedNames, exemptSuffixes) {
     const basenameNoExt = basename(filename, extname(filename));
     return exportedNames.includes(basenameNoExt);
 }
-function isInScope(filename, scopeGlobs) {
-    return scopeGlobs.some((glob) => filename.includes(glob.replace(/\*+$/, '')));
+function pathIncludesAny(filename, globs) {
+    return globs.some((glob) => filename.includes(glob.replace(/\*+$/, '')));
 }
 const rule = {
     meta: {
         type: 'problem',
         docs: {
-            description: 'Disallow raw HTML elements in JSX outside designated component-definition files — the CDD flagship rule',
+            description: 'Disallow raw HTML elements in JSX outside designated component-definition files or UI dirs — the CDD flagship rule',
         },
         schema: [
             {
@@ -89,6 +100,8 @@ const rule = {
                     scopeGlobs: { type: 'array', items: { type: 'string' } },
                     allowedElements: { type: 'array', items: { type: 'string' } },
                     exemptFileSuffixes: { type: 'array', items: { type: 'string' } },
+                    uiDirs: { type: 'array', items: { type: 'string' } },
+                    bannedElements: { type: 'array', items: { type: 'string' } },
                 },
                 additionalProperties: false,
             },
@@ -102,15 +115,28 @@ const rule = {
         const scopeGlobs = options.scopeGlobs ?? ['src/pages/', 'src/components/'];
         const allowedElements = new Set(options.allowedElements ?? []);
         const exemptFileSuffixes = options.exemptFileSuffixes ?? [];
-        if (!isInScope(context.filename, scopeGlobs))
+        const uiDirs = options.uiDirs ?? [];
+        const bannedElements = options.bannedElements ?? DEFAULT_BANNED_ELEMENTS;
+        const banAll = bannedElements.includes(BAN_ALL);
+        const bannedSet = new Set(bannedElements);
+        // Allowlist-dir model: a file under any uiDir is fully exempt (raw HTML is
+        // legal there); the per-file component-definition exemption is disabled for
+        // every other in-scope file.
+        const allowlistMode = uiDirs.length > 0;
+        if (!pathIncludesAny(context.filename, scopeGlobs))
+            return {};
+        if (allowlistMode && pathIncludesAny(context.filename, uiDirs))
             return {};
         // Computed once the Program node is visited (always the first node ESLint
         // visits, before any JSX inside it) - a file's own component-defining exports
-        // aren't knowable from its filename alone, only from its AST.
+        // aren't knowable from its filename alone, only from its AST. Only consulted
+        // in the default (component-definition) model.
         let exempt = false;
         return {
             Program(node) {
-                exempt = isComponentDefinitionFile(context.filename, getExportedNames(node), exemptFileSuffixes);
+                exempt = allowlistMode
+                    ? false
+                    : isComponentDefinitionFile(context.filename, getExportedNames(node), exemptFileSuffixes);
             },
             JSXOpeningElement(node) {
                 if (exempt)
@@ -123,7 +149,7 @@ const rule = {
                     return;
                 if (allowedElements.has(tag))
                     return;
-                if (!DEFAULT_BANNED_ELEMENTS.includes(tag))
+                if (!banAll && !bannedSet.has(tag))
                     return;
                 context.report({ node: node, messageId: 'adHocHtml', data: { tag } });
             },

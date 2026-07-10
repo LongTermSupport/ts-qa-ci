@@ -30,6 +30,10 @@ export default [
       'ts-qa/ssr-safe-hooks': TIER_A_ESLINT_RULES['ts-qa/ssr-safe-hooks'],
       'ts-qa/validate-lazy-imports': TIER_A_ESLINT_RULES['ts-qa/validate-lazy-imports'],
       'ts-qa/require-exported-component-types': TIER_A_ESLINT_RULES['ts-qa/require-exported-component-types'],
+      // JSX-scoped Tier A rules ported from admin-ts (Plan 00004).
+      'ts-qa/jsx-truthy-narrow': TIER_A_ESLINT_RULES['ts-qa/jsx-truthy-narrow'],
+      'ts-qa/no-inline-component-decl-in-render':
+        TIER_A_ESLINT_RULES['ts-qa/no-inline-component-decl-in-render'],
     },
   },
   {
@@ -40,6 +44,10 @@ export default [
       'ts-qa/no-eslint-disable': TIER_A_ESLINT_RULES['ts-qa/no-eslint-disable'],
       'ts-qa/no-placeholder': TIER_A_ESLINT_RULES['ts-qa/no-placeholder'],
       'ts-qa/require-explicit-type-annotations': TIER_A_ESLINT_RULES['ts-qa/require-explicit-type-annotations'],
+      // Repo-wide Tier A rules ported from admin-ts (Plan 00004).
+      'ts-qa/require-error-cause': TIER_A_ESLINT_RULES['ts-qa/require-error-cause'],
+      'ts-qa/no-typed-query-selector': TIER_A_ESLINT_RULES['ts-qa/no-typed-query-selector'],
+      'ts-qa/exhaustive-discriminated': TIER_A_ESLINT_RULES['ts-qa/exhaustive-discriminated'],
     },
   },
 ];
