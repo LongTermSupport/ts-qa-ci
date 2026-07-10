@@ -4,8 +4,56 @@
  * non-deterministic render values (new Date(), Math.random()) — both cause
  * server/client output mismatches (React error #418/#421) on any SSG/SSR
  * setup (Vite SSR + prerender, Next.js, etc). Zero business logic.
+ *
+ * "During render" is approximated structurally: a read counts as deferred
+ * (and so safe) once it is nested inside a function that is ITSELF nested
+ * inside another function - i.e. two or more function boundaries between
+ * the read and module scope. This covers useEffect/useLayoutEffect/
+ * useSyncExternalStore callbacks, useCallback callbacks, plain inline event
+ * handlers (onClick={() => ...}), and any other deferred-execution closure,
+ * without needing to special-case every hook/handler name individually.
+ * useMemo/useState/useReducer are the one common case that's nested but
+ * still runs synchronously during render, so their callback argument is
+ * explicitly excluded from the "deferred" treatment regardless of depth.
+ *
+ * Known limitation (accepted, not silently pretended away): a helper
+ * function defined inside a component and then CALLED synchronously in the
+ * render body (rather than passed as a callback) reads as "deferred" by
+ * this depth heuristic even though it actually executes during render.
+ * Catching that precisely needs real call-graph analysis, which is out of
+ * scope for a lint rule at this size - documented here so it isn't
+ * mistaken for a guarantee.
+ *
+ * Rewritten 2026-07-10 (Plan 011 Task 4.2/4.3) after dogfooding on
+ * lts-commerce-site found the previous name-list-only check
+ * (useEffect/useLayoutEffect/useSyncExternalStore ONLY) flagged an ordinary
+ * async form-submit handler passed to useCallback as an SSR hydration risk
+ * — it never runs during render at all, so that was a false positive, not
+ * a real finding.
  */
 const BROWSER_GLOBALS = new Set(['window', 'document', 'localStorage', 'sessionStorage', 'navigator']);
+const SYNC_RENDER_CALLBACK_HOOKS = new Set(['useMemo', 'useState', 'useReducer']);
+function isSyncRenderCallback(fn) {
+    const parent = fn.parent;
+    if (!parent || parent.type !== 'CallExpression' || !parent.callee)
+        return false;
+    return parent.callee.type === 'Identifier' && Boolean(parent.callee.name) && SYNC_RENDER_CALLBACK_HOOKS.has(parent.callee.name);
+}
+function isDeferred(node) {
+    let current = node.parent;
+    let functionBoundariesCrossed = 0;
+    while (current) {
+        if (current.type === 'FunctionDeclaration' || current.type === 'FunctionExpression' || current.type === 'ArrowFunctionExpression') {
+            if (isSyncRenderCallback(current))
+                return false;
+            functionBoundariesCrossed++;
+            if (functionBoundariesCrossed >= 2)
+                return true;
+        }
+        current = current.parent;
+    }
+    return false;
+}
 const rule = {
     meta: {
         type: 'problem',
@@ -17,22 +65,6 @@ const rule = {
         },
     },
     create(context) {
-        function isInsideEffectOrHandler(node) {
-            let current = node;
-            while (current) {
-                if (current.type === 'CallExpression' &&
-                    current.callee.type === 'Identifier' &&
-                    ['useEffect', 'useLayoutEffect', 'useSyncExternalStore'].includes(current.callee.name)) {
-                    return true;
-                }
-                if (current.type === 'FunctionDeclaration' || current.type === 'FunctionExpression' || current.type === 'ArrowFunctionExpression') {
-                    // Stop climbing at the nearest function boundary that isn't a hook callback -
-                    // conservative: only exempt when we actually found a hook call above.
-                }
-                current = current.parent ?? null;
-            }
-            return false;
-        }
         return {
             Identifier(node) {
                 if (!BROWSER_GLOBALS.has(node.name))
@@ -40,13 +72,13 @@ const rule = {
                 const parent = node.parent;
                 if (parent?.type === 'MemberExpression' && parent.object !== node)
                     return;
-                if (isInsideEffectOrHandler(node))
+                if (isDeferred(node))
                     return;
                 context.report({ node: node, messageId: 'browserGlobal', data: { name: node.name } });
             },
             NewExpression(node) {
                 if (node.callee.type === 'Identifier' && node.callee.name === 'Date' && node.arguments.length === 0) {
-                    if (!isInsideEffectOrHandler(node)) {
+                    if (!isDeferred(node)) {
                         context.report({ node: node, messageId: 'nonDeterministic', data: { name: 'new Date()' } });
                     }
                 }
@@ -57,7 +89,7 @@ const rule = {
                     node.callee.object.name === 'Math' &&
                     node.callee.property.type === 'Identifier' &&
                     node.callee.property.name === 'random') {
-                    if (!isInsideEffectOrHandler(node)) {
+                    if (!isDeferred(node)) {
                         context.report({ node: node, messageId: 'nonDeterministic', data: { name: 'Math.random()' } });
                     }
                 }
