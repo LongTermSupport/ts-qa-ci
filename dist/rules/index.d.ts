@@ -26,6 +26,8 @@ export declare const tsQaPlugin: {
         'no-dom-classname-mutation': import("eslint").Rule.RuleModule;
         'no-default-export': import("eslint").Rule.RuleModule;
         'no-cross-module-relative': import("eslint").Rule.RuleModule;
+        'no-classname-prop': import("eslint").Rule.RuleModule;
+        'no-classname-public-prop': import("eslint").Rule.RuleModule;
     };
 };
 /**
@@ -58,6 +60,8 @@ export declare const TIER_B_ESLINT_RULES: {
     readonly 'ts-qa/explicit-component-displayname': "warn";
     readonly 'ts-qa/no-error-hiding-fallback': "warn";
     readonly 'ts-qa/no-dom-classname-mutation': "warn";
+    readonly 'ts-qa/no-classname-prop': "warn";
+    readonly 'ts-qa/no-classname-public-prop': "warn";
 };
 /**
  * Tier C rule IDs — opt-in, project/framework-specific, NOT spread by default.

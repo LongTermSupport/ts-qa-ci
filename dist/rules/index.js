@@ -20,6 +20,8 @@ import noErrorHidingFallback from './noErrorHidingFallback.js';
 import noDomClassnameMutation from './noDomClassnameMutation.js';
 import noDefaultExport from './noDefaultExport.js';
 import noCrossModuleRelative from './noCrossModuleRelative.js';
+import noClassnameProp from './noClassnameProp.js';
+import noClassnamePublicProp from './noClassnamePublicProp.js';
 /**
  * ESLint flat-config plugin delivery (phase2-design.md §3): a "plugin" is
  * just an exported object with a `rules` map — no eslint-plugin-ts-qa-ci
@@ -49,6 +51,8 @@ export const tsQaPlugin = {
         'no-dom-classname-mutation': noDomClassnameMutation,
         'no-default-export': noDefaultExport,
         'no-cross-module-relative': noCrossModuleRelative,
+        'no-classname-prop': noClassnameProp,
+        'no-classname-public-prop': noClassnamePublicProp,
     },
 };
 /**
@@ -83,6 +87,13 @@ export const TIER_B_ESLINT_RULES = {
     'ts-qa/explicit-component-displayname': 'warn',
     'ts-qa/no-error-hiding-fallback': 'warn',
     'ts-qa/no-dom-classname-mutation': 'warn',
+    // className doctrine axes 2 + 3 (Plan 00004 Task 1.3), ported from admin-ts as
+    // dedicated companion rules rather than fleshing out the variant-api-enforcement
+    // scaffold (which its author reserves for the future variant-prop catalogue).
+    // Opinionated CDD — opt-in Tier B; recommended severity 'error' when a project
+    // adopts the className doctrine (admin-ts enables at error).
+    'ts-qa/no-classname-prop': 'warn',
+    'ts-qa/no-classname-public-prop': 'warn',
 };
 /**
  * Tier C rule IDs — opt-in, project/framework-specific, NOT spread by default.
