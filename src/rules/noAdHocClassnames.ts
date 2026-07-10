@@ -1,4 +1,5 @@
 import type { Rule } from 'eslint';
+import type { JSXAttribute } from 'estree-jsx';
 
 /**
  * Tier B (opt-in CDD): bans arbitrary/inline className string literals
@@ -40,7 +41,7 @@ const rule: Rule.RuleModule = {
     const resolvers = options.variantResolverNames ?? ['cva', 'cn', 'clsx', 'twMerge'];
 
     return {
-      JSXAttribute(node) {
+      JSXAttribute(node: JSXAttribute) {
         if (node.name.type !== 'JSXIdentifier' || node.name.name !== 'className') return;
         if (!node.value) return;
 
