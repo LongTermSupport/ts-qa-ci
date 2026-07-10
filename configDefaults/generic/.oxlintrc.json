@@ -1,0 +1,3 @@
+{
+  "ignorePatterns": ["dist", "dist-server", "build", "coverage", "node_modules", "var"]
+}

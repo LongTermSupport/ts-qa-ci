@@ -1,3 +1,4 @@
+import { resolveConfigPath } from '../orchestrator/resolveConfigPath.js';
 import { execTool } from './execTool.js';
 /**
  * knip (phase2-design.md §1) - dead code / unused deps / unused exports.
@@ -12,7 +13,8 @@ const tool = {
     mutates: false,
     pathSupporting: false,
     async run(ctx) {
-        const result = await execTool('npx', ['knip'], ctx.cwd);
+        const configPath = resolveConfigPath(ctx.cwd, ctx.platform, 'knip.json', ctx.packageRoot);
+        const result = await execTool('npx', ['knip', '--config', configPath], ctx.cwd);
         return {
             exitClass: result.exitCode === 0 ? 'clean' : 'failure',
             stdout: result.stdout,

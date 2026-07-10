@@ -1,3 +1,4 @@
+import { resolveConfigPath } from '../orchestrator/resolveConfigPath.js';
 import type { RunContext, ToolModule, ToolResult } from '../orchestrator/types.js';
 import { execTool } from './execTool.js';
 
@@ -15,7 +16,8 @@ const tool: ToolModule = {
   pathSupporting: false,
 
   async run(ctx: RunContext): Promise<ToolResult> {
-    const result = await execTool('npx', ['knip'], ctx.cwd);
+    const configPath = resolveConfigPath(ctx.cwd, ctx.platform, 'knip.json', ctx.packageRoot);
+    const result = await execTool('npx', ['knip', '--config', configPath], ctx.cwd);
     return {
       exitClass: result.exitCode === 0 ? 'clean' : 'failure',
       stdout: result.stdout,

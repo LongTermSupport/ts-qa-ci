@@ -6,12 +6,17 @@
 // ships as plain JS in configDefaults/ (see package.json "files"), and
 // runs against a consumer's own Node, not through this package's own
 // TypeScript build step.
+import eslintConfigPrettier from 'eslint-config-prettier';
 import { tsQaPlugin, TIER_A_ESLINT_RULES } from '../../dist/rules/index.js';
 
 export default [
   {
     ignores: ['dist/**', 'node_modules/**', 'var/**'],
   },
+  // Disables every ESLint stylistic rule that conflicts with Prettier - must run
+  // before project additions so a project can still re-enable a specific stylistic
+  // rule deliberately (last-entry-wins), not to defeat this baseline silently.
+  eslintConfigPrettier,
   {
     // Meta-rule scope note: meta-rules (no-async-handlers, require-documentation,
     // validate-message-ids) are NOT included here — they lint ts-qa-ci's own

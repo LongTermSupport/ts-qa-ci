@@ -71,6 +71,7 @@ export async function runPipeline(options: PipelineOptions): Promise<PipelineRes
     aggregate: options.aggregate ?? false,
     hasBeenRestarted: false,
     json: options.json ?? false,
+    packageRoot: options.packageRoot,
   };
 
   await runPreHook(options.cwd, { phases: PHASES.map((p) => p.number), platform, ci, readOnly, toolResults: {} });

@@ -1,3 +1,4 @@
+import { resolveConfigPath } from '../orchestrator/resolveConfigPath.js';
 import { execTool } from './execTool.js';
 /**
  * Phase 0 — Fast Fail (added 2026-07-10 per maintainer direction, see
@@ -25,12 +26,18 @@ const tool = {
     pathSupporting: true,
     async run(ctx) {
         const target = ctx.path ?? '.';
+        // Config cascade (project tsQaConfig/.oxlintrc.json -> platform default -> generic
+        // default): without this, oxlint has no ignorePatterns and lints everything,
+        // including deliberately-non-source content like article code-snippet directories
+        // (found while dogfooding on lts-commerce-site, Plan 011 Task 4.2/4.3).
+        const configPath = resolveConfigPath(ctx.cwd, ctx.platform, '.oxlintrc.json', ctx.packageRoot);
         // --deny-warnings is NOT optional: oxlint's default behaviour is exit 0 even when
         // warning-severity violations are found (empirically verified — most of its rules,
         // including no-unused-vars, are warning-severity by default). Without this flag,
         // Phase 0 would silently pass on real problems, defeating the entire fail-fast
         // premise (see PLAN.md Decision 7 — "fail fast and cheap" is the point).
-        const args = ctx.readOnly ? ['--deny-warnings', target] : ['--deny-warnings', '--fix', target];
+        const baseArgs = ['--deny-warnings', '--config', configPath];
+        const args = ctx.readOnly ? [...baseArgs, target] : [...baseArgs, '--fix', target];
         const result = await execTool('npx', ['oxlint', ...args], ctx.cwd);
         // oxlint: exit 0 = clean, exit 1 = lint problems found (with --deny-warnings, this
         // includes warnings), anything else = crash/config error.

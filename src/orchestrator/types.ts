@@ -26,6 +26,7 @@ export interface RunContext {
   aggregate: boolean;
   hasBeenRestarted: boolean;
   json: boolean;
+  packageRoot: string;
 }
 
 export interface PhaseDefinition {

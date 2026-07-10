@@ -1,5 +1,6 @@
 import type { RunContext, ToolModule, ToolResult } from '../orchestrator/types.js';
 import { execTool } from './execTool.js';
+import { generateEslintConfigFile } from './generateEslintConfigFile.js';
 
 /**
  * ESLint Phase 2 pass (phase2-design.md §2.2): pure report pass over
@@ -14,7 +15,8 @@ const tool: ToolModule = {
 
   async run(ctx: RunContext): Promise<ToolResult> {
     const target = ctx.path ?? '.';
-    const result = await execTool('npx', ['eslint', target], ctx.cwd);
+    const configPath = generateEslintConfigFile(ctx);
+    const result = await execTool('npx', ['eslint', '--config', configPath, target], ctx.cwd);
 
     if (result.exitCode === 0) return { exitClass: 'clean', stdout: result.stdout, stderr: result.stderr };
     if (result.exitCode === 2) return { exitClass: 'crash', stdout: result.stdout, stderr: result.stderr };
