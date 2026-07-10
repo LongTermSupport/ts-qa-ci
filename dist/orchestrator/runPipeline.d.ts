@@ -6,6 +6,8 @@ export interface PipelineOptions {
     packageRoot: string;
     path?: string;
     onlyPhase?: 0 | 1 | 2 | 3 | 4;
+    /** `-t <tool>` — bypass phase grouping entirely and run just this one tool. */
+    tool?: string;
     forceWrite?: boolean;
     forceReadOnly?: boolean;
     aggregate?: boolean;

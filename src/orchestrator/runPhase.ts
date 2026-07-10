@@ -24,7 +24,7 @@ export interface PhaseResult {
  * --json mode suppresses this: the caller gets the full structured result
  * instead and would see duplicated output otherwise.
  */
-function logToolResult(toolName: string, result: ToolResult, json: boolean): void {
+export function logToolResult(toolName: string, result: ToolResult, json: boolean): void {
   if (json) return;
   if (result.exitClass === 'clean') {
     console.log(`ts-qa: ${toolName}: clean`);

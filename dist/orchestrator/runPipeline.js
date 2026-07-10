@@ -2,6 +2,7 @@ import { detectCi, detectReadOnly } from './detectReadOnly.js';
 import { detectPlatform } from './detectPlatform.js';
 import { resolveDisabledTools } from './resolveDisabledTools.js';
 import { runPhase } from './runPhase.js';
+import { runSingleTool } from './runSingleTool.js';
 import { runPreHook, runPostHook } from './hooks.js';
 import { RESTART_WARNING } from './retryGate.js';
 export const PHASES = [
@@ -53,6 +54,24 @@ export async function runPipeline(options) {
         json: options.json ?? false,
         packageRoot: options.packageRoot,
     };
+    // `-t <tool>` bypasses phase grouping entirely (docs/pipeline.md "Running a
+    // single phase or tool") - this is issue #1's fix: `options.tool` used to
+    // be parsed by bin/ts-qa.js and then never read here, so `-t` silently ran
+    // the whole phase ladder instead of the one requested tool.
+    //
+    // Both hooks are skipped for a single-tool run, deliberately:
+    //   - hookPre's HookContext carries `phases: number[]` describing the
+    //     phases about to run, which doesn't describe a bypass.
+    //   - hookPost specifically means "every phase in this run succeeded";
+    //     firing it after one arbitrary tool (e.g. `-t stryker`, which isn't
+    //     in any phase at all) would misrepresent that guarantee to a
+    //     consumer's hookPost.ts script.
+    // This keeps `-t` minimal and unsurprising rather than trying to make the
+    // hook contract mean two different things.
+    if (options.tool !== undefined) {
+        const result = await runSingleTool(options.tool, ctx, options.packageRoot, options.cwd);
+        return { phases: [result], success: !result.failed, hasBeenRestarted: ctx.hasBeenRestarted };
+    }
     await runPreHook(options.cwd, { phases: PHASES.map((p) => p.number), platform, ci, readOnly, toolResults: {} });
     // Explicit undefined check, not truthiness — options.onlyPhase can legitimately be 0.
     const selectedPhases = options.onlyPhase !== undefined ? PHASES.filter((p) => p.number === options.onlyPhase) : PHASES;

@@ -16,7 +16,7 @@ import { runTool } from './runTool.js';
  * --json mode suppresses this: the caller gets the full structured result
  * instead and would see duplicated output otherwise.
  */
-function logToolResult(toolName, result, json) {
+export function logToolResult(toolName, result, json) {
     if (json)
         return;
     if (result.exitClass === 'clean') {
