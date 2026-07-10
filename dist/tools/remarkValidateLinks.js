@@ -1,8 +1,15 @@
+import { readFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { glob } from 'node:fs/promises';
 import { remark } from 'remark';
 import remarkValidateLinksPlugin from 'remark-validate-links';
 import { VFile } from 'vfile';
+import { resolveConfigPath } from '../orchestrator/resolveConfigPath.js';
+function loadIgnorePatterns(ctx) {
+    const configPath = resolveConfigPath(ctx.cwd, ctx.platform, 'remark-ignore.json', ctx.packageRoot);
+    const config = JSON.parse(readFileSync(configPath, 'utf-8'));
+    return config.ignorePatterns ?? ['**/node_modules/**'];
+}
 /**
  * remark-validate-links (phase2-design.md §1): relative-file + anchor
  * resolution parity with LinksChecker.php, explicitly WITHOUT external
@@ -17,8 +24,9 @@ const tool = {
     pathSupporting: true,
     async run(ctx) {
         const pattern = ctx.path ? `${ctx.path}/**/*.md` : '**/*.md';
+        const exclude = loadIgnorePatterns(ctx);
         const files = [];
-        for await (const file of glob(pattern, { cwd: ctx.cwd, exclude: ['**/node_modules/**'] })) {
+        for await (const file of glob(pattern, { cwd: ctx.cwd, exclude })) {
             files.push(file);
         }
         const processor = remark().use(remarkValidateLinksPlugin, { repository: false });

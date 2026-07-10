@@ -1,0 +1,12 @@
+{
+  "ignorePatterns": [
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/dist-server/**",
+    "**/build/**",
+    "**/coverage/**",
+    "**/var/**",
+    "**/untracked/**",
+    "**/.claude/**"
+  ]
+}

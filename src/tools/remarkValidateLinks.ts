@@ -1,9 +1,21 @@
+import { readFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { glob } from 'node:fs/promises';
 import { remark } from 'remark';
 import remarkValidateLinksPlugin from 'remark-validate-links';
 import { VFile } from 'vfile';
+import { resolveConfigPath } from '../orchestrator/resolveConfigPath.js';
 import type { RunContext, ToolModule, ToolResult } from '../orchestrator/types.js';
+
+interface RemarkIgnoreConfig {
+  ignorePatterns?: string[];
+}
+
+function loadIgnorePatterns(ctx: RunContext): string[] {
+  const configPath = resolveConfigPath(ctx.cwd, ctx.platform, 'remark-ignore.json', ctx.packageRoot);
+  const config = JSON.parse(readFileSync(configPath, 'utf-8')) as RemarkIgnoreConfig;
+  return config.ignorePatterns ?? ['**/node_modules/**'];
+}
 
 /**
  * remark-validate-links (phase2-design.md §1): relative-file + anchor
@@ -20,8 +32,9 @@ const tool: ToolModule = {
 
   async run(ctx: RunContext): Promise<ToolResult> {
     const pattern = ctx.path ? `${ctx.path}/**/*.md` : '**/*.md';
+    const exclude = loadIgnorePatterns(ctx);
     const files: string[] = [];
-    for await (const file of glob(pattern, { cwd: ctx.cwd, exclude: ['**/node_modules/**'] })) {
+    for await (const file of glob(pattern, { cwd: ctx.cwd, exclude })) {
       files.push(file);
     }
 
