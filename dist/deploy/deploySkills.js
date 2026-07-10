@@ -31,8 +31,11 @@ export async function deploySkills(options) {
     // hooks + settings.json fallback.
     const hasHooksDaemon = detectHooksDaemon(options.cwd);
     if (hasHooksDaemon) {
-        // Step 3: register as a project-handler, not a classic hook.
-        const handlerPath = join(claudeDir, 'project-handlers', 'ts_qa_ci_handler.py');
+        // Step 3: register as a project-handler, not a classic hook. Must land in the
+        // session_start/ event-type subdirectory - the daemon's project-handler loader
+        // only scans known event-type subdirectories, never the project-handlers/ root
+        // (confirmed empirically while dogfooding on lts-commerce-site, Plan 011 Task 4.9).
+        const handlerPath = join(claudeDir, 'project-handlers', 'session_start', 'ts_qa_ci_handler.py');
         const { written } = writeIfChanged(handlerPath, generateProjectHandlerSource());
         console.log(`ts-qa: project-handler ${written ? 'written' : 'unchanged'} at ${handlerPath}.`);
         console.log('ts-qa: restart the hooks daemon to load it, then run `validate-project-handlers` to confirm it loads cleanly.');

@@ -4,14 +4,18 @@
  * deploy script is, per Decision in phase2-design.md §5) but the OUTPUT is
  * Python, because the daemon itself is Python.
  *
- * IMPORTANT: the exact method contract a project-handler class must
- * implement is daemon-version-specific (the project's own docs note e.g.
- * `get_claude_md` as a requirement introduced by a later daemon version).
- * This template is deliberately minimal and defers to
- * `validate-project-handlers` (run in Task 4.9's verification step) to
- * confirm it actually loads under whatever daemon version the target
- * project runs — do not assume this template is complete without that
- * check.
+ * Confirmed empirically against a real daemon install while dogfooding on
+ * lts-commerce-site (Plan 011 Task 4.9): the daemon's project-handler
+ * loader (`project_loader.py`) only scans known event-type subdirectories
+ * (`pre_tool_use/`, `session_start/`, etc.) under `.claude/project-handlers/`
+ * - a handler file placed at the directory root, as the original version of
+ * this template produced, is silently never discovered. It also requires
+ * every handler to extend the daemon's `Handler` ABC and implement
+ * `matches()`/`handle()`, not just `get_claude_md()` - confirmed by reading
+ * a real working example handler already present in the target project.
+ * `deploySkills.ts` writes this into `session_start/` accordingly: pure
+ * context-injection, so `matches()` always returns True and `handle()` is a
+ * plain ALLOW no-op.
  */
 export declare function generateProjectHandlerSource(): string;
 //# sourceMappingURL=projectHandlerTemplate.d.ts.map
