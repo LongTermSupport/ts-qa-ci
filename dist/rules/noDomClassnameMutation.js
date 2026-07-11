@@ -21,65 +21,70 @@
 const SRC_PATTERN = /\/src\//;
 const UI_PATTERN = /\/src\/ui\//;
 const rule = {
-    meta: {
-        type: "problem",
-        docs: {
-            description: "Disallow imperative className / classList mutation outside ~/ui.",
-        },
-        schema: [
-            {
-                type: "object",
-                properties: {
-                    allow: { type: "array", items: { type: "string" } },
-                },
-                additionalProperties: false,
-            },
-        ],
-        messages: {
-            mutation: "Imperative className/classList mutation is ad-hoc CSS outside ~/ui. Render through a ~/ui component; if this is loader-level structure, it must be on the rule allowlist in eslint.config.mjs (reviewed).",
-        },
+  meta: {
+    type: "problem",
+    docs: {
+      description:
+        "Disallow imperative className / classList mutation outside ~/ui.",
     },
-    create(context) {
-        const filename = context.filename;
-        if (!SRC_PATTERN.test(filename) || UI_PATTERN.test(filename))
-            return {};
-        const options = (context.options[0] ?? {});
-        const allow = options.allow ?? [];
-        if (allow.some((entry) => filename.includes(entry)))
-            return {};
-        return {
-            AssignmentExpression(node) {
-                const left = node.left;
-                if (left.type === "MemberExpression" &&
-                    !left.computed &&
-                    left.property.type === "Identifier" &&
-                    left.property.name === "className") {
-                    context.report({
-                        node: node,
-                        messageId: "mutation",
-                    });
-                }
-            },
-            CallExpression(node) {
-                const callee = node.callee;
-                if (callee.type !== "MemberExpression")
-                    return;
-                const object = callee.object;
-                if (object.type === "MemberExpression" &&
-                    !object.computed &&
-                    object.property.type === "Identifier" &&
-                    object.property.name === "classList") {
-                    const hasStringLiteralArg = node.arguments.some((arg) => arg.type === "Literal" && typeof arg.value === "string");
-                    if (hasStringLiteralArg) {
-                        context.report({
-                            node: node,
-                            messageId: "mutation",
-                        });
-                    }
-                }
-            },
-        };
+    schema: [
+      {
+        type: "object",
+        properties: {
+          allow: { type: "array", items: { type: "string" } },
+        },
+        additionalProperties: false,
+      },
+    ],
+    messages: {
+      mutation:
+        "Imperative className/classList mutation is ad-hoc CSS outside ~/ui. Render through a ~/ui component; if this is loader-level structure, it must be on the rule allowlist in eslint.config.mjs (reviewed).",
     },
+  },
+  create(context) {
+    const filename = context.filename;
+    if (!SRC_PATTERN.test(filename) || UI_PATTERN.test(filename)) return {};
+    const options = context.options[0] ?? {};
+    const allow = options.allow ?? [];
+    if (allow.some((entry) => filename.includes(entry))) return {};
+    return {
+      AssignmentExpression(node) {
+        const left = node.left;
+        if (
+          left.type === "MemberExpression" &&
+          !left.computed &&
+          left.property.type === "Identifier" &&
+          left.property.name === "className"
+        ) {
+          context.report({
+            node: node,
+            messageId: "mutation",
+          });
+        }
+      },
+      CallExpression(node) {
+        const callee = node.callee;
+        if (callee.type !== "MemberExpression") return;
+        const object = callee.object;
+        if (
+          object.type === "MemberExpression" &&
+          !object.computed &&
+          object.property.type === "Identifier" &&
+          object.property.name === "classList"
+        ) {
+          const hasStringLiteralArg = node.arguments.some(
+            (arg) => arg.type === "Literal" && typeof arg.value === "string",
+          );
+          if (hasStringLiteralArg) {
+            context.report({
+              node: node,
+              messageId: "mutation",
+            });
+          }
+        }
+      },
+    };
+  },
 };
 export default rule;
 //# sourceMappingURL=noDomClassnameMutation.js.map

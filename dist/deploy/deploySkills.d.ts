@@ -1,6 +1,6 @@
 export interface DeployOptions {
-    cwd: string;
-    packageRoot: string;
+  cwd: string;
+  packageRoot: string;
 }
 /**
  * ts-qa deploy-skills (phase2-design.md §5). Manual deploy only for v1 - no
