@@ -18,4 +18,4 @@ module.exports = {
     // Standard dependency-cruiser recommendation (its own --init default).
     doNotFollow: { path: 'node_modules' },
   },
-};
+}

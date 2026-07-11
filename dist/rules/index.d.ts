@@ -1,34 +1,11 @@
+import type { Rule } from 'eslint';
 /**
  * ESLint flat-config plugin delivery (phase2-design.md §3): a "plugin" is
  * just an exported object with a `rules` map — no eslint-plugin-ts-qa-ci
  * package or legacy plugin-name resolution needed.
  */
 export declare const tsQaPlugin: {
-    rules: {
-        'no-eslint-disable': import("eslint").Rule.RuleModule;
-        'no-duplicate-section-ids': import("eslint").Rule.RuleModule;
-        'no-placeholder': import("eslint").Rule.RuleModule;
-        'require-explicit-type-annotations': import("eslint").Rule.RuleModule;
-        'require-exported-component-types': import("eslint").Rule.RuleModule;
-        'ssr-safe-hooks': import("eslint").Rule.RuleModule;
-        'validate-lazy-imports': import("eslint").Rule.RuleModule;
-        'no-ad-hoc-html': import("eslint").Rule.RuleModule;
-        'no-ad-hoc-classnames': import("eslint").Rule.RuleModule;
-        'variant-api-enforcement': import("eslint").Rule.RuleModule;
-        'require-error-cause': import("eslint").Rule.RuleModule;
-        'no-typed-query-selector': import("eslint").Rule.RuleModule;
-        'jsx-truthy-narrow': import("eslint").Rule.RuleModule;
-        'no-inline-component-decl-in-render': import("eslint").Rule.RuleModule;
-        'exhaustive-discriminated': import("eslint").Rule.RuleModule;
-        'one-component-per-file': import("eslint").Rule.RuleModule;
-        'explicit-component-displayname': import("eslint").Rule.RuleModule;
-        'no-error-hiding-fallback': import("eslint").Rule.RuleModule;
-        'no-dom-classname-mutation': import("eslint").Rule.RuleModule;
-        'no-default-export': import("eslint").Rule.RuleModule;
-        'no-cross-module-relative': import("eslint").Rule.RuleModule;
-        'no-classname-prop': import("eslint").Rule.RuleModule;
-        'no-classname-public-prop': import("eslint").Rule.RuleModule;
-    };
+    rules: Record<string, Rule.RuleModule>;
 };
 /**
  * Tier A rule IDs, namespaced as they appear in a consumer's flat config

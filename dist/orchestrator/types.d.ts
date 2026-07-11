@@ -1,4 +1,4 @@
-export type ExitClass = 'clean' | 'failure' | 'crash';
+type ExitClass = 'clean' | 'failure' | 'crash';
 export interface ToolResult {
     exitClass: ExitClass;
     stdout: string;
@@ -30,4 +30,5 @@ export interface PhaseDefinition {
     tools: string[];
     mutates: boolean;
 }
+export {};
 //# sourceMappingURL=types.d.ts.map

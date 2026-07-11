@@ -77,7 +77,7 @@ const rule: Rule.RuleModule = {
           object.property.name === 'classList'
         ) {
           const hasStringLiteralArg = node.arguments.some(
-            (arg) => arg.type === 'Literal' && typeof arg.value === 'string',
+            (arg) => arg.type === 'Literal' && typeof arg.value === 'string'
           );
           if (hasStringLiteralArg) {
             context.report({ node: node as unknown as Rule.Node, messageId: 'mutation' });

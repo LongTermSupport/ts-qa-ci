@@ -1,5 +1,5 @@
-import rule from './jsxTruthyNarrow.js';
 import { makeRuleTester } from '../testSupport/ruleTester.js';
+import rule from './jsxTruthyNarrow.js';
 
 const ruleTester = makeRuleTester();
 
@@ -81,7 +81,7 @@ ruleTester.run('jsx-truthy-narrow', rule, {
     },
     // String-literal falsy leaks to DOM.
     {
-      code: "const El = () => <div>{name && <Foo />}</div>;\n",
+      code: 'const El = () => <div>{name && <Foo />}</div>;\n',
       errors: [{ messageId: 'truthy' }],
     },
     // Naming heuristic requires an uppercase char after the prefix: `island`

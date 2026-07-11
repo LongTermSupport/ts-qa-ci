@@ -6,13 +6,32 @@
 // ships as plain JS in configDefaults/ (see package.json "files"), and
 // runs against a consumer's own Node, not through this package's own
 // TypeScript build step.
-import eslintConfigPrettier from 'eslint-config-prettier';
-import { tsQaPlugin, TIER_A_ESLINT_RULES } from '../../dist/rules/index.js';
-import { AS_ENUM_BAN_SELECTORS } from '../../dist/configs/strictTypescript.js';
+import eslintConfigPrettier from 'eslint-config-prettier'
+import tseslint from 'typescript-eslint'
+import { tsQaPlugin, TIER_A_ESLINT_RULES } from '../../dist/rules/index.js'
+import { AS_ENUM_BAN_SELECTORS } from '../../dist/configs/strictTypescript.js'
 
 export default [
   {
     ignores: ['dist/**', 'node_modules/**', 'var/**'],
+  },
+  {
+    // Tier A: parse every TS/TSX file with typescript-eslint's parser. Without
+    // this the base config falls back to espree (plain JS) and fails on `import
+    // type`, type annotations, `interface`, `as`, generics, etc. — so ts-qa could
+    // not lint ANY TypeScript project that doesn't already supply its own parser
+    // (a plain TS library, or ts-qa-ci itself). typescript-eslint is a declared
+    // peer dependency. Syntax-only (no `parserOptions.project`): the Tier A rules
+    // are non-type-aware by design, so this stays fast and needs no tsconfig wiring.
+    files: ['**/*.{ts,tsx,mts,cts}'],
+    languageOptions: {
+      parser: tseslint.parser,
+      parserOptions: {
+        ecmaVersion: 'latest',
+        sourceType: 'module',
+        ecmaFeatures: { jsx: true },
+      },
+    },
   },
   {
     // Tier A always-on (Plan 00004 Task 1.4): flag any eslint-disable/ts-* directive
@@ -58,8 +77,7 @@ export default [
       'ts-qa/require-exported-component-types': TIER_A_ESLINT_RULES['ts-qa/require-exported-component-types'],
       // JSX-scoped Tier A rules ported from admin-ts (Plan 00004).
       'ts-qa/jsx-truthy-narrow': TIER_A_ESLINT_RULES['ts-qa/jsx-truthy-narrow'],
-      'ts-qa/no-inline-component-decl-in-render':
-        TIER_A_ESLINT_RULES['ts-qa/no-inline-component-decl-in-render'],
+      'ts-qa/no-inline-component-decl-in-render': TIER_A_ESLINT_RULES['ts-qa/no-inline-component-decl-in-render'],
     },
   },
   {
@@ -76,4 +94,4 @@ export default [
       'ts-qa/exhaustive-discriminated': TIER_A_ESLINT_RULES['ts-qa/exhaustive-discriminated'],
     },
   },
-];
+]

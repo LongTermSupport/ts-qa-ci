@@ -7,7 +7,9 @@
 const rule = {
     meta: {
         type: 'suggestion',
-        docs: { description: 'Require top-level const data literals to carry an explicit type annotation' },
+        docs: {
+            description: 'Require top-level const data literals to carry an explicit type annotation',
+        },
         schema: [],
         messages: {
             missingAnnotation: 'Top-level const "{{name}}" holds an object/array literal but has no explicit type annotation.',
@@ -17,11 +19,16 @@ const rule = {
         const check = (node) => {
             if (node.id.type !== 'Identifier')
                 return;
-            if (!node.init || (node.init.type !== 'ObjectExpression' && node.init.type !== 'ArrayExpression'))
+            if (!node.init ||
+                (node.init.type !== 'ObjectExpression' && node.init.type !== 'ArrayExpression'))
                 return;
             const hasAnnotation = node.id.typeAnnotation !== undefined;
             if (!hasAnnotation) {
-                context.report({ node: node, messageId: 'missingAnnotation', data: { name: node.id.name } });
+                context.report({
+                    node: node,
+                    messageId: 'missingAnnotation',
+                    data: { name: node.id.name },
+                });
             }
         };
         return {

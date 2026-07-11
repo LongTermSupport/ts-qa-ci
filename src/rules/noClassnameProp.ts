@@ -1,5 +1,5 @@
 import type { Rule } from 'eslint';
-import type { JSXAttribute, JSXMemberExpression, JSXOpeningElement } from 'estree-jsx';
+import type { JSXAttribute, JSXOpeningElement } from 'estree-jsx';
 
 /**
  * Tier B (opt-in CDD) — companion to variant-api-enforcement, axis 2 of the
@@ -40,7 +40,9 @@ function pathIncludesAny(filename: string, globs: string[]): boolean {
   // contains the substring). Reproduces the dbf originals' /\/src\/…\// anchoring
   // — an unanchored `includes` would wrongly carve out any dir ending in `src`.
   const anchored = `/${filename.replace(/^\/+/, '')}`;
-  return globs.some((glob) => anchored.includes(`/${glob.replace(/^\/+/, '').replace(/\*+$/, '')}`));
+  return globs.some((glob) =>
+    anchored.includes(`/${glob.replace(/^\/+/, '').replace(/\*+$/, '')}`)
+  );
 }
 
 const rule: Rule.RuleModule = {
@@ -84,7 +86,11 @@ const rule: Rule.RuleModule = {
         if (name.type === 'JSXMemberExpression') {
           if (insideUi) return; // third-party compound passthrough carve-out
           const src = context.sourceCode.getText(name as unknown as Rule.Node);
-          context.report({ node: node as unknown as Rule.Node, messageId: 'classNameOnComponent', data: { component: src } });
+          context.report({
+            node: node as unknown as Rule.Node,
+            messageId: 'classNameOnComponent',
+            data: { component: src },
+          });
           return;
         }
 
@@ -96,11 +102,14 @@ const rule: Rule.RuleModule = {
         // a component and flagged. Stricter than the dbf original's locale-aware
         // test — ratchet-legal, and no real HTML/JSX tag starts non-ASCII.
         if (/^[a-z]/.test(tag)) return;
-        context.report({ node: node as unknown as Rule.Node, messageId: 'classNameOnComponent', data: { component: tag } });
+        context.report({
+          node: node as unknown as Rule.Node,
+          messageId: 'classNameOnComponent',
+          data: { component: tag },
+        });
       },
     };
   },
 };
 
 export default rule;
-export type { JSXMemberExpression };

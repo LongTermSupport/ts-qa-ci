@@ -1,9 +1,9 @@
-import { describe, it, expect, afterEach } from 'vitest';
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { afterEach, describe, expect, it } from 'vitest';
 
-import { resolveDisabledTools, KNOWN_TOOLS } from './resolveDisabledTools.js';
+import { KNOWN_TOOLS, resolveDisabledTools } from './resolveDisabledTools.js';
 
 /**
  * `disabledTools` lets a project opt a pipeline tool out of the run
@@ -55,11 +55,15 @@ describe('resolveDisabledTools', () => {
   });
 
   it('throws on an unknown tool name (typo guard)', () => {
-    expect(() => resolveDisabledTools(proj({ disabledTools: ['playwrigt'] }))).toThrow(/unknown tool/i);
+    expect(() => resolveDisabledTools(proj({ disabledTools: ['playwrigt'] }))).toThrow(
+      /unknown tool/i
+    );
   });
 
   it('throws when disabledTools is not an array', () => {
-    expect(() => resolveDisabledTools(proj({ disabledTools: 'playwright' }))).toThrow(/must be an array/i);
+    expect(() => resolveDisabledTools(proj({ disabledTools: 'playwright' }))).toThrow(
+      /must be an array/i
+    );
   });
 
   it('throws on malformed JSON rather than silently ignoring it', () => {

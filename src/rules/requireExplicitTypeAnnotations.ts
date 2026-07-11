@@ -10,19 +10,31 @@ import type { VariableDeclarator } from 'estree';
 const rule: Rule.RuleModule = {
   meta: {
     type: 'suggestion',
-    docs: { description: 'Require top-level const data literals to carry an explicit type annotation' },
+    docs: {
+      description: 'Require top-level const data literals to carry an explicit type annotation',
+    },
     schema: [],
     messages: {
-      missingAnnotation: 'Top-level const "{{name}}" holds an object/array literal but has no explicit type annotation.',
+      missingAnnotation:
+        'Top-level const "{{name}}" holds an object/array literal but has no explicit type annotation.',
     },
   },
   create(context) {
     const check = (node: VariableDeclarator): void => {
       if (node.id.type !== 'Identifier') return;
-      if (!node.init || (node.init.type !== 'ObjectExpression' && node.init.type !== 'ArrayExpression')) return;
-      const hasAnnotation = (node.id as unknown as { typeAnnotation?: unknown }).typeAnnotation !== undefined;
+      if (
+        !node.init ||
+        (node.init.type !== 'ObjectExpression' && node.init.type !== 'ArrayExpression')
+      )
+        return;
+      const hasAnnotation =
+        (node.id as unknown as { typeAnnotation?: unknown }).typeAnnotation !== undefined;
       if (!hasAnnotation) {
-        context.report({ node: node as unknown as Rule.Node, messageId: 'missingAnnotation', data: { name: node.id.name } });
+        context.report({
+          node: node as unknown as Rule.Node,
+          messageId: 'missingAnnotation',
+          data: { name: node.id.name },
+        });
       }
     };
     return {
@@ -31,7 +43,7 @@ const rule: Rule.RuleModule = {
       // > VariableDeclarator) must both be covered — exported data literals are
       // the ones most likely to need an explicit type.
       ':matches(Program, ExportNamedDeclaration) > VariableDeclaration > VariableDeclarator'(
-        node: VariableDeclarator,
+        node: VariableDeclarator
       ) {
         check(node);
       },

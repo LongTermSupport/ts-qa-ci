@@ -1,5 +1,5 @@
-import rule from './requireExplicitTypeAnnotations.js';
 import { makeRuleTester } from '../testSupport/ruleTester.js';
+import rule from './requireExplicitTypeAnnotations.js';
 
 const ruleTester = makeRuleTester();
 

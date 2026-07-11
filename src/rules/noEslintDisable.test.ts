@@ -1,5 +1,5 @@
-import rule from './noEslintDisable.js';
 import { makeRuleTester } from '../testSupport/ruleTester.js';
+import rule from './noEslintDisable.js';
 
 const ruleTester = makeRuleTester();
 

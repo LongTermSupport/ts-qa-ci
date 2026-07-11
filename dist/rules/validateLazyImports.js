@@ -59,14 +59,16 @@ const rule = {
                     callee.property.type === 'Identifier' &&
                     callee.property.name === 'lazy');
             }
-            return callee.type === 'Identifier' && lazyLocalName !== undefined && callee.name === lazyLocalName;
+            return (callee.type === 'Identifier' && lazyLocalName !== undefined && callee.name === lazyLocalName);
         }
         return {
             ImportDeclaration(node) {
                 if (node.source.value !== 'react')
                     return;
                 for (const spec of node.specifiers) {
-                    if (spec.type === 'ImportSpecifier' && spec.imported.type === 'Identifier' && spec.imported.name === 'lazy') {
+                    if (spec.type === 'ImportSpecifier' &&
+                        spec.imported.type === 'Identifier' &&
+                        spec.imported.name === 'lazy') {
                         lazyLocalName = spec.local.name;
                     }
                 }
@@ -88,7 +90,11 @@ const rule = {
                     return;
                 const resolved = resolveImportPath(context.filename, pathArg.value, aliasRoot);
                 if (!resolved) {
-                    context.report({ node: node, messageId: 'unresolvedImport', data: { path: pathArg.value } });
+                    context.report({
+                        node: node,
+                        messageId: 'unresolvedImport',
+                        data: { path: pathArg.value },
+                    });
                 }
             },
         };

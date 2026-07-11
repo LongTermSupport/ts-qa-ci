@@ -1,5 +1,5 @@
-import { RuleTester } from 'eslint';
 import tsParser from '@typescript-eslint/parser';
+import { RuleTester } from 'eslint';
 
 /**
  * Shared flat-config RuleTester for ts-qa-ci's own rules.

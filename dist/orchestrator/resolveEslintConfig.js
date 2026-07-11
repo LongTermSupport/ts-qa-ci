@@ -1,8 +1,8 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { TIER_A_RULE_IDS } from './tierARules.js';
 import { globIntersects } from './glob.js';
+import { TIER_A_RULE_IDS } from './tierARules.js';
 function loadExemptions(projectRoot) {
     const exemptionsPath = join(projectRoot, 'tsQaConfig', 'tier-a-exemptions.json');
     if (!existsSync(exemptionsPath))

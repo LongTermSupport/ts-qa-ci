@@ -1,5 +1,6 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
+
 import type { Platform } from './types.js';
 
 /**
@@ -8,7 +9,12 @@ import type { Platform } from './types.js';
  * this - see resolveEslintConfig.ts for why that one is a deliberate
  * exception with different (merge + rule-level guard) semantics.
  */
-export function resolveConfigPath(projectRoot: string, platform: Platform, fileName: string, packageRoot: string): string {
+export function resolveConfigPath(
+  projectRoot: string,
+  platform: Platform,
+  fileName: string,
+  packageRoot: string
+): string {
   const projectOverride = join(projectRoot, 'tsQaConfig', fileName);
   if (existsSync(projectOverride)) return projectOverride;
 

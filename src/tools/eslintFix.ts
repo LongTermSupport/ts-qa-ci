@@ -16,12 +16,21 @@ const tool: ToolModule = {
   async run(ctx: RunContext): Promise<ToolResult> {
     const target = ctx.path ?? '.';
     const configPath = generateEslintConfigFile(ctx);
-    const args = ctx.readOnly ? ['--config', configPath, '--fix-dry-run', target] : ['--config', configPath, '--fix', target];
+    const args = ctx.readOnly
+      ? ['--config', configPath, '--fix-dry-run', target]
+      : ['--config', configPath, '--fix', target];
     const result = await execTool('npx', ['eslint', ...args], ctx.cwd);
 
-    if (result.exitCode === 0) return { exitClass: 'clean', stdout: result.stdout, stderr: result.stderr };
-    if (result.exitCode === 2) return { exitClass: 'crash', stdout: result.stdout, stderr: result.stderr };
-    return { exitClass: 'failure', stdout: result.stdout, stderr: result.stderr, diffPending: ctx.readOnly };
+    if (result.exitCode === 0)
+      return { exitClass: 'clean', stdout: result.stdout, stderr: result.stderr };
+    if (result.exitCode === 2)
+      return { exitClass: 'crash', stdout: result.stdout, stderr: result.stderr };
+    return {
+      exitClass: 'failure',
+      stdout: result.stdout,
+      stderr: result.stderr,
+      diffPending: ctx.readOnly,
+    };
   },
 };
 

@@ -8,7 +8,7 @@ What `ts-qa`'s always-on rules assume about your codebase, and why.
 
 ## Explicit types over inference for data literals
 
-Top-level `const` object/array literals need an explicit type annotation. This isn't about distrust of inference generally — it's specifically that a data literal's *shape* is usually the contract other code depends on, and inference can silently widen or narrow that shape as the literal changes.
+Top-level `const` object/array literals need an explicit type annotation. This isn't about distrust of inference generally — it's specifically that a data literal's _shape_ is usually the contract other code depends on, and inference can silently widen or narrow that shape as the literal changes.
 
 ## No browser globals during render
 

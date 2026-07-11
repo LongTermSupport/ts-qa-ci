@@ -1,5 +1,5 @@
-import rule from './noInlineComponentDeclInRender.js';
 import { makeRuleTester } from '../testSupport/ruleTester.js';
+import rule from './noInlineComponentDeclInRender.js';
 
 const ruleTester = makeRuleTester();
 

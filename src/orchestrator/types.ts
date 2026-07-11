@@ -1,4 +1,4 @@
-export type ExitClass = 'clean' | 'failure' | 'crash';
+type ExitClass = 'clean' | 'failure' | 'crash';
 
 export interface ToolResult {
   exitClass: ExitClass;

@@ -7,7 +7,9 @@
 const rule = {
     meta: {
         type: 'problem',
-        docs: { description: 'Disallow duplicate literal id="..." values on JSX elements within one file' },
+        docs: {
+            description: 'Disallow duplicate literal id="..." values on JSX elements within one file',
+        },
         schema: [],
         messages: {
             duplicateId: 'Duplicate JSX id="{{id}}" — first used at line {{firstLine}}.',
@@ -19,13 +21,19 @@ const rule = {
             JSXAttribute(node) {
                 if (node.name.type !== 'JSXIdentifier' || node.name.name !== 'id')
                     return;
-                if (!node.value || node.value.type !== 'Literal' || typeof node.value.value !== 'string')
+                if (!node.value ||
+                    node.value.type !== 'Literal' ||
+                    typeof node.value.value !== 'string')
                     return;
                 const id = node.value.value;
                 const line = node.loc.start.line;
                 const firstLine = seen.get(id);
                 if (firstLine !== undefined) {
-                    context.report({ node: node, messageId: 'duplicateId', data: { id, firstLine: String(firstLine) } });
+                    context.report({
+                        node: node,
+                        messageId: 'duplicateId',
+                        data: { id, firstLine: String(firstLine) },
+                    });
                 }
                 else {
                     seen.set(id, line);

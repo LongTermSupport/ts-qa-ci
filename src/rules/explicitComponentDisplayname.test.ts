@@ -1,5 +1,5 @@
-import rule from './explicitComponentDisplayname.js';
 import { makeRuleTester } from '../testSupport/ruleTester.js';
+import rule from './explicitComponentDisplayname.js';
 
 const ruleTester = makeRuleTester();
 

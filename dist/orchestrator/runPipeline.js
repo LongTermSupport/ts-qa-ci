@@ -1,11 +1,11 @@
-import { detectCi, detectReadOnly } from './detectReadOnly.js';
 import { detectPlatform } from './detectPlatform.js';
+import { detectCi, detectReadOnly } from './detectReadOnly.js';
+import { runPostHook, runPreHook } from './hooks.js';
 import { resolveDisabledTools } from './resolveDisabledTools.js';
+import { RESTART_WARNING } from './retryGate.js';
 import { runPhase } from './runPhase.js';
 import { runSingleTool } from './runSingleTool.js';
-import { runPreHook, runPostHook } from './hooks.js';
-import { RESTART_WARNING } from './retryGate.js';
-export const PHASES = [
+const PHASES = [
     // Phase 0 runs unconditionally first, on every full pipeline run (never skipped by
     // --phase 1-4). oxlint is 50-100x faster than ESLint and catches a large class of
     // obvious problems near-instantly - if it fails, abort before paying for anything
@@ -16,7 +16,12 @@ export const PHASES = [
     // own phase). See PLAN.md Decision 7.
     { number: 0, name: 'Fast Fail', tools: ['oxlint'], mutates: true },
     { number: 1, name: 'Code Modification', tools: ['prettier', 'eslintFix'], mutates: true },
-    { number: 2, name: 'Lint & Validation', tools: ['eslintReport', 'remarkValidateLinks', 'knip'], mutates: false },
+    {
+        number: 2,
+        name: 'Lint & Validation',
+        tools: ['eslintReport', 'remarkValidateLinks', 'knip'],
+        mutates: false,
+    },
     { number: 3, name: 'Static Analysis', tools: ['tsc', 'dependencyCruiser'], mutates: false },
     { number: 4, name: 'Testing', tools: ['vitest', 'playwright'], mutates: false },
 ];
@@ -85,7 +90,13 @@ export async function runPipeline(options) {
         const result = await runSingleTool(options.tool, ctx, options.packageRoot, options.cwd);
         return { phases: [result], success: !result.failed, hasBeenRestarted: ctx.hasBeenRestarted };
     }
-    await runPreHook(options.cwd, { phases: PHASES.map((p) => p.number), platform, ci, readOnly, toolResults: {} });
+    await runPreHook(options.cwd, {
+        phases: PHASES.map((p) => p.number),
+        platform,
+        ci,
+        readOnly,
+        toolResults: {},
+    });
     // Explicit undefined check, not truthiness — options.onlyPhase can legitimately be 0.
     const selectedPhases = options.onlyPhase !== undefined ? PHASES.filter((p) => p.number === options.onlyPhase) : PHASES;
     // Tool opt-out (tsQaConfig/ts-qa.json `disabledTools` + CLI `--skip`). Filter each

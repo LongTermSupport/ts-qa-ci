@@ -8,7 +8,9 @@ import type { RunContext, ToolModule, ToolResult } from './types.js';
  */
 export async function runTool(tool: ToolModule, ctx: RunContext): Promise<ToolResult> {
   if (tool.pathSupporting === false && ctx.path) {
-    throw new Error(`ts-qa: ${tool.name} does not support -p/--path scoping (its config owns its own path resolution)`);
+    throw new Error(
+      `ts-qa: ${tool.name} does not support -p/--path scoping (its config owns its own path resolution)`
+    );
   }
   if (tool.mutates && ctx.readOnly) {
     // Mutating tools run in check/dry-run mode when read-only; the tool module

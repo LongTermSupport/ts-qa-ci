@@ -5,9 +5,8 @@
  * to the compiled orchestrator in dist/. Kept deliberately thin - all real
  * logic lives in src/orchestrator/, compiled to dist/orchestrator/.
  */
-
-import { fileURLToPath, pathToFileURL } from 'node:url';
 import { dirname, join } from 'node:path';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const packageRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -20,7 +19,9 @@ const packageRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
 function requireOperand(argv, index, flag) {
   const value = argv[index];
   if (value === undefined || value.startsWith('-')) {
-    throw new Error(`ts-qa: ${flag} requires a value (got ${value === undefined ? 'nothing' : `"${value}"`})`);
+    throw new Error(
+      `ts-qa: ${flag} requires a value (got ${value === undefined ? 'nothing' : `"${value}"`})`
+    );
   }
   return value;
 }
@@ -79,10 +80,14 @@ export function parseArgs(argv) {
     throw new Error('ts-qa: --write and --read-only are mutually exclusive');
   }
   if (options.aggregate && options.forceWrite) {
-    throw new Error('ts-qa: --aggregate is only valid for read-only runs (it conflicts with --write)');
+    throw new Error(
+      'ts-qa: --aggregate is only valid for read-only runs (it conflicts with --write)'
+    );
   }
   if (options.tool && options.onlyPhase !== undefined) {
-    throw new Error('ts-qa: -t (single-tool bypass) and --phase are mutually exclusive — -t skips phase grouping entirely');
+    throw new Error(
+      'ts-qa: -t (single-tool bypass) and --phase are mutually exclusive — -t skips phase grouping entirely'
+    );
   }
 
   // BUG D: --aggregate is a read-only reporting mode by contract (--write is
@@ -123,7 +128,8 @@ async function main() {
 
 // Only run the CLI when executed directly (`ts-qa ...`), not when imported by a
 // test that exercises parseArgs — importing must have no side effects.
-const invokedDirectly = process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href;
+const invokedDirectly =
+  process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href;
 if (invokedDirectly) {
   main().catch((error) => {
     console.error(error instanceof Error ? error.message : error);

@@ -1,5 +1,5 @@
-import rule from './noAdHocHtml.js';
 import { makeRuleTester } from '../testSupport/ruleTester.js';
+import rule from './noAdHocHtml.js';
 
 const ruleTester = makeRuleTester();
 

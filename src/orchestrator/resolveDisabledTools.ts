@@ -22,7 +22,7 @@ export const KNOWN_TOOLS = [
   'stryker',
 ] as const;
 
-export type KnownTool = (typeof KNOWN_TOOLS)[number];
+type KnownTool = (typeof KNOWN_TOOLS)[number];
 
 export interface DisabledToolsResult {
   /** Tool names to skip. */
@@ -48,7 +48,10 @@ function isKnownTool(name: string): name is KnownTool {
  * (a typo must not silently disable nothing). A missing config file is fine;
  * a present-but-malformed one throws rather than being silently ignored.
  */
-export function resolveDisabledTools(projectRoot: string, cliSkip: string[] = []): DisabledToolsResult {
+export function resolveDisabledTools(
+  projectRoot: string,
+  cliSkip: string[] = []
+): DisabledToolsResult {
   const sources = new Map<string, 'config' | 'cli'>();
 
   const configPath = join(projectRoot, 'tsQaConfig', 'ts-qa.json');

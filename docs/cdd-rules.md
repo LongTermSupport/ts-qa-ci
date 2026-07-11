@@ -17,7 +17,7 @@ Bans all `eslint-disable*`, `eslint-enable`, `@ts-ignore`, `@ts-expect-error`, a
 ```js
 // ❌ Banned
 // eslint-disable-next-line no-unused-vars
-const x = 1
+const x = 1;
 
 // ✅ Fix the underlying issue, or add a justified exemption
 ```
@@ -101,7 +101,7 @@ function HomePage() {
 
 **Not a gap**: string/template-literal HTML content (e.g. an `articles.ts` data file) is invisible to this AST/JSX rule by construction — a separately-governed, sanctioned content surface, not something this rule is meant to police.
 
-**Allowlist-dir mode** (opt-in, stricter): set `uiDirs` (e.g. `['src/ui/']`) to make raw HTML legal *only* under those dirs and policed everywhere else in scope with **no** per-file component-definition exemption. Combine with `bannedElements: ['*']` to ban **every** lowercase JSX identifier (closing the fixed-list hole for `svg`, `path`, `main`, custom hyphenated elements). This is the stricter "base primitives live in one place, everything else composes them" doctrine.
+**Allowlist-dir mode** (opt-in, stricter): set `uiDirs` (e.g. `['src/ui/']`) to make raw HTML legal _only_ under those dirs and policed everywhere else in scope with **no** per-file component-definition exemption. Combine with `bannedElements: ['*']` to ban **every** lowercase JSX identifier (closing the fixed-list hole for `svg`, `path`, `main`, custom hyphenated elements). This is the stricter "base primitives live in one place, everything else composes them" doctrine.
 
 ### `require-error-cause`
 
@@ -109,10 +109,18 @@ Flags `throw new SomeError(...)` inside a `catch` block when no argument carries
 
 ```ts
 // ❌ original error discarded
-try { risky() } catch (e) { throw new ApiError('failed') }
+try {
+  risky();
+} catch (e) {
+  throw new ApiError('failed');
+}
 
 // ✅ chain the cause
-try { risky() } catch (e) { throw new ApiError('failed', { cause: e }) }
+try {
+  risky();
+} catch (e) {
+  throw new ApiError('failed', { cause: e });
+}
 ```
 
 ### `no-typed-query-selector`
@@ -167,7 +175,7 @@ Bans imperative `el.className = …` and `classList.add('literal')` — an end-r
 
 ### `no-classname-public-prop` (className doctrine, axis 3 — declaration-site)
 
-Companion to `no-classname-prop`: bans a `className` member on any interface or inline object type (`TSPropertySignature`), so the prop is never *published* as a public surface even if unused. Config: `scopeGlobs`.
+Companion to `no-classname-prop`: bans a `className` member on any interface or inline object type (`TSPropertySignature`), so the prop is never _published_ as a public surface even if unused. Config: `scopeGlobs`.
 
 ## Tier C rules (opt-in, architecture/convention)
 
@@ -190,8 +198,8 @@ The **syntactic** half of the ban is **always-on Tier A**, not part of these opt
 Adopt inside a type-aware, TS-scoped config block:
 
 ```js
-import tseslint from 'typescript-eslint'
-import { STRICT_TYPESCRIPT_RULES } from '@longtermsupport/ts-qa-ci'
+import { STRICT_TYPESCRIPT_RULES } from '@longtermsupport/ts-qa-ci';
+import tseslint from 'typescript-eslint';
 
 export default [
   ...tseslint.configs.strictTypeChecked,
@@ -200,7 +208,7 @@ export default [
     languageOptions: { parserOptions: { projectService: true } },
     rules: { ...STRICT_TYPESCRIPT_RULES },
   },
-]
+];
 ```
 
 `reportUnusedDisableDirectives: 'error'` is **not** in these maps — it is a linter option (not a rule) and ships always-on in the generic base config, complementing `no-eslint-disable`.

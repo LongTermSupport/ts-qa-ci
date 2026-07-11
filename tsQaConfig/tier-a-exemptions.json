@@ -1,0 +1,12 @@
+[
+  {
+    "ruleId": "no-restricted-syntax",
+    "files": ["src/**/*.{ts,tsx}"],
+    "justification": "ts-qa-ci's own source is ESLint rule-authoring and pipeline-orchestrator code that sits on third-party type boundaries — estree AST nodes, ESLint's Rule.Node, and Node's fs/child_process/dynamic-import APIs — where a type-safe alternative to an `as` cast does not exist (e.g. narrowing an estree union to the ESLint Rule.Node the report() API demands, or asserting the shape of an untyped dynamically-imported config module). The repo contains no enums, so the enum half of the ban forfeits nothing. This exemption is scoped to src/** only; the always-on as/enum ban remains in force for every consuming project."
+  },
+  {
+    "ruleId": "ts-qa/no-placeholder",
+    "files": ["src/rules/noPlaceholder.ts"],
+    "justification": "noPlaceholder.ts is the rule that detects the literal token 'PLACEHOLDER'; its source (rule description and report message) must contain that exact string to function, so the rule unavoidably flags itself. Scoped to this single self-referential source file only."
+  }
+]

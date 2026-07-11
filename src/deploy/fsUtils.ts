@@ -12,7 +12,10 @@ export function writeIfChanged(path: string, content: string): { written: boolea
 }
 
 /** Recursively copies a directory, byte-comparing each file so unchanged files are never rewritten. */
-export function copyDirIdempotent(srcDir: string, destDir: string): { copied: string[]; unchanged: string[] } {
+export function copyDirIdempotent(
+  srcDir: string,
+  destDir: string
+): { copied: string[]; unchanged: string[] } {
   const copied: string[] = [];
   const unchanged: string[] = [];
   if (!existsSync(srcDir)) return { copied, unchanged };

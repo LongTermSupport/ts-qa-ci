@@ -1,5 +1,5 @@
-import rule from './noClassnamePublicProp.js';
 import { makeRuleTester } from '../testSupport/ruleTester.js';
+import rule from './noClassnamePublicProp.js';
 
 const ruleTester = makeRuleTester();
 

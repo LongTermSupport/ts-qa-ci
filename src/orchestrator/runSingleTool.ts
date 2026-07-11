@@ -1,7 +1,7 @@
-import { resolveToolModule } from './resolveToolModule.js';
-import { runTool } from './runTool.js';
-import { logToolResult, type PhaseResult } from './runPhase.js';
 import { KNOWN_TOOLS } from './resolveDisabledTools.js';
+import { resolveToolModule } from './resolveToolModule.js';
+import { type PhaseResult, logToolResult } from './runPhase.js';
+import { runTool } from './runTool.js';
 import type { RunContext } from './types.js';
 
 /**
@@ -18,9 +18,16 @@ import type { RunContext } from './types.js';
  * invoked this way). Silently no-op'ing it because of an unrelated
  * `disabledTools` entry would be far more surprising than honouring it.
  */
-export async function runSingleTool(toolName: string, ctx: RunContext, packageRoot: string, projectRoot: string): Promise<PhaseResult> {
+export async function runSingleTool(
+  toolName: string,
+  ctx: RunContext,
+  packageRoot: string,
+  projectRoot: string
+): Promise<PhaseResult> {
   if (!(KNOWN_TOOLS as readonly string[]).includes(toolName)) {
-    throw new Error(`ts-qa: unknown tool "${toolName}" (-t). Known tools: ${KNOWN_TOOLS.join(', ')}`);
+    throw new Error(
+      `ts-qa: unknown tool "${toolName}" (-t). Known tools: ${KNOWN_TOOLS.join(', ')}`
+    );
   }
 
   const tool = await resolveToolModule(projectRoot, ctx.platform, packageRoot, toolName);
@@ -30,5 +37,9 @@ export async function runSingleTool(toolName: string, ctx: RunContext, packageRo
   // Report the tool module's own `phase`, not a phase from the PHASES
   // ladder — an opt-in tool like stryker has no ladder slot at all, and for
   // ladder tools this is equivalent to the phase runPhase.ts would report.
-  return { phase: tool.phase, toolResults: { [toolName]: result }, failed: result.exitClass !== 'clean' };
+  return {
+    phase: tool.phase,
+    toolResults: { [toolName]: result },
+    failed: result.exitClass !== 'clean',
+  };
 }

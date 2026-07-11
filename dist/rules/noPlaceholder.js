@@ -7,7 +7,9 @@
 const rule = {
     meta: {
         type: 'problem',
-        docs: { description: 'Disallow the literal string "PLACEHOLDER" in string and template literals' },
+        docs: {
+            description: 'Disallow the literal string "PLACEHOLDER" in string and template literals',
+        },
         schema: [],
         messages: {
             placeholder: 'Found literal "PLACEHOLDER" content — replace with real content before shipping.',

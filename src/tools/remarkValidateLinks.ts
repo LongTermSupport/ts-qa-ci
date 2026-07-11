@@ -4,6 +4,7 @@ import { glob } from 'node:fs/promises';
 import { remark } from 'remark';
 import remarkValidateLinksPlugin from 'remark-validate-links';
 import { VFile } from 'vfile';
+
 import { resolveConfigPath } from '../orchestrator/resolveConfigPath.js';
 import type { RunContext, ToolModule, ToolResult } from '../orchestrator/types.js';
 
@@ -12,7 +13,12 @@ interface RemarkIgnoreConfig {
 }
 
 function loadIgnorePatterns(ctx: RunContext): string[] {
-  const configPath = resolveConfigPath(ctx.cwd, ctx.platform, 'remark-ignore.json', ctx.packageRoot);
+  const configPath = resolveConfigPath(
+    ctx.cwd,
+    ctx.platform,
+    'remark-ignore.json',
+    ctx.packageRoot
+  );
   const config = JSON.parse(readFileSync(configPath, 'utf-8')) as RemarkIgnoreConfig;
   return config.ignorePatterns ?? ['**/node_modules/**'];
 }

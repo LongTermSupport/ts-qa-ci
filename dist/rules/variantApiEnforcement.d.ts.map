@@ -1,1 +1,1 @@
-{"version":3,"file":"variantApiEnforcement.d.ts","sourceRoot":"","sources":["../../src/rules/variantApiEnforcement.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,IAAI,EAAE,MAAM,QAAQ,CAAC;AAEnC;;;;;;;;;;;;;;;;GAgBG;AACH,QAAA,MAAM,IAAI,EAAE,IAAI,CAAC,UAehB,CAAC;AAEF,eAAe,IAAI,CAAC"}
+{"version":3,"file":"variantApiEnforcement.d.ts","sourceRoot":"","sources":["../../src/rules/variantApiEnforcement.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,IAAI,EAAE,MAAM,QAAQ,CAAC;AAEnC;;;;;;;;;;;;;;;;GAgBG;AACH,QAAA,MAAM,IAAI,EAAE,IAAI,CAAC,UAgBhB,CAAC;AAEF,eAAe,IAAI,CAAC"}

@@ -19,7 +19,9 @@ export function execTool(command: string, args: string[], cwd: string): Promise<
 
     child.stdout.on('data', (chunk: Buffer) => (stdout += chunk.toString()));
     child.stderr.on('data', (chunk: Buffer) => (stderr += chunk.toString()));
-    child.on('error', (error: Error) => reject(new Error(`ts-qa: failed to spawn "${command}": ${error.message}`)));
+    child.on('error', (error: Error) =>
+      reject(new Error(`ts-qa: failed to spawn "${command}": ${error.message}`))
+    );
     child.on('close', (exitCode) => resolve({ exitCode, stdout, stderr }));
   });
 }

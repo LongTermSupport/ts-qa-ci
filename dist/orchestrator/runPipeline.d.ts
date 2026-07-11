@@ -1,6 +1,4 @@
 import { type PhaseResult } from './runPhase.js';
-import type { PhaseDefinition } from './types.js';
-export declare const PHASES: PhaseDefinition[];
 export interface PipelineOptions {
     cwd: string;
     packageRoot: string;

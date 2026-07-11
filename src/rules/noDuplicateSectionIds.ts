@@ -10,7 +10,9 @@ import type { JSXAttribute, Literal } from 'estree-jsx';
 const rule: Rule.RuleModule = {
   meta: {
     type: 'problem',
-    docs: { description: 'Disallow duplicate literal id="..." values on JSX elements within one file' },
+    docs: {
+      description: 'Disallow duplicate literal id="..." values on JSX elements within one file',
+    },
     schema: [],
     messages: {
       duplicateId: 'Duplicate JSX id="{{id}}" — first used at line {{firstLine}}.',
@@ -21,13 +23,22 @@ const rule: Rule.RuleModule = {
     return {
       JSXAttribute(node: JSXAttribute) {
         if (node.name.type !== 'JSXIdentifier' || node.name.name !== 'id') return;
-        if (!node.value || node.value.type !== 'Literal' || typeof (node.value as Literal).value !== 'string') return;
+        if (
+          !node.value ||
+          node.value.type !== 'Literal' ||
+          typeof (node.value as Literal).value !== 'string'
+        )
+          return;
 
         const id = (node.value as Literal).value as string;
         const line = node.loc!.start.line;
         const firstLine = seen.get(id);
         if (firstLine !== undefined) {
-          context.report({ node: node as unknown as Rule.Node, messageId: 'duplicateId', data: { id, firstLine: String(firstLine) } });
+          context.report({
+            node: node as unknown as Rule.Node,
+            messageId: 'duplicateId',
+            data: { id, firstLine: String(firstLine) },
+          });
         } else {
           seen.set(id, line);
         }

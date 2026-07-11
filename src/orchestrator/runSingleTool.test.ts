@@ -1,10 +1,10 @@
-import { describe, it, expect, afterEach } from 'vitest';
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { afterEach, describe, expect, it } from 'vitest';
 
-import { runSingleTool } from './runSingleTool.js';
 import { KNOWN_TOOLS } from './resolveDisabledTools.js';
+import { runSingleTool } from './runSingleTool.js';
 import type { RunContext } from './types.js';
 
 /**

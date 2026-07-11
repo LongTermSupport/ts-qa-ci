@@ -1,6 +1,6 @@
-import { basename, extname } from 'node:path';
 import type { Rule } from 'eslint';
-import type { JSXElement, JSXOpeningElement } from 'estree-jsx';
+import type { JSXOpeningElement } from 'estree-jsx';
+import { basename, extname } from 'node:path';
 
 /**
  * Tier A core rule (CDD flagship): bans raw HTML elements in .tsx JSX
@@ -33,11 +33,40 @@ import type { JSXElement, JSXOpeningElement } from 'estree-jsx';
  * construction, and is a separately-governed, sanctioned surface — not a
  * gap in this rule.
  */
-const DEFAULT_BANNED_ELEMENTS = [
-  'div', 'span', 'button', 'a', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-  'ul', 'ol', 'li', 'section', 'article', 'header', 'footer', 'nav', 'aside',
-  'form', 'input', 'select', 'textarea', 'label', 'table', 'tr', 'td', 'th',
-  'img', 'video', 'audio', 'iframe',
+const DEFAULT_BANNED_ELEMENTS: string[] = [
+  'div',
+  'span',
+  'button',
+  'a',
+  'p',
+  'h1',
+  'h2',
+  'h3',
+  'h4',
+  'h5',
+  'h6',
+  'ul',
+  'ol',
+  'li',
+  'section',
+  'article',
+  'header',
+  'footer',
+  'nav',
+  'aside',
+  'form',
+  'input',
+  'select',
+  'textarea',
+  'label',
+  'table',
+  'tr',
+  'td',
+  'th',
+  'img',
+  'video',
+  'audio',
+  'iframe',
 ];
 
 // Sentinel in `bannedElements` meaning "ban every lowercase JSX identifier"
@@ -83,7 +112,8 @@ interface ExportNamedDeclarationNode {
   declaration: FunctionDeclarationNode | VariableDeclarationNode | { type: string } | null;
   specifiers: ExportSpecifierNode[];
 }
-type ProgramStatement = ExportDefaultDeclarationNode | ExportNamedDeclarationNode | { type: string };
+type ProgramStatement =
+  ExportDefaultDeclarationNode | ExportNamedDeclarationNode | { type: string };
 interface ProgramNode {
   body: ProgramStatement[];
 }
@@ -116,14 +146,19 @@ function getExportedNames(program: ProgramNode): string[] {
       // (Plan 011 Task 4.2/4.3): Carousel.tsx uses exactly this shape and was still
       // being flagged for its own internal JSX despite exporting `Carousel`.
       for (const specifier of namedStmt.specifiers ?? []) {
-        if (specifier.exported.type === 'Identifier') names.push((specifier.exported as Identifier).name);
+        if (specifier.exported.type === 'Identifier')
+          names.push((specifier.exported as Identifier).name);
       }
     }
   }
   return names;
 }
 
-function isComponentDefinitionFile(filename: string, exportedNames: string[], exemptSuffixes: string[]): boolean {
+function isComponentDefinitionFile(
+  filename: string,
+  exportedNames: string[],
+  exemptSuffixes: string[]
+): boolean {
   if (exemptSuffixes.some((suffix) => filename.endsWith(suffix))) return true;
   const basenameNoExt = basename(filename, extname(filename));
   return exportedNames.includes(basenameNoExt);
@@ -135,7 +170,9 @@ function pathIncludesAny(filename: string, globs: string[]): boolean {
   // An unanchored `includes` would wrongly scope/exempt any dir ending in the
   // glob's leading segment.
   const anchored = `/${filename.replace(/^\/+/, '')}`;
-  return globs.some((glob) => anchored.includes(`/${glob.replace(/^\/+/, '').replace(/\*+$/, '')}`));
+  return globs.some((glob) =>
+    anchored.includes(`/${glob.replace(/^\/+/, '').replace(/\*+$/, '')}`)
+  );
 }
 
 const rule: Rule.RuleModule = {
@@ -202,11 +239,14 @@ const rule: Rule.RuleModule = {
         if (allowedElements.has(tag)) return;
         if (!banAll && !bannedSet.has(tag)) return;
 
-        context.report({ node: node as unknown as Rule.Node, messageId: 'adHocHtml', data: { tag } });
+        context.report({
+          node: node as unknown as Rule.Node,
+          messageId: 'adHocHtml',
+          data: { tag },
+        });
       },
     };
   },
 };
 
 export default rule;
-export type { JSXElement };

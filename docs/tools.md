@@ -8,7 +8,7 @@ Rust-based fast linter. Runs with `--deny-warnings` (its default exit code is 0 
 
 ## Prettier (Phase 1)
 
-`--write` locally, `--check` in read-only mode. **peerDependency** — runs through *your* installed Prettier, not a bundled instance, so it can't disagree with your own `npm run format`.
+`--write` locally, `--check` in read-only mode. **peerDependency** — runs through _your_ installed Prettier, not a bundled instance, so it can't disagree with your own `npm run format`.
 
 ## ESLint — `eslintFix` and `eslintReport` (Phase 1 and 2)
 
@@ -32,7 +32,7 @@ Markdown link integrity — relative-file and anchor resolution only. Does **not
 
 ## Vitest / Playwright (Phase 4)
 
-**peerDependencies** — `ts-qa` orchestrates *your* configured test setup rather than shipping a default one, the same relationship `tsc` has to your `tsconfig.json`.
+**peerDependencies** — `ts-qa` orchestrates _your_ configured test setup rather than shipping a default one, the same relationship `tsc` has to your `tsconfig.json`.
 
 ## Stryker Mutator (Phase 4, opt-in)
 

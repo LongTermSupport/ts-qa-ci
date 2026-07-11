@@ -1,27 +1,27 @@
-import noEslintDisable from './noEslintDisable.js';
+import exhaustiveDiscriminated from './exhaustiveDiscriminated.js';
+import explicitComponentDisplayname from './explicitComponentDisplayname.js';
+import jsxTruthyNarrow from './jsxTruthyNarrow.js';
+import noAdHocClassnames from './noAdHocClassnames.js';
+import noAdHocHtml from './noAdHocHtml.js';
+import noClassnameProp from './noClassnameProp.js';
+import noClassnamePublicProp from './noClassnamePublicProp.js';
+import noCrossModuleRelative from './noCrossModuleRelative.js';
+import noDefaultExport from './noDefaultExport.js';
+import noDomClassnameMutation from './noDomClassnameMutation.js';
 import noDuplicateSectionIds from './noDuplicateSectionIds.js';
+import noErrorHidingFallback from './noErrorHidingFallback.js';
+import noEslintDisable from './noEslintDisable.js';
+import noInlineComponentDeclInRender from './noInlineComponentDeclInRender.js';
 import noPlaceholder from './noPlaceholder.js';
+import noTypedQuerySelector from './noTypedQuerySelector.js';
+import oneComponentPerFile from './oneComponentPerFile.js';
+// Ported from admin-ts's eslint-plugin-dbf during the adoption (Plan 00004).
+import requireErrorCause from './requireErrorCause.js';
 import requireExplicitTypeAnnotations from './requireExplicitTypeAnnotations.js';
 import requireExportedComponentTypes from './requireExportedComponentTypes.js';
 import ssrSafeHooks from './ssrSafeHooks.js';
 import validateLazyImports from './validateLazyImports.js';
-import noAdHocHtml from './noAdHocHtml.js';
-import noAdHocClassnames from './noAdHocClassnames.js';
 import variantApiEnforcement from './variantApiEnforcement.js';
-// Ported from admin-ts's eslint-plugin-dbf during the adoption (Plan 00004).
-import requireErrorCause from './requireErrorCause.js';
-import noTypedQuerySelector from './noTypedQuerySelector.js';
-import jsxTruthyNarrow from './jsxTruthyNarrow.js';
-import noInlineComponentDeclInRender from './noInlineComponentDeclInRender.js';
-import exhaustiveDiscriminated from './exhaustiveDiscriminated.js';
-import oneComponentPerFile from './oneComponentPerFile.js';
-import explicitComponentDisplayname from './explicitComponentDisplayname.js';
-import noErrorHidingFallback from './noErrorHidingFallback.js';
-import noDomClassnameMutation from './noDomClassnameMutation.js';
-import noDefaultExport from './noDefaultExport.js';
-import noCrossModuleRelative from './noCrossModuleRelative.js';
-import noClassnameProp from './noClassnameProp.js';
-import noClassnamePublicProp from './noClassnamePublicProp.js';
 /**
  * ESLint flat-config plugin delivery (phase2-design.md §3): a "plugin" is
  * just an exported object with a `rules` map — no eslint-plugin-ts-qa-ci

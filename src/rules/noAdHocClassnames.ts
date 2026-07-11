@@ -22,7 +22,8 @@ const rule: Rule.RuleModule = {
   meta: {
     type: 'problem',
     docs: {
-      description: 'Disallow arbitrary className string/template literals outside a variant-resolver call (Tier B, opt-in CDD)',
+      description:
+        'Disallow arbitrary className string/template literals outside a variant-resolver call (Tier B, opt-in CDD)',
     },
     schema: [
       {
@@ -46,17 +47,32 @@ const rule: Rule.RuleModule = {
         if (!node.value) return;
 
         if (node.value.type === 'Literal' && typeof node.value.value === 'string') {
-          context.report({ node: node as unknown as Rule.Node, messageId: 'adHocClassname', data: { resolvers: resolvers.join('/') } });
+          context.report({
+            node: node as unknown as Rule.Node,
+            messageId: 'adHocClassname',
+            data: { resolvers: resolvers.join('/') },
+          });
           return;
         }
 
         if (node.value.type === 'JSXExpressionContainer') {
           const expr = node.value.expression;
-          if (expr.type === 'TemplateLiteral' || (expr.type === 'Literal' && typeof expr.value === 'string')) {
-            context.report({ node: node as unknown as Rule.Node, messageId: 'adHocClassname', data: { resolvers: resolvers.join('/') } });
+          if (
+            expr.type === 'TemplateLiteral' ||
+            (expr.type === 'Literal' && typeof expr.value === 'string')
+          ) {
+            context.report({
+              node: node as unknown as Rule.Node,
+              messageId: 'adHocClassname',
+              data: { resolvers: resolvers.join('/') },
+            });
             return;
           }
-          if (expr.type === 'CallExpression' && expr.callee.type === 'Identifier' && resolvers.includes(expr.callee.name)) {
+          if (
+            expr.type === 'CallExpression' &&
+            expr.callee.type === 'Identifier' &&
+            resolvers.includes(expr.callee.name)
+          ) {
             return; // sanctioned variant-resolver call
           }
         }

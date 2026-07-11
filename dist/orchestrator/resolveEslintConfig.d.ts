@@ -18,11 +18,6 @@ interface FlatConfigEntry {
     rules?: Record<string, unknown>;
     [key: string]: unknown;
 }
-export interface TierAExemption {
-    ruleId: string;
-    files: string[];
-    justification: string;
-}
 interface TierAOverride {
     ruleId: string;
     files: string[];

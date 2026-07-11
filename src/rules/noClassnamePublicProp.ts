@@ -38,7 +38,9 @@ function pathIncludesAny(filename: string, globs: string[]): boolean {
   // sides so `src/` matches `/proj/src/…` but NOT `…/adsrc/…`. Reproduces the
   // dbf original's /\/src\// anchoring; an unanchored `includes` over-matches.
   const anchored = `/${filename.replace(/^\/+/, '')}`;
-  return globs.some((glob) => anchored.includes(`/${glob.replace(/^\/+/, '').replace(/\*+$/, '')}`));
+  return globs.some((glob) =>
+    anchored.includes(`/${glob.replace(/^\/+/, '').replace(/\*+$/, '')}`)
+  );
 }
 
 const rule: Rule.RuleModule = {

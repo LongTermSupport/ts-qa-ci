@@ -18,8 +18,10 @@ const tool: ToolModule = {
     const configPath = generateEslintConfigFile(ctx);
     const result = await execTool('npx', ['eslint', '--config', configPath, target], ctx.cwd);
 
-    if (result.exitCode === 0) return { exitClass: 'clean', stdout: result.stdout, stderr: result.stderr };
-    if (result.exitCode === 2) return { exitClass: 'crash', stdout: result.stdout, stderr: result.stderr };
+    if (result.exitCode === 0)
+      return { exitClass: 'clean', stdout: result.stdout, stderr: result.stderr };
+    if (result.exitCode === 2)
+      return { exitClass: 'crash', stdout: result.stdout, stderr: result.stderr };
     return { exitClass: 'failure', stdout: result.stdout, stderr: result.stderr };
   },
 };
