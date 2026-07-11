@@ -19,8 +19,18 @@ const tool = {
         // while dogfooding on lts-commerce-site, Plan 011 Task 4.2/4.3).
         const configPath = resolveConfigPath(ctx.cwd, ctx.platform, 'dependency-cruiser.config.cjs', ctx.packageRoot);
         const result = await execTool('npx', ['depcruise', '--config', configPath, 'src'], ctx.cwd);
+        // depcruise is the only count-based tool here: it sets its exit code to the
+        // number of error-level violations, which the OS truncates to 8 bits. So
+        // exactly 256 (or 512, 768, ...) error-level violations wrap to exit 0 and
+        // would wrongly read as clean - a silent QA hole (GitHub issue #2, BUG A).
+        // Never trust the raw integer: cross-check the summary line depcruise always
+        // prints ("x N dependency violations (E errors, W warnings)."). If the
+        // summary reports > 0 errors, it is a failure regardless of the numeric exit.
+        const summaryMatch = result.stdout.match(/(\d+)\s+dependency violations\s*\((\d+)\s+errors/);
+        const summaryErrors = summaryMatch ? Number(summaryMatch[2]) : 0;
+        const clean = result.exitCode === 0 && summaryErrors === 0;
         return {
-            exitClass: result.exitCode === 0 ? 'clean' : 'failure',
+            exitClass: clean ? 'clean' : 'failure',
             stdout: result.stdout,
             stderr: result.stderr,
         };

@@ -44,6 +44,17 @@ const tool = {
         if (result.exitCode === 0)
             return { exitClass: 'clean', stdout: result.stdout, stderr: result.stderr };
         if (result.exitCode === 1) {
+            // A fatal --config parse error ALSO exits 1, indistinguishable by exit code
+            // from "lint problems found" (GitHub issue #2, BUG B). Left as a `failure`
+            // it is misleadingly retryable - retryGate would offer to re-run a
+            // structurally-broken config, and diffPending would be a lie. Detect the
+            // fatal-config signature (emitted on stdout, occasionally stderr depending
+            // on version) and classify as `crash`, which retryGate never retries, with
+            // diffPending left unset.
+            const combined = `${result.stdout}\n${result.stderr}`;
+            if (/Failed to parse oxlint config/i.test(combined)) {
+                return { exitClass: 'crash', stdout: result.stdout, stderr: result.stderr };
+            }
             return { exitClass: 'failure', stdout: result.stdout, stderr: result.stderr, diffPending: ctx.readOnly };
         }
         return { exitClass: 'crash', stdout: result.stdout, stderr: result.stderr };

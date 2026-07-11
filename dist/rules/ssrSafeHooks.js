@@ -72,6 +72,12 @@ const rule = {
                 const parent = node.parent;
                 if (parent?.type === 'MemberExpression' && parent.object !== node)
                     return;
+                // A non-computed object-literal / class member key named after a browser
+                // global (e.g. `{ document: 1 }`) is just an identifier key, not a read.
+                if ((parent?.type === 'Property' || parent?.type === 'MethodDefinition') &&
+                    parent.key === node &&
+                    !parent.computed)
+                    return;
                 if (isDeferred(node))
                     return;
                 context.report({ node: node, messageId: 'browserGlobal', data: { name: node.name } });

@@ -30,6 +30,11 @@ ruleTester.run('jsx-truthy-narrow', rule, {
     // Member-access with boolean-prefixed property (any depth).
     { code: 'const El = () => <div>{props.canEdit && <Foo />}</div>;\n' },
     { code: 'const El = () => <div>{state.ui.isLoading && <Foo />}</div>;\n' },
+    // Optional-chained member with a boolean-prefixed property — ESTree wraps the
+    // optional-chain root in a ChainExpression, which must recurse to the inner
+    // MemberExpression so the naming heuristic still applies.
+    { code: 'const El = () => <div>{user?.isActive && <Foo />}</div>;\n' },
+    { code: 'const El = () => <div>{state?.ui?.isLoading && <Foo />}</div>;\n' },
     // Ternary is not a LogicalExpression — never flagged.
     { code: 'const El = () => <div>{count ? <Foo /> : null}</div>;\n' },
     // `||` is not `&&` — out of scope.
@@ -56,6 +61,12 @@ ruleTester.run('jsx-truthy-narrow', rule, {
     // Property access without a boolean-prefixed name.
     {
       code: 'const El = () => <div>{props.count && <Foo />}</div>;\n',
+      errors: [{ messageId: 'truthy' }],
+    },
+    // Optional-chained member with a non-boolean property name — recursing
+    // through the ChainExpression must still land on a flaggable primitive.
+    {
+      code: 'const El = () => <div>{user?.count && <Foo />}</div>;\n',
       errors: [{ messageId: 'truthy' }],
     },
     // Non-Boolean call expression.

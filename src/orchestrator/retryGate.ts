@@ -8,24 +8,31 @@ import type { RunContext, ToolModule, ToolResult } from './types.js';
  * the end-of-run warning fires ("re-run the whole pipeline to be sure").
  */
 export async function retryGate(tool: ToolModule, ctx: RunContext): Promise<ToolResult> {
-  const result = await tool.run(ctx);
+  let result = await tool.run(ctx);
 
-  if (result.exitClass === 'clean') return result;
-  if (result.exitClass === 'crash') return result; // caller aborts on crash, never retries
+  // BUG E: an interactive retry loop — the previous form recursed inside the
+  // try{} *before* finally{rl.close()}, so each retry opened a new readline
+  // interface without closing the previous one (stacked live stdin listeners
+  // → MaxListenersExceededWarning and multi-delivery of keystrokes). Looping
+  // keeps exactly one interface open at a time.
+  for (;;) {
+    if (result.exitClass === 'clean') return result;
+    if (result.exitClass === 'crash') return result; // caller aborts on crash, never retries
 
-  // result.exitClass === 'failure'
-  if (ctx.ci) return result; // CI: fail-fast unless --aggregate (handled by runPhase.ts)
+    // result.exitClass === 'failure'
+    if (ctx.ci) return result; // CI: fail-fast unless --aggregate (handled by runPhase.ts)
 
-  const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
-  try {
-    const answer = await rl.question(`${tool.name} failed. Try again? (y/n) `);
-    if (answer.trim().toLowerCase() === 'y') {
-      ctx.hasBeenRestarted = true;
-      return retryGate(tool, ctx);
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    let answer: string;
+    try {
+      answer = await rl.question(`${tool.name} failed. Try again? (y/n) `);
+    } finally {
+      rl.close();
     }
-    return result;
-  } finally {
-    rl.close();
+
+    if (answer.trim().toLowerCase() !== 'y') return result;
+    ctx.hasBeenRestarted = true;
+    result = await tool.run(ctx);
   }
 }
 

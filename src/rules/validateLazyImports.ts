@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import type { Rule } from 'eslint';
+import type { CallExpression } from 'estree';
 
 /**
  * Tier A core rule: validates React.lazy(() => import('...')) paths
@@ -41,18 +42,42 @@ const rule: Rule.RuleModule = {
       },
     ],
     messages: {
-      unresolvedImport: 'React.lazy() import path "{{path}}" does not resolve to any file.',
+      unresolvedImport: 'lazy() import path "{{path}}" does not resolve to any file.',
     },
   },
   create(context) {
     const options = (context.options[0] ?? {}) as { aliasRoot?: string };
     const aliasRoot = options.aliasRoot ? resolve(context.cwd, options.aliasRoot) : undefined;
 
+    // Local name that `lazy` was imported under from 'react' (usually `lazy`,
+    // but honour aliases like `import { lazy as reactLazy }`). Only a bare call
+    // to THIS name is treated as React's lazy(), avoiding false positives on
+    // unrelated helpers that happen to be called `lazy`.
+    let lazyLocalName: string | undefined;
+
+    function isLazyCallee(callee: CallExpression['callee']): boolean {
+      if (callee.type === 'MemberExpression') {
+        return (
+          callee.object.type === 'Identifier' &&
+          callee.object.name === 'React' &&
+          callee.property.type === 'Identifier' &&
+          callee.property.name === 'lazy'
+        );
+      }
+      return callee.type === 'Identifier' && lazyLocalName !== undefined && callee.name === lazyLocalName;
+    }
+
     return {
+      ImportDeclaration(node) {
+        if (node.source.value !== 'react') return;
+        for (const spec of node.specifiers) {
+          if (spec.type === 'ImportSpecifier' && spec.imported.type === 'Identifier' && spec.imported.name === 'lazy') {
+            lazyLocalName = spec.local.name;
+          }
+        }
+      },
       CallExpression(node) {
-        if (node.callee.type !== 'MemberExpression') return;
-        if (node.callee.object.type !== 'Identifier' || node.callee.object.name !== 'React') return;
-        if (node.callee.property.type !== 'Identifier' || node.callee.property.name !== 'lazy') return;
+        if (!isLazyCallee(node.callee)) return;
 
         const arg = node.arguments[0];
         if (!arg || (arg.type !== 'ArrowFunctionExpression' && arg.type !== 'FunctionExpression')) return;

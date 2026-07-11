@@ -39,6 +39,11 @@ export async function runPhase(phaseDef, ctx, packageRoot, projectRoot) {
         logToolResult(toolName, result, ctx.json);
         if (result.exitClass !== 'clean') {
             failed = true;
+            // BUG B: a crash (e.g. a missing binary) is never retried and must abort
+            // the phase even under --aggregate — retryGate's contract is "caller
+            // aborts on crash". Only a plain failure is allowed to aggregate.
+            if (result.exitClass === 'crash')
+                break;
             if (!ctx.aggregate)
                 break;
         }

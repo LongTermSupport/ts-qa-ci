@@ -1,6 +1,7 @@
 import type { Rule } from 'eslint';
 import type {
   CallExpression,
+  ChainExpression,
   Expression,
   LogicalExpression,
   MemberExpression,
@@ -38,6 +39,12 @@ const BOOLEAN_NAME = /^(is|has|should|can|did|was|will|are)[A-Z]/;
 
 const isBooleanShape = (node: Node | Super | PrivateIdentifier | null | undefined): boolean => {
   if (node === undefined || node === null) return false;
+  if (node.type === 'ChainExpression') {
+    // ESTree wraps the root of an optional chain (`foo?.bar`) in a
+    // ChainExpression; unwrap to the inner expression so the member-name
+    // heuristic still applies to `user?.isActive`.
+    return isBooleanShape((node as ChainExpression).expression);
+  }
   if (node.type === 'BinaryExpression') return true; // ===, !==, >, <, in, instanceof
   if (node.type === 'LogicalExpression') return isBooleanShape((node as LogicalExpression).right);
   if (node.type === 'UnaryExpression' && (node.operator === '!' || node.operator === 'typeof'))

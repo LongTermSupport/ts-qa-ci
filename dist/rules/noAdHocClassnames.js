@@ -30,7 +30,7 @@ const rule = {
                 }
                 if (node.value.type === 'JSXExpressionContainer') {
                     const expr = node.value.expression;
-                    if (expr.type === 'TemplateLiteral') {
+                    if (expr.type === 'TemplateLiteral' || (expr.type === 'Literal' && typeof expr.value === 'string')) {
                         context.report({ node: node, messageId: 'adHocClassname', data: { resolvers: resolvers.join('/') } });
                         return;
                     }
