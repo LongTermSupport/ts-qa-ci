@@ -23,19 +23,21 @@
  *   rule's body is written against a type-aware-lint pipeline.
  */
 const rule = {
-    meta: {
-        type: "problem",
-        docs: {
-            description: "Discriminated-union narrowing must be exhaustive (STUB — see file comment).",
-        },
-        schema: [],
-        messages: {
-            missingBranches: "Discriminated union narrowing is missing branch(es): {{missing}}.",
-        },
+  meta: {
+    type: "problem",
+    docs: {
+      description:
+        "Discriminated-union narrowing must be exhaustive (STUB — see file comment).",
     },
-    create() {
-        return {};
+    schema: [],
+    messages: {
+      missingBranches:
+        "Discriminated union narrowing is missing branch(es): {{missing}}.",
     },
+  },
+  create() {
+    return {};
+  },
 };
 export default rule;
 //# sourceMappingURL=exhaustiveDiscriminated.js.map

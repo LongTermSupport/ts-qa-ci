@@ -8,19 +8,35 @@ import { pathToFileURL } from "node:url";
  * a consumer replacing an entire tool module is a legitimate, no-guarantee-
  * bypassing choice (they own the consequences of a bad replacement).
  */
-export async function resolveToolModule(projectRoot, platform, packageRoot, toolName) {
-    const projectOverride = join(projectRoot, "tsQaConfig", "tools", `${toolName}.ts`);
-    if (existsSync(projectOverride)) {
-        const mod = (await import(pathToFileURL(projectOverride).href));
-        return mod.default;
-    }
-    const platformImpl = join(packageRoot, "dist", "tools", platform, `${toolName}.js`);
-    if (existsSync(platformImpl)) {
-        const mod = (await import(pathToFileURL(platformImpl).href));
-        return mod.default;
-    }
-    const genericImplPath = join(packageRoot, "dist", "tools", `${toolName}.js`);
-    const mod = (await import(pathToFileURL(genericImplPath).href));
+export async function resolveToolModule(
+  projectRoot,
+  platform,
+  packageRoot,
+  toolName,
+) {
+  const projectOverride = join(
+    projectRoot,
+    "tsQaConfig",
+    "tools",
+    `${toolName}.ts`,
+  );
+  if (existsSync(projectOverride)) {
+    const mod = await import(pathToFileURL(projectOverride).href);
     return mod.default;
+  }
+  const platformImpl = join(
+    packageRoot,
+    "dist",
+    "tools",
+    platform,
+    `${toolName}.js`,
+  );
+  if (existsSync(platformImpl)) {
+    const mod = await import(pathToFileURL(platformImpl).href);
+    return mod.default;
+  }
+  const genericImplPath = join(packageRoot, "dist", "tools", `${toolName}.js`);
+  const mod = await import(pathToFileURL(genericImplPath).href);
+  return mod.default;
 }
 //# sourceMappingURL=resolveToolModule.js.map
