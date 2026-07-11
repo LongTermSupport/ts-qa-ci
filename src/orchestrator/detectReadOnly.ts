@@ -25,3 +25,30 @@ export function detectReadOnly(env: NodeJS.ProcessEnv): boolean {
   if (env.GITHUB_ACTIONS === "true") return true;
   return false;
 }
+
+/** An env var counts as "set" only when present and non-empty (an empty string is treated as unset). */
+function isSet(value: string | undefined): boolean {
+  return value !== undefined && value !== '';
+}
+
+/**
+ * Auto-detect an agent/LLM environment, so `--llm` output can turn on without an
+ * explicit flag (mirrors detectCi's CLAUDECODE check, and php-qa-ci's agent
+ * detection). This is the `"auto"` branch of the `llmOutput` config knob.
+ *
+ * The allowlist is explicit and env-signal only: `TSQA_LLM` is the override
+ * (exact `'1'`/`'0'` on/off, like TSQA_READONLY — never JS-truthiness, so the
+ * string `'0'` reads as OFF), then a fixed set of agent markers. It deliberately
+ * does NOT infer from a non-TTY or a pipe (detectCi's job) — a human piping a
+ * run to a file must keep the rich output, not silently switch to summary mode.
+ */
+export function detectLlm(env: NodeJS.ProcessEnv): boolean {
+  if (env.TSQA_LLM === '1') return true;
+  if (env.TSQA_LLM === '0') return false;
+  if (env.CLAUDECODE === '1') return true;
+  if (isSet(env.CLAUDE_CODE)) return true;
+  if (isSet(env.CLAUDE_CODE_ENTRYPOINT)) return true;
+  if (isSet(env.AGENT)) return true;
+  if (isSet(env.AI_AGENT)) return true;
+  return false;
+}

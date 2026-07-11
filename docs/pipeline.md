@@ -66,6 +66,17 @@ jq -r '.phases[].toolResults | to_entries[] | select(.value.exitClass != "clean"
 
 `--llm` composes with `--aggregate` (which forces read-only and collects every failure in a phase). It is **mutually exclusive with `--json`**: both own stdout with opposite contracts (full dump vs. compact summary), so combining them is rejected.
 
+### When `--llm` turns on automatically
+
+You rarely need to pass `--llm` by hand — like CI mode, it auto-detects an agent environment (the same idea as the "Claude Code environment detected" line). Activation is resolved from four layers, **highest precedence first**:
+
+1. **CLI** — `--llm` forces it on, `--no-llm` forces it off (the two are mutually exclusive).
+2. **Env** — `TSQA_LLM=1` / `TSQA_LLM=0` (exact `1`/`0`, like `TSQA_READONLY`).
+3. **Config** — `"llmOutput"` in `tsQaConfig/ts-qa.json`: `"always"` | `"never"` | `"auto"` (default `"auto"`).
+4. **Auto-detect** (the `"auto"` case) — on when an agent marker is present: `CLAUDECODE=1`, or any of `CLAUDE_CODE`, `CLAUDE_CODE_ENTRYPOINT`, `AGENT`, `AI_AGENT` set.
+
+So an agent gets compact summary + cached detail automatically, a human in a terminal keeps the current rich output, and either can force the mode. Auto-detect is an explicit env allowlist only — it never infers from a non-TTY or a pipe, so piping a human run to a file does **not** silently switch it to summary mode. An explicit `--json` always wins over auto-detection (it is never silently overridden by an agent environment).
+
 ## Retry behaviour
 
 Outside CI, a failing tool prompts `(y/n)` to retry. If you retry and it passes, `ts-qa` warns at the end: re-run the whole pipeline, because a retried tool doesn't re-validate phases that already passed before the fix.
