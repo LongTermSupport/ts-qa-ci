@@ -1,9 +1,10 @@
-import { existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { detectLlm } from './detectReadOnly.js';
-const LLM_OUTPUT_MODES = ['auto', 'always', 'never'];
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { detectLlm } from "./detectReadOnly.js";
+const LLM_OUTPUT_MODES = ["auto", "always", "never"];
 function isLlmOutputMode(value) {
-    return typeof value === 'string' && LLM_OUTPUT_MODES.includes(value);
+    return (typeof value === "string" &&
+        LLM_OUTPUT_MODES.includes(value));
 }
 /**
  * Reads the `llmOutput` knob from `tsQaConfig/ts-qa.json` via the same path
@@ -12,22 +13,24 @@ function isLlmOutputMode(value) {
  * ignored (mirrors the `disabledTools` validation).
  */
 export function resolveLlmOutputMode(projectRoot) {
-    const configPath = join(projectRoot, 'tsQaConfig', 'ts-qa.json');
+    const configPath = join(projectRoot, "tsQaConfig", "ts-qa.json");
     if (!existsSync(configPath))
-        return 'auto';
+        return "auto";
     let parsed;
     try {
-        parsed = JSON.parse(readFileSync(configPath, 'utf-8'));
+        parsed = JSON.parse(readFileSync(configPath, "utf-8"));
     }
     catch (cause) {
         throw new Error(`ts-qa: could not parse ${configPath} as JSON`, { cause });
     }
-    if (parsed === null || typeof parsed !== 'object' || !('llmOutput' in parsed)) {
-        return 'auto';
+    if (parsed === null ||
+        typeof parsed !== "object" ||
+        !("llmOutput" in parsed)) {
+        return "auto";
     }
     const value = parsed.llmOutput;
     if (!isLlmOutputMode(value)) {
-        throw new Error(`ts-qa: "llmOutput" in ${configPath} must be one of ${LLM_OUTPUT_MODES.join(', ')} (got ${JSON.stringify(value)})`);
+        throw new Error(`ts-qa: "llmOutput" in ${configPath} must be one of ${LLM_OUTPUT_MODES.join(", ")} (got ${JSON.stringify(value)})`);
     }
     return value;
 }
@@ -40,13 +43,13 @@ export function resolveLlm(input) {
     // An explicit `--json` dump owns stdout; do not auto-enable the summary next to it.
     if (input.json)
         return false;
-    if (input.env.TSQA_LLM === '1')
+    if (input.env.TSQA_LLM === "1")
         return true;
-    if (input.env.TSQA_LLM === '0')
+    if (input.env.TSQA_LLM === "0")
         return false;
-    if (input.mode === 'always')
+    if (input.mode === "always")
         return true;
-    if (input.mode === 'never')
+    if (input.mode === "never")
         return false;
     return detectLlm(input.env);
 }

@@ -1,1 +1,1 @@
-{"version":3,"file":"validateLazyImports.d.ts","sourceRoot":"","sources":["../../src/rules/validateLazyImports.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,IAAI,EAAE,MAAM,QAAQ,CAAC;AAoCnC,QAAA,MAAM,IAAI,EAAE,IAAI,CAAC,UA8EhB,CAAC;AAEF,eAAe,IAAI,CAAC"}
+{"version":3,"file":"validateLazyImports.d.ts","sourceRoot":"","sources":["../../src/rules/validateLazyImports.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,IAAI,EAAE,MAAM,QAAQ,CAAC;AAqCnC,QAAA,MAAM,IAAI,EAAE,IAAI,CAAC,UAgGhB,CAAC;AAEF,eAAe,IAAI,CAAC"}

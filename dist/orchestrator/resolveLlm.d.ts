@@ -11,7 +11,7 @@
  * so an agent gets compact+cached output automatically while a human in a
  * terminal keeps the current rich output, and either can be forced.
  */
-export type LlmOutputMode = 'auto' | 'always' | 'never';
+export type LlmOutputMode = "auto" | "always" | "never";
 /**
  * Reads the `llmOutput` knob from `tsQaConfig/ts-qa.json` via the same path
  * `resolveDisabledTools` uses. A missing file or absent key defaults to

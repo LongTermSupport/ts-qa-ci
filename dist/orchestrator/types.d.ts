@@ -1,4 +1,4 @@
-type ExitClass = 'clean' | 'failure' | 'crash';
+type ExitClass = "clean" | "failure" | "crash";
 export interface ToolResult {
     exitClass: ExitClass;
     stdout: string;
@@ -12,7 +12,7 @@ export interface ToolModule {
     pathSupporting: boolean;
     run(ctx: RunContext): Promise<ToolResult>;
 }
-export type Platform = 'generic' | 'vite';
+export type Platform = "generic" | "vite";
 export interface RunContext {
     cwd: string;
     path?: string;

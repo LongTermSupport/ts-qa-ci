@@ -1,7 +1,7 @@
-import { existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 
-import { detectLlm } from './detectReadOnly.js';
+import { detectLlm } from "./detectReadOnly.js";
 
 /**
  * Whether `--llm` compact output is active is resolved from four layers, highest
@@ -17,12 +17,15 @@ import { detectLlm } from './detectReadOnly.js';
  * terminal keeps the current rich output, and either can be forced.
  */
 
-export type LlmOutputMode = 'auto' | 'always' | 'never';
+export type LlmOutputMode = "auto" | "always" | "never";
 
-const LLM_OUTPUT_MODES = ['auto', 'always', 'never'] as const;
+const LLM_OUTPUT_MODES = ["auto", "always", "never"] as const;
 
 function isLlmOutputMode(value: unknown): value is LlmOutputMode {
-  return typeof value === 'string' && (LLM_OUTPUT_MODES as readonly string[]).includes(value);
+  return (
+    typeof value === "string" &&
+    (LLM_OUTPUT_MODES as readonly string[]).includes(value)
+  );
 }
 
 /**
@@ -32,24 +35,28 @@ function isLlmOutputMode(value: unknown): value is LlmOutputMode {
  * ignored (mirrors the `disabledTools` validation).
  */
 export function resolveLlmOutputMode(projectRoot: string): LlmOutputMode {
-  const configPath = join(projectRoot, 'tsQaConfig', 'ts-qa.json');
-  if (!existsSync(configPath)) return 'auto';
+  const configPath = join(projectRoot, "tsQaConfig", "ts-qa.json");
+  if (!existsSync(configPath)) return "auto";
 
   let parsed: unknown;
   try {
-    parsed = JSON.parse(readFileSync(configPath, 'utf-8'));
+    parsed = JSON.parse(readFileSync(configPath, "utf-8"));
   } catch (cause) {
     throw new Error(`ts-qa: could not parse ${configPath} as JSON`, { cause });
   }
 
-  if (parsed === null || typeof parsed !== 'object' || !('llmOutput' in parsed)) {
-    return 'auto';
+  if (
+    parsed === null ||
+    typeof parsed !== "object" ||
+    !("llmOutput" in parsed)
+  ) {
+    return "auto";
   }
 
   const value = (parsed as { llmOutput: unknown }).llmOutput;
   if (!isLlmOutputMode(value)) {
     throw new Error(
-      `ts-qa: "llmOutput" in ${configPath} must be one of ${LLM_OUTPUT_MODES.join(', ')} (got ${JSON.stringify(value)})`
+      `ts-qa: "llmOutput" in ${configPath} must be one of ${LLM_OUTPUT_MODES.join(", ")} (got ${JSON.stringify(value)})`,
     );
   }
   return value;
@@ -70,9 +77,9 @@ export function resolveLlm(input: LlmResolutionInput): boolean {
   if (input.cli === false) return false;
   // An explicit `--json` dump owns stdout; do not auto-enable the summary next to it.
   if (input.json) return false;
-  if (input.env.TSQA_LLM === '1') return true;
-  if (input.env.TSQA_LLM === '0') return false;
-  if (input.mode === 'always') return true;
-  if (input.mode === 'never') return false;
+  if (input.env.TSQA_LLM === "1") return true;
+  if (input.env.TSQA_LLM === "0") return false;
+  if (input.mode === "always") return true;
+  if (input.mode === "never") return false;
   return detectLlm(input.env);
 }

@@ -36,27 +36,29 @@ import { join } from "node:path";
 const DEFAULT_MIN_RELEASE_AGE_MINUTES = 4320; // 3 days
 const PUBLIC_REGISTRY = "https://registry.npmjs.org/";
 function isRecord(value) {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+    return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 function readJsonFile(path) {
-  if (!existsSync(path)) return null;
-  try {
-    const parsed = JSON.parse(readFileSync(path, "utf-8"));
-    return isRecord(parsed) ? parsed : null;
-  } catch {
-    return null;
-  }
+    if (!existsSync(path))
+        return null;
+    try {
+        const parsed = JSON.parse(readFileSync(path, "utf-8"));
+        return isRecord(parsed) ? parsed : null;
+    }
+    catch {
+        return null;
+    }
 }
 function loadConfig(cwd) {
-  const tsQa = readJsonFile(join(cwd, "tsQaConfig", "ts-qa.json"));
-  const raw = tsQa?.["supplyChain"];
-  if (isRecord(raw)) {
-    const value = raw["minReleaseAgeMinutes"];
-    if (typeof value === "number" && Number.isFinite(value) && value >= 0) {
-      return { minReleaseAgeMinutes: value };
+    const tsQa = readJsonFile(join(cwd, "tsQaConfig", "ts-qa.json"));
+    const raw = tsQa?.["supplyChain"];
+    if (isRecord(raw)) {
+        const value = raw["minReleaseAgeMinutes"];
+        if (typeof value === "number" && Number.isFinite(value) && value >= 0) {
+            return { minReleaseAgeMinutes: value };
+        }
     }
-  }
-  return { minReleaseAgeMinutes: DEFAULT_MIN_RELEASE_AGE_MINUTES };
+    return { minReleaseAgeMinutes: DEFAULT_MIN_RELEASE_AGE_MINUTES };
 }
 /**
  * Extract a top-level scalar key from a pnpm-workspace.yaml. Deliberately a
@@ -66,141 +68,123 @@ function loadConfig(cwd) {
  * (nested) keys are ignored.
  */
 function readYamlScalar(content, key) {
-  for (const line of content.split("\n")) {
-    if (/^\s*#/.test(line) || /^\s/.test(line)) continue; // comment or nested
-    const match = new RegExp(`^${key}\\s*:\\s*(.+?)\\s*$`).exec(line);
-    if (match?.[1] !== undefined) {
-      return match[1].replace(/\s+#.*$/, "").trim(); // strip trailing comment
+    for (const line of content.split("\n")) {
+        if (/^\s*#/.test(line) || /^\s/.test(line))
+            continue; // comment or nested
+        const match = new RegExp(`^${key}\\s*:\\s*(.+?)\\s*$`).exec(line);
+        if (match?.[1] !== undefined) {
+            return match[1].replace(/\s+#.*$/, "").trim(); // strip trailing comment
+        }
     }
-  }
-  return null;
+    return null;
 }
 /** Extract a key from an .npmrc (ini `key=value`, `;`/`#` comments). */
 function readIniValue(content, key) {
-  for (const line of content.split("\n")) {
-    if (/^\s*[;#]/.test(line)) continue;
-    const match = new RegExp(`^\\s*${key}\\s*=\\s*(.+?)\\s*$`).exec(line);
-    if (match?.[1] !== undefined) return match[1].trim();
-  }
-  return null;
+    for (const line of content.split("\n")) {
+        if (/^\s*[;#]/.test(line))
+            continue;
+        const match = new RegExp(`^\\s*${key}\\s*=\\s*(.+?)\\s*$`).exec(line);
+        if (match?.[1] !== undefined)
+            return match[1].trim();
+    }
+    return null;
 }
 function readPmConfig(cwd) {
-  const wsPath = join(cwd, "pnpm-workspace.yaml");
-  const npmrcPath = join(cwd, ".npmrc");
-  return {
-    workspaceYaml: existsSync(wsPath) ? readFileSync(wsPath, "utf-8") : null,
-    npmrc: existsSync(npmrcPath) ? readFileSync(npmrcPath, "utf-8") : null,
-  };
+    const wsPath = join(cwd, "pnpm-workspace.yaml");
+    const npmrcPath = join(cwd, ".npmrc");
+    return {
+        workspaceYaml: existsSync(wsPath) ? readFileSync(wsPath, "utf-8") : null,
+        npmrc: existsSync(npmrcPath) ? readFileSync(npmrcPath, "utf-8") : null,
+    };
 }
 /** Look a pnpm setting up in pnpm-workspace.yaml first, then .npmrc (kebab-case). */
 function readSetting(pm, camelKey, kebabKey) {
-  if (pm.workspaceYaml) {
-    const fromYaml = readYamlScalar(pm.workspaceYaml, camelKey);
-    if (fromYaml !== null) return fromYaml;
-  }
-  if (pm.npmrc) {
-    const fromNpmrc =
-      readIniValue(pm.npmrc, kebabKey) ?? readIniValue(pm.npmrc, camelKey);
-    if (fromNpmrc !== null) return fromNpmrc;
-  }
-  return null;
+    if (pm.workspaceYaml) {
+        const fromYaml = readYamlScalar(pm.workspaceYaml, camelKey);
+        if (fromYaml !== null)
+            return fromYaml;
+    }
+    if (pm.npmrc) {
+        const fromNpmrc = readIniValue(pm.npmrc, kebabKey) ?? readIniValue(pm.npmrc, camelKey);
+        if (fromNpmrc !== null)
+            return fromNpmrc;
+    }
+    return null;
 }
 export function auditSupplyChain(cwd, config) {
-  const violations = [];
-  // 1. pnpm required, pinned to an exact version.
-  const pkg = readJsonFile(join(cwd, "package.json"));
-  const pmField = pkg?.["packageManager"];
-  const packageManager = typeof pmField === "string" ? pmField : null;
-  if (packageManager === null) {
-    violations.push(
-      'package.json "packageManager" is not set. Pin it to an exact pnpm version, e.g. "pnpm@11.1.2".',
-    );
-  } else if (!/^pnpm@\d+\.\d+\.\d+/.test(packageManager)) {
-    violations.push(
-      `package.json "packageManager" is "${packageManager}". pnpm is required (it is the only package manager that enforces the minimumReleaseAge bake window); pin it to pnpm@<exact version>.`,
-    );
-  }
-  const pm = readPmConfig(cwd);
-  // 2. minimumReleaseAge — the bake window.
-  const minAgeRaw = readSetting(pm, "minimumReleaseAge", "minimum-release-age");
-  if (minAgeRaw === null) {
-    violations.push(
-      `minimumReleaseAge is not configured. Set it in pnpm-workspace.yaml to at least ${config.minReleaseAgeMinutes} (minutes) — the bake window that blocks freshly-published (potentially compromised) versions.`,
-    );
-  } else {
-    const minAge = Number.parseInt(minAgeRaw, 10);
-    if (!Number.isFinite(minAge) || minAge < config.minReleaseAgeMinutes) {
-      violations.push(
-        `minimumReleaseAge is ${minAgeRaw} but must be at least ${config.minReleaseAgeMinutes} minutes.`,
-      );
+    const violations = [];
+    // 1. pnpm required, pinned to an exact version.
+    const pkg = readJsonFile(join(cwd, "package.json"));
+    const pmField = pkg?.["packageManager"];
+    const packageManager = typeof pmField === "string" ? pmField : null;
+    if (packageManager === null) {
+        violations.push('package.json "packageManager" is not set. Pin it to an exact pnpm version, e.g. "pnpm@11.1.2".');
     }
-  }
-  // 3. dangerouslyAllowAllBuilds must not be true (install scripts blocked by default).
-  const allowAllBuilds = readSetting(
-    pm,
-    "dangerouslyAllowAllBuilds",
-    "dangerously-allow-all-builds",
-  );
-  if (allowAllBuilds === "true") {
-    violations.push(
-      "dangerouslyAllowAllBuilds is true — this runs every dependency install script. Set it false and allowlist specific packages via allowBuilds.",
-    );
-  }
-  // 4. verifyDepsBeforeRun must fail (error) on lockfile drift.
-  const verifyDeps = readSetting(
-    pm,
-    "verifyDepsBeforeRun",
-    "verify-deps-before-run",
-  );
-  if (verifyDeps !== "error") {
-    violations.push(
-      `verifyDepsBeforeRun is ${verifyDeps ?? "unset"} but must be "error" so a lockfile that drifts from the manifests fails loudly.`,
-    );
-  }
-  // 5. registry, if configured, must be the public npm registry. A rogue registry
-  //    redirect is a classic exfiltration vector. Absent = pnpm's public default = OK.
-  //    Git deps are NOT governed here — they are a sanctioned first-party channel.
-  if (pm.npmrc) {
-    const registry = readIniValue(pm.npmrc, "registry");
-    if (
-      registry !== null &&
-      registry.replace(/\/$/, "") !== PUBLIC_REGISTRY.replace(/\/$/, "")
-    ) {
-      violations.push(
-        `registry is "${registry}" — only the public npm registry (${PUBLIC_REGISTRY}) is allowed. (First-party SHA-pinned git dependencies are fine — they do not go through the registry.)`,
-      );
+    else if (!/^pnpm@\d+\.\d+\.\d+/.test(packageManager)) {
+        violations.push(`package.json "packageManager" is "${packageManager}". pnpm is required (it is the only package manager that enforces the minimumReleaseAge bake window); pin it to pnpm@<exact version>.`);
     }
-  }
-  return violations;
+    const pm = readPmConfig(cwd);
+    // 2. minimumReleaseAge — the bake window.
+    const minAgeRaw = readSetting(pm, "minimumReleaseAge", "minimum-release-age");
+    if (minAgeRaw === null) {
+        violations.push(`minimumReleaseAge is not configured. Set it in pnpm-workspace.yaml to at least ${config.minReleaseAgeMinutes} (minutes) — the bake window that blocks freshly-published (potentially compromised) versions.`);
+    }
+    else {
+        const minAge = Number.parseInt(minAgeRaw, 10);
+        if (!Number.isFinite(minAge) || minAge < config.minReleaseAgeMinutes) {
+            violations.push(`minimumReleaseAge is ${minAgeRaw} but must be at least ${config.minReleaseAgeMinutes} minutes.`);
+        }
+    }
+    // 3. dangerouslyAllowAllBuilds must not be true (install scripts blocked by default).
+    const allowAllBuilds = readSetting(pm, "dangerouslyAllowAllBuilds", "dangerously-allow-all-builds");
+    if (allowAllBuilds === "true") {
+        violations.push("dangerouslyAllowAllBuilds is true — this runs every dependency install script. Set it false and allowlist specific packages via allowBuilds.");
+    }
+    // 4. verifyDepsBeforeRun must fail (error) on lockfile drift.
+    const verifyDeps = readSetting(pm, "verifyDepsBeforeRun", "verify-deps-before-run");
+    if (verifyDeps !== "error") {
+        violations.push(`verifyDepsBeforeRun is ${verifyDeps ?? "unset"} but must be "error" so a lockfile that drifts from the manifests fails loudly.`);
+    }
+    // 5. registry, if configured, must be the public npm registry. A rogue registry
+    //    redirect is a classic exfiltration vector. Absent = pnpm's public default = OK.
+    //    Git deps are NOT governed here — they are a sanctioned first-party channel.
+    if (pm.npmrc) {
+        const registry = readIniValue(pm.npmrc, "registry");
+        if (registry !== null &&
+            registry.replace(/\/$/, "") !== PUBLIC_REGISTRY.replace(/\/$/, "")) {
+            violations.push(`registry is "${registry}" — only the public npm registry (${PUBLIC_REGISTRY}) is allowed. (First-party SHA-pinned git dependencies are fine — they do not go through the registry.)`);
+        }
+    }
+    return violations;
 }
 const tool = {
-  name: "supplyChain",
-  phase: 0,
-  mutates: false,
-  pathSupporting: false,
-  run(ctx) {
-    const config = loadConfig(ctx.cwd);
-    const violations = auditSupplyChain(ctx.cwd, config);
-    if (violations.length === 0) {
-      return Promise.resolve({
-        exitClass: "clean",
-        stdout: "ts-qa supplyChain: all supply-chain protections configured.\n",
-        stderr: "",
-      });
-    }
-    const report = [
-      "ts-qa supplyChain: supply-chain protections missing or misconfigured:",
-      ...violations.map((v) => `  ✗ ${v}`),
-      "",
-      "See docs/supply-chain.md. Run `ts-qa init` to scaffold a compliant pnpm-workspace.yaml + .npmrc.",
-      "",
-    ].join("\n");
-    return Promise.resolve({
-      exitClass: "failure",
-      stdout: report,
-      stderr: "",
-    });
-  },
+    name: "supplyChain",
+    phase: 0,
+    mutates: false,
+    pathSupporting: false,
+    run(ctx) {
+        const config = loadConfig(ctx.cwd);
+        const violations = auditSupplyChain(ctx.cwd, config);
+        if (violations.length === 0) {
+            return Promise.resolve({
+                exitClass: "clean",
+                stdout: "ts-qa supplyChain: all supply-chain protections configured.\n",
+                stderr: "",
+            });
+        }
+        const report = [
+            "ts-qa supplyChain: supply-chain protections missing or misconfigured:",
+            ...violations.map((v) => `  ✗ ${v}`),
+            "",
+            "See docs/supply-chain.md. Run `ts-qa init` to scaffold a compliant pnpm-workspace.yaml + .npmrc.",
+            "",
+        ].join("\n");
+        return Promise.resolve({
+            exitClass: "failure",
+            stdout: report,
+            stderr: "",
+        });
+    },
 };
 export default tool;
 //# sourceMappingURL=supplyChain.js.map

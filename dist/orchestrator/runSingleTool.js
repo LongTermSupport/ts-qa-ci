@@ -1,7 +1,7 @@
-import { KNOWN_TOOLS } from './resolveDisabledTools.js';
-import { resolveToolModule } from './resolveToolModule.js';
-import { logToolResult } from './runPhase.js';
-import { runTool } from './runTool.js';
+import { KNOWN_TOOLS } from "./resolveDisabledTools.js";
+import { resolveToolModule } from "./resolveToolModule.js";
+import { logToolResult } from "./runPhase.js";
+import { runTool } from "./runTool.js";
 /**
  * Runs exactly one named tool, bypassing phase grouping entirely
  * (`ts-qa -t <tool>` — docs/pipeline.md "Running a single phase or tool").
@@ -18,7 +18,7 @@ import { runTool } from './runTool.js';
  */
 export async function runSingleTool(toolName, ctx, packageRoot, projectRoot) {
     if (!KNOWN_TOOLS.includes(toolName)) {
-        throw new Error(`ts-qa: unknown tool "${toolName}" (-t). Known tools: ${KNOWN_TOOLS.join(', ')}`);
+        throw new Error(`ts-qa: unknown tool "${toolName}" (-t). Known tools: ${KNOWN_TOOLS.join(", ")}`);
     }
     const tool = await resolveToolModule(projectRoot, ctx.platform, packageRoot, toolName);
     const result = await runTool(tool, ctx);
@@ -29,7 +29,7 @@ export async function runSingleTool(toolName, ctx, packageRoot, projectRoot) {
     return {
         phase: tool.phase,
         toolResults: { [toolName]: result },
-        failed: result.exitClass !== 'clean',
+        failed: result.exitClass !== "clean",
     };
 }
 //# sourceMappingURL=runSingleTool.js.map

@@ -1,1 +1,1 @@
-{"version":3,"file":"vitest.d.ts","sourceRoot":"","sources":["../../src/tools/vitest.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAc,UAAU,EAAc,MAAM,0BAA0B,CAAC;AAGnF;;;;;GAKG;AACH,QAAA,MAAM,IAAI,EAAE,UAeX,CAAC;AAEF,eAAe,IAAI,CAAC"}
+{"version":3,"file":"vitest.d.ts","sourceRoot":"","sources":["../../src/tools/vitest.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAEV,UAAU,EAEX,MAAM,0BAA0B,CAAC;AAGlC;;;;;GAKG;AACH,QAAA,MAAM,IAAI,EAAE,UAeX,CAAC;AAEF,eAAe,IAAI,CAAC"}

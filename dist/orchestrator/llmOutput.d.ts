@@ -1,4 +1,4 @@
-import type { PipelineResult } from './runPipeline.js';
+import type { PipelineResult } from "./runPipeline.js";
 /** Absolute path of the full-result cache file for a given consumer cwd. */
 export declare function llmCachePath(cwd: string): string;
 /** Persists the FULL PipelineResult to the stable cache file; returns its path. */
