@@ -1,6 +1,10 @@
 # Tools
 
-One page for all 11 tools `ts-qa` orchestrates, rather than 11 near-empty files — jump to the one you need.
+One page for all the tools `ts-qa` orchestrates, rather than a file each — jump to the one you need.
+
+## supplyChain (Phase 0)
+
+Read-only audit of your package-manager supply-chain config (bake window, blocked install scripts, lockfile-drift failure, public registry, pinned pnpm). Fails the pipeline if a mandatory protection is missing. Requires pnpm. First-party SHA-pinned git deps are never flagged. Full detail: [supply-chain.md](supply-chain.md).
 
 ## oxlint (Phase 0)
 

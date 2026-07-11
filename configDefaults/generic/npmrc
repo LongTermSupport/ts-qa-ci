@@ -1,0 +1,12 @@
+# Scaffolded by `ts-qa init` as the consumer's .npmrc (named `npmrc` here because
+# npm strips a literal .npmrc from published packages). Audited by the ts-qa
+# `supplyChain` check. See docs/supply-chain.md.
+
+# Public npm registry only — a rogue registry redirect is a classic exfiltration
+# vector. First-party SHA-pinned git dependencies are unaffected (they do not go
+# through the registry).
+registry=https://registry.npmjs.org/
+engine-strict=true
+audit-level=high
+fund=false
+loglevel=warn

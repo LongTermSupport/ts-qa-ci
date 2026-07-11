@@ -1,0 +1,18 @@
+# Supply-chain hardening — scaffolded by `ts-qa init`, audited by the ts-qa
+# `supplyChain` Phase 0 check. pnpm 10.16+ reads pnpm-level config from this file
+# even in a single-package (non-workspace) layout. See docs/supply-chain.md.
+
+# Bake window: refuse to install a version published within this many minutes.
+# Defends against worm-style attacks that weaponise a freshly-published
+# (compromised) version inside a 5–30-minute window before detection.
+minimumReleaseAge: 10080 # 1 week
+minimumReleaseAgeExclude: [] # only for manually-reviewed security patches — treat like firewall holes
+
+# Block dependency install scripts by default; allowlist specific packages below
+# (one entry per legitimate native-build dep, with a justification comment).
+dangerouslyAllowAllBuilds: false
+# allowBuilds:
+#   esbuild: true
+
+# Fail loudly if the lockfile drifts from the manifests.
+verifyDepsBeforeRun: error

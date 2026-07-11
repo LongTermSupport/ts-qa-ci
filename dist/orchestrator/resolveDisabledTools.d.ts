@@ -5,7 +5,7 @@
  * author only *thought* was still on). Keep in sync with the PHASES table in
  * runPipeline.ts and the opt-in tools.
  */
-export declare const KNOWN_TOOLS: readonly ["oxlint", "prettier", "eslintFix", "eslintReport", "remarkValidateLinks", "knip", "tsc", "dependencyCruiser", "vitest", "playwright", "stryker"];
+export declare const KNOWN_TOOLS: readonly ["supplyChain", "oxlint", "prettier", "eslintFix", "eslintReport", "remarkValidateLinks", "knip", "tsc", "dependencyCruiser", "vitest", "playwright", "stryker"];
 export interface DisabledToolsResult {
     /** Tool names to skip. */
     disabled: Set<string>;

@@ -59,7 +59,7 @@
     "dependency-cruiser": "^18.0.0",
     "eslint-config-prettier": "^10.0.0",
     "knip": "^6.0.0",
-    "oxlint": "^1.73.0",
+    "oxlint": "^1.72.0",
     "remark": "^15.0.0",
     "remark-validate-links": "^13.0.0",
     "vfile": "^6.0.0"

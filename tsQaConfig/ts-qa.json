@@ -1,3 +1,4 @@
 {
-  "disabledTools": ["playwright"]
+  "_comment": "supplyChain is disabled here because ts-qa-ci is itself npm-based, git-consumed tooling (not a pnpm application consuming untrusted deps); the bake-window audit is for consumers. playwright needs a served instance.",
+  "disabledTools": ["playwright", "supplyChain"]
 }

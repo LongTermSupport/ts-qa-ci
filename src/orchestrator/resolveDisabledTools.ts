@@ -9,6 +9,7 @@ import { join } from 'node:path';
  * runPipeline.ts and the opt-in tools.
  */
 export const KNOWN_TOOLS = [
+  'supplyChain',
   'oxlint',
   'prettier',
   'eslintFix',
@@ -48,10 +49,7 @@ function isKnownTool(name: string): name is KnownTool {
  * (a typo must not silently disable nothing). A missing config file is fine;
  * a present-but-malformed one throws rather than being silently ignored.
  */
-export function resolveDisabledTools(
-  projectRoot: string,
-  cliSkip: string[] = []
-): DisabledToolsResult {
+export function resolveDisabledTools(projectRoot: string, cliSkip: string[] = []): DisabledToolsResult {
   const sources = new Map<string, 'config' | 'cli'>();
 
   const configPath = join(projectRoot, 'tsQaConfig', 'ts-qa.json');
@@ -71,7 +69,7 @@ export function resolveDisabledTools(
       for (const name of configDisabled) {
         if (typeof name !== 'string') {
           throw new Error(
-            `ts-qa: "disabledTools" entries must be strings (got ${JSON.stringify(name)} in ${configPath})`
+            `ts-qa: "disabledTools" entries must be strings (got ${JSON.stringify(name)} in ${configPath})`,
           );
         }
         if (!sources.has(name)) sources.set(name, 'config');
@@ -85,7 +83,7 @@ export function resolveDisabledTools(
   const unknown = [...sources.keys()].filter((name) => !isKnownTool(name));
   if (unknown.length > 0) {
     throw new Error(
-      `ts-qa: unknown tool(s) in disabledTools/--skip: ${unknown.join(', ')}. Known tools: ${KNOWN_TOOLS.join(', ')}`
+      `ts-qa: unknown tool(s) in disabledTools/--skip: ${unknown.join(', ')}. Known tools: ${KNOWN_TOOLS.join(', ')}`,
     );
   }
 

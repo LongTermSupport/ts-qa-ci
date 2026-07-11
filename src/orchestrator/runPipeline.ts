@@ -16,7 +16,11 @@ const PHASES: PhaseDefinition[] = [
   // (bin/qa: allCodingStandardsTools -> allLintingTools -> allStaticAnalysisTools ->
   // allTestingTools, with phpLint itself ordered ahead of pricier checks within its
   // own phase). See PLAN.md Decision 7.
-  { number: 0, name: 'Fast Fail', tools: ['oxlint'], mutates: true },
+  // supplyChain runs first: a near-instant read-only audit of the consumer's
+  // package-manager supply-chain config (bake window, blocked install scripts,
+  // lockfile-drift failure, public registry, pinned pnpm). If the project isn't
+  // protected, fail before doing anything else. See src/tools/supplyChain.ts.
+  { number: 0, name: 'Fast Fail', tools: ['supplyChain', 'oxlint'], mutates: true },
   { number: 1, name: 'Code Modification', tools: ['prettier', 'eslintFix'], mutates: true },
   {
     number: 2,

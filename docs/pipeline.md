@@ -4,7 +4,7 @@
 
 | Phase | Name              | What                                                       | Mutates?      |
 | ----- | ----------------- | ---------------------------------------------------------- | ------------- |
-| 0     | Fast Fail         | oxlint — near-instant catch of obvious problems            | Yes (`--fix`) |
+| 0     | Fast Fail         | supplyChain audit, then oxlint — near-instant checks       | Yes (`--fix`) |
 | 1     | Code Modification | Prettier, ESLint `--fix`                                   | Yes           |
 | 2     | Lint & Validation | ESLint report pass (incl. CDD rules), markdown links, knip | No            |
 | 3     | Static Analysis   | `tsc --noEmit`, dependency-cruiser                         | No            |
