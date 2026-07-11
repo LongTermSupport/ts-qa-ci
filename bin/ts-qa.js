@@ -5,11 +5,11 @@
  * to the compiled orchestrator in dist/. Kept deliberately thin - all real
  * logic lives in src/orchestrator/, compiled to dist/orchestrator/.
  */
-import { realpathSync } from 'node:fs';
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { realpathSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
-const packageRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
+const packageRoot = join(dirname(fileURLToPath(import.meta.url)), "..");
 
 /**
  * Reads the operand that must follow a value-taking flag (e.g. `-t <tool>`).
@@ -19,9 +19,9 @@ const packageRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
  */
 function requireOperand(argv, index, flag) {
   const value = argv[index];
-  if (value === undefined || value.startsWith('-')) {
+  if (value === undefined || value.startsWith("-")) {
     throw new Error(
-      `ts-qa: ${flag} requires a value (got ${value === undefined ? 'nothing' : `"${value}"`})`
+      `ts-qa: ${flag} requires a value (got ${value === undefined ? "nothing" : `"${value}"`})`,
     );
   }
   return value;
@@ -39,37 +39,39 @@ export function parseArgs(argv) {
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     switch (arg) {
-      case 'deploy-skills':
-      case 'init':
+      case "deploy-skills":
+      case "init":
         command = arg;
         break;
-      case '-t':
-        options.tool = requireOperand(argv, ++i, '-t');
+      case "-t":
+        options.tool = requireOperand(argv, ++i, "-t");
         break;
-      case '-p':
-        options.path = requireOperand(argv, ++i, '-p');
+      case "-p":
+        options.path = requireOperand(argv, ++i, "-p");
         break;
-      case '--skip':
+      case "--skip":
         (options.skipTools ??= []).push(argv[++i]);
         break;
-      case '--phase': {
+      case "--phase": {
         const phase = Number(argv[++i]);
         if (![0, 1, 2, 3, 4].includes(phase)) {
-          throw new Error(`ts-qa: --phase must be 0, 1, 2, 3, or 4 (got "${argv[i]}")`);
+          throw new Error(
+            `ts-qa: --phase must be 0, 1, 2, 3, or 4 (got "${argv[i]}")`,
+          );
         }
         options.onlyPhase = phase;
         break;
       }
-      case '--write':
+      case "--write":
         options.forceWrite = true;
         break;
-      case '--read-only':
+      case "--read-only":
         options.forceReadOnly = true;
         break;
-      case '--aggregate':
+      case "--aggregate":
         options.aggregate = true;
         break;
-      case '--json':
+      case "--json":
         options.json = true;
         break;
       default:
@@ -78,16 +80,16 @@ export function parseArgs(argv) {
   }
 
   if (options.forceWrite && options.forceReadOnly) {
-    throw new Error('ts-qa: --write and --read-only are mutually exclusive');
+    throw new Error("ts-qa: --write and --read-only are mutually exclusive");
   }
   if (options.aggregate && options.forceWrite) {
     throw new Error(
-      'ts-qa: --aggregate is only valid for read-only runs (it conflicts with --write)'
+      "ts-qa: --aggregate is only valid for read-only runs (it conflicts with --write)",
     );
   }
   if (options.tool && options.onlyPhase !== undefined) {
     throw new Error(
-      'ts-qa: -t (single-tool bypass) and --phase are mutually exclusive — -t skips phase grouping entirely'
+      "ts-qa: -t (single-tool bypass) and --phase are mutually exclusive — -t skips phase grouping entirely",
     );
   }
 
@@ -105,19 +107,19 @@ export function parseArgs(argv) {
 async function main() {
   const { command, options } = parseArgs(process.argv.slice(2));
 
-  if (command === 'deploy-skills') {
-    const { deploySkills } = await import('../dist/deploy/deploySkills.js');
+  if (command === "deploy-skills") {
+    const { deploySkills } = await import("../dist/deploy/deploySkills.js");
     await deploySkills(options);
     return;
   }
 
-  if (command === 'init') {
-    const { init } = await import('../dist/deploy/init.js');
+  if (command === "init") {
+    const { init } = await import("../dist/deploy/init.js");
     await init(options);
     return;
   }
 
-  const { runPipeline } = await import('../dist/orchestrator/runPipeline.js');
+  const { runPipeline } = await import("../dist/orchestrator/runPipeline.js");
   const result = await runPipeline(options);
 
   if (options.json) {
@@ -141,7 +143,10 @@ async function main() {
 function isInvokedDirectly() {
   if (process.argv[1] === undefined) return false;
   try {
-    return realpathSync(fileURLToPath(import.meta.url)) === realpathSync(process.argv[1]);
+    return (
+      realpathSync(fileURLToPath(import.meta.url)) ===
+      realpathSync(process.argv[1])
+    );
   } catch {
     return false;
   }

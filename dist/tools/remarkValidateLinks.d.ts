@@ -1,4 +1,4 @@
-import type { ToolModule } from '../orchestrator/types.js';
+import type { ToolModule } from "../orchestrator/types.js";
 /**
  * remark-validate-links (phase2-design.md §1): relative-file + anchor
  * resolution parity with LinksChecker.php, explicitly WITHOUT external

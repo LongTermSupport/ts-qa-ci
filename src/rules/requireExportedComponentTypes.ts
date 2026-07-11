@@ -1,4 +1,4 @@
-import type { Rule } from 'eslint';
+import type { Rule } from "eslint";
 
 /**
  * Tier A core rule: requires *Props types declared under src/components/
@@ -8,12 +8,14 @@ import type { Rule } from 'eslint';
  */
 const rule: Rule.RuleModule = {
   meta: {
-    type: 'suggestion',
-    docs: { description: 'Require *Props types under src/components/ to be exported' },
+    type: "suggestion",
+    docs: {
+      description: "Require *Props types under src/components/ to be exported",
+    },
     schema: [
       {
-        type: 'object',
-        properties: { componentsPath: { type: 'string' } },
+        type: "object",
+        properties: { componentsPath: { type: "string" } },
         additionalProperties: false,
       },
     ],
@@ -23,7 +25,7 @@ const rule: Rule.RuleModule = {
   },
   create(context) {
     const options = (context.options[0] ?? {}) as { componentsPath?: string };
-    const componentsPath = options.componentsPath ?? 'src/components/';
+    const componentsPath = options.componentsPath ?? "src/components/";
     if (!context.filename.includes(componentsPath)) return {};
 
     // Names re-exported via a program-level `export { FooProps }` specifier.
@@ -36,20 +38,25 @@ const rule: Rule.RuleModule = {
       ExportNamedDeclaration(node) {
         if (node.declaration) return; // inline `export interface FooProps` — handled below
         for (const spec of node.specifiers) {
-          if (spec.local.type === 'Identifier') separatelyExported.add(spec.local.name);
+          if (spec.local.type === "Identifier")
+            separatelyExported.add(spec.local.name);
         }
       },
-      'TSInterfaceDeclaration, TSTypeAliasDeclaration'(
-        node: Rule.Node & { id: { name: string }; parent: { type: string } }
+      "TSInterfaceDeclaration, TSTypeAliasDeclaration"(
+        node: Rule.Node & { id: { name: string }; parent: { type: string } },
       ) {
-        if (!node.id.name.endsWith('Props')) return;
-        if (node.parent.type === 'ExportNamedDeclaration') return;
+        if (!node.id.name.endsWith("Props")) return;
+        if (node.parent.type === "ExportNamedDeclaration") return;
         candidates.push(node);
       },
-      'Program:exit'() {
+      "Program:exit"() {
         for (const node of candidates) {
           if (separatelyExported.has(node.id.name)) continue;
-          context.report({ node, messageId: 'mustExport', data: { name: node.id.name } });
+          context.report({
+            node,
+            messageId: "mustExport",
+            data: { name: node.id.name },
+          });
         }
       },
     };

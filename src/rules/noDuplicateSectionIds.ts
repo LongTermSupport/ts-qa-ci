@@ -1,5 +1,5 @@
-import type { Rule } from 'eslint';
-import type { JSXAttribute, Literal } from 'estree-jsx';
+import type { Rule } from "eslint";
+import type { JSXAttribute, Literal } from "estree-jsx";
 
 /**
  * Tier A core rule: flags duplicate literal id="..." JSX attributes within
@@ -9,24 +9,27 @@ import type { JSXAttribute, Literal } from 'estree-jsx';
  */
 const rule: Rule.RuleModule = {
   meta: {
-    type: 'problem',
+    type: "problem",
     docs: {
-      description: 'Disallow duplicate literal id="..." values on JSX elements within one file',
+      description:
+        'Disallow duplicate literal id="..." values on JSX elements within one file',
     },
     schema: [],
     messages: {
-      duplicateId: 'Duplicate JSX id="{{id}}" — first used at line {{firstLine}}.',
+      duplicateId:
+        'Duplicate JSX id="{{id}}" — first used at line {{firstLine}}.',
     },
   },
   create(context) {
     const seen = new Map<string, number>();
     return {
       JSXAttribute(node: JSXAttribute) {
-        if (node.name.type !== 'JSXIdentifier' || node.name.name !== 'id') return;
+        if (node.name.type !== "JSXIdentifier" || node.name.name !== "id")
+          return;
         if (
           !node.value ||
-          node.value.type !== 'Literal' ||
-          typeof (node.value as Literal).value !== 'string'
+          node.value.type !== "Literal" ||
+          typeof (node.value as Literal).value !== "string"
         )
           return;
 
@@ -36,7 +39,7 @@ const rule: Rule.RuleModule = {
         if (firstLine !== undefined) {
           context.report({
             node: node as unknown as Rule.Node,
-            messageId: 'duplicateId',
+            messageId: "duplicateId",
             data: { id, firstLine: String(firstLine) },
           });
         } else {

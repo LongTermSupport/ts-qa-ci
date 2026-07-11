@@ -1,11 +1,11 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
-import { afterEach, describe, expect, it } from 'vitest';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { afterEach, describe, expect, it } from "vitest";
 
-import { KNOWN_TOOLS } from './resolveDisabledTools.js';
-import { runSingleTool } from './runSingleTool.js';
-import type { RunContext } from './types.js';
+import { KNOWN_TOOLS } from "./resolveDisabledTools.js";
+import { runSingleTool } from "./runSingleTool.js";
+import type { RunContext } from "./types.js";
 
 /**
  * `ts-qa -t <tool>` bypasses phase grouping entirely (docs/pipeline.md
@@ -18,26 +18,29 @@ import type { RunContext } from './types.js';
  * binaries are never invoked - only this module's own dispatch logic is
  * under test.
  */
-describe('runSingleTool', () => {
+describe("runSingleTool", () => {
   const dirs: string[] = [];
 
   const proj = (toolName: string, toolSource: string): string => {
-    const dir = mkdtempSync(join(tmpdir(), 'tsqa-single-tool-'));
+    const dir = mkdtempSync(join(tmpdir(), "tsqa-single-tool-"));
     dirs.push(dir);
-    mkdirSync(join(dir, 'tsQaConfig', 'tools'), { recursive: true });
-    writeFileSync(join(dir, 'tsQaConfig', 'tools', `${toolName}.ts`), toolSource);
+    mkdirSync(join(dir, "tsQaConfig", "tools"), { recursive: true });
+    writeFileSync(
+      join(dir, "tsQaConfig", "tools", `${toolName}.ts`),
+      toolSource,
+    );
     return dir;
   };
 
   const baseCtx = (overrides: Partial<RunContext> = {}): RunContext => ({
-    cwd: '/does-not-matter',
-    platform: 'generic',
+    cwd: "/does-not-matter",
+    platform: "generic",
     ci: true,
     readOnly: false,
     aggregate: false,
     hasBeenRestarted: false,
     json: true,
-    packageRoot: '/does-not-matter',
+    packageRoot: "/does-not-matter",
     ...overrides,
   });
 
@@ -55,28 +58,39 @@ describe('runSingleTool', () => {
   `;
 
   afterEach(() => {
-    while (dirs.length > 0) rmSync(dirs.pop() as string, { recursive: true, force: true });
+    while (dirs.length > 0)
+      rmSync(dirs.pop() as string, { recursive: true, force: true });
   });
 
-  it('throws on an unknown tool name, listing the known tools', async () => {
+  it("throws on an unknown tool name, listing the known tools", async () => {
     await expect(
-      runSingleTool('not-a-real-tool', baseCtx(), '/does-not-matter', '/does-not-matter')
+      runSingleTool(
+        "not-a-real-tool",
+        baseCtx(),
+        "/does-not-matter",
+        "/does-not-matter",
+      ),
     ).rejects.toThrow(/unknown tool/i);
   });
 
-  it('error message lists every known tool name', async () => {
-    await expect(runSingleTool('bogus', baseCtx(), '/x', '/x')).rejects.toThrow(
-      new RegExp(KNOWN_TOOLS.join('|'))
+  it("error message lists every known tool name", async () => {
+    await expect(runSingleTool("bogus", baseCtx(), "/x", "/x")).rejects.toThrow(
+      new RegExp(KNOWN_TOOLS.join("|")),
     );
   });
 
-  it('resolves and runs exactly the named tool, returning it as the only result', async () => {
-    const projectRoot = proj('knip', cleanToolSource('knip', 2));
+  it("resolves and runs exactly the named tool, returning it as the only result", async () => {
+    const projectRoot = proj("knip", cleanToolSource("knip", 2));
 
-    const result = await runSingleTool('knip', baseCtx(), '/package-root-unused', projectRoot);
+    const result = await runSingleTool(
+      "knip",
+      baseCtx(),
+      "/package-root-unused",
+      projectRoot,
+    );
 
-    expect(Object.keys(result.toolResults)).toEqual(['knip']);
-    expect(result.toolResults.knip?.exitClass).toBe('clean');
+    expect(Object.keys(result.toolResults)).toEqual(["knip"]);
+    expect(result.toolResults.knip?.exitClass).toBe("clean");
     expect(result.failed).toBe(false);
     // Single-tool runs report the tool module's own phase, not a phase from
     // the PHASES ladder (a bypassed/opt-in tool like stryker has no phase
@@ -84,7 +98,7 @@ describe('runSingleTool', () => {
     expect(result.phase).toBe(2);
   });
 
-  it('marks the PhaseResult failed when the tool is not clean', async () => {
+  it("marks the PhaseResult failed when the tool is not clean", async () => {
     const failingSource = `
       const tool = {
         name: 'tsc',
@@ -97,11 +111,16 @@ describe('runSingleTool', () => {
       };
       export default tool;
     `;
-    const projectRoot = proj('tsc', failingSource);
+    const projectRoot = proj("tsc", failingSource);
 
-    const result = await runSingleTool('tsc', baseCtx(), '/package-root-unused', projectRoot);
+    const result = await runSingleTool(
+      "tsc",
+      baseCtx(),
+      "/package-root-unused",
+      projectRoot,
+    );
 
     expect(result.failed).toBe(true);
-    expect(result.toolResults.tsc?.exitClass).toBe('failure');
+    expect(result.toolResults.tsc?.exitClass).toBe("failure");
   });
 });

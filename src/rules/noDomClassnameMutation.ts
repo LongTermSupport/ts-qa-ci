@@ -1,5 +1,5 @@
-import type { Rule } from 'eslint';
-import type { AssignmentExpression, CallExpression } from 'estree';
+import type { Rule } from "eslint";
+import type { AssignmentExpression, CallExpression } from "estree";
 
 /**
  * WHY: the wedge's JSX-side CSS discipline is airtight — `className` is not a
@@ -30,22 +30,23 @@ interface RuleOptions {
 
 const rule: Rule.RuleModule = {
   meta: {
-    type: 'problem',
+    type: "problem",
     docs: {
-      description: 'Disallow imperative className / classList mutation outside ~/ui.',
+      description:
+        "Disallow imperative className / classList mutation outside ~/ui.",
     },
     schema: [
       {
-        type: 'object',
+        type: "object",
         properties: {
-          allow: { type: 'array', items: { type: 'string' } },
+          allow: { type: "array", items: { type: "string" } },
         },
         additionalProperties: false,
       },
     ],
     messages: {
       mutation:
-        'Imperative className/classList mutation is ad-hoc CSS outside ~/ui. Render through a ~/ui component; if this is loader-level structure, it must be on the rule allowlist in eslint.config.mjs (reviewed).',
+        "Imperative className/classList mutation is ad-hoc CSS outside ~/ui. Render through a ~/ui component; if this is loader-level structure, it must be on the rule allowlist in eslint.config.mjs (reviewed).",
     },
   },
   create(context) {
@@ -58,29 +59,35 @@ const rule: Rule.RuleModule = {
       AssignmentExpression(node: AssignmentExpression) {
         const left = node.left;
         if (
-          left.type === 'MemberExpression' &&
+          left.type === "MemberExpression" &&
           !left.computed &&
-          left.property.type === 'Identifier' &&
-          left.property.name === 'className'
+          left.property.type === "Identifier" &&
+          left.property.name === "className"
         ) {
-          context.report({ node: node as unknown as Rule.Node, messageId: 'mutation' });
+          context.report({
+            node: node as unknown as Rule.Node,
+            messageId: "mutation",
+          });
         }
       },
       CallExpression(node: CallExpression) {
         const callee = node.callee;
-        if (callee.type !== 'MemberExpression') return;
+        if (callee.type !== "MemberExpression") return;
         const object = callee.object;
         if (
-          object.type === 'MemberExpression' &&
+          object.type === "MemberExpression" &&
           !object.computed &&
-          object.property.type === 'Identifier' &&
-          object.property.name === 'classList'
+          object.property.type === "Identifier" &&
+          object.property.name === "classList"
         ) {
           const hasStringLiteralArg = node.arguments.some(
-            (arg) => arg.type === 'Literal' && typeof arg.value === 'string'
+            (arg) => arg.type === "Literal" && typeof arg.value === "string",
           );
           if (hasStringLiteralArg) {
-            context.report({ node: node as unknown as Rule.Node, messageId: 'mutation' });
+            context.report({
+              node: node as unknown as Rule.Node,
+              messageId: "mutation",
+            });
           }
         }
       },

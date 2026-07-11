@@ -1,4 +1,4 @@
-import type { ToolModule } from '../orchestrator/types.js';
+import type { ToolModule } from "../orchestrator/types.js";
 /**
  * Prettier exit-code contract (phase2-design.md §2.5, flagged as needing
  * empirical re-verification against pinned versions before shipping — see

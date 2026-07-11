@@ -1,6 +1,6 @@
-import { resolveToolModule } from './resolveToolModule.js';
-import { runTool } from './runTool.js';
-import type { PhaseDefinition, RunContext, ToolResult } from './types.js';
+import { resolveToolModule } from "./resolveToolModule.js";
+import { runTool } from "./runTool.js";
+import type { PhaseDefinition, RunContext, ToolResult } from "./types.js";
 
 export interface PhaseResult {
   phase: number;
@@ -24,9 +24,13 @@ export interface PhaseResult {
  * --json mode suppresses this: the caller gets the full structured result
  * instead and would see duplicated output otherwise.
  */
-export function logToolResult(toolName: string, result: ToolResult, json: boolean): void {
+export function logToolResult(
+  toolName: string,
+  result: ToolResult,
+  json: boolean,
+): void {
   if (json) return;
-  if (result.exitClass === 'clean') {
+  if (result.exitClass === "clean") {
     console.log(`ts-qa: ${toolName}: clean`);
     return;
   }
@@ -39,23 +43,28 @@ export async function runPhase(
   phaseDef: PhaseDefinition,
   ctx: RunContext,
   packageRoot: string,
-  projectRoot: string
+  projectRoot: string,
 ): Promise<PhaseResult> {
   const toolResults: Record<string, ToolResult> = {};
   let failed = false;
 
   for (const toolName of phaseDef.tools) {
-    const tool = await resolveToolModule(projectRoot, ctx.platform, packageRoot, toolName);
+    const tool = await resolveToolModule(
+      projectRoot,
+      ctx.platform,
+      packageRoot,
+      toolName,
+    );
     const result = await runTool(tool, ctx);
     toolResults[toolName] = result;
     logToolResult(toolName, result, ctx.json);
 
-    if (result.exitClass !== 'clean') {
+    if (result.exitClass !== "clean") {
       failed = true;
       // BUG B: a crash (e.g. a missing binary) is never retried and must abort
       // the phase even under --aggregate — retryGate's contract is "caller
       // aborts on crash". Only a plain failure is allowed to aggregate.
-      if (result.exitClass === 'crash') break;
+      if (result.exitClass === "crash") break;
       if (!ctx.aggregate) break;
     }
   }

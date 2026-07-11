@@ -1,5 +1,5 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
 
 export interface InitOptions {
   cwd: string;
@@ -37,9 +37,9 @@ export default [];
 `;
 
 /** Relative location of the shipped consumer CI archetype within the package. */
-const CI_ARCHETYPE_REL = join('configDefaults', 'github-workflows', 'ci.yml');
+const CI_ARCHETYPE_REL = join("configDefaults", "github-workflows", "ci.yml");
 /** Where the archetype is scaffolded in the consumer project. */
-const CI_DEST_REL = join('.github', 'workflows', 'ts-qa.yml');
+const CI_DEST_REL = join(".github", "workflows", "ts-qa.yml");
 
 /**
  * Supply-chain hardening archetypes scaffolded into the consumer root and
@@ -47,10 +47,14 @@ const CI_DEST_REL = join('.github', 'workflows', 'ts-qa.yml');
  * `npmrc` (no leading dot) because npm strips a literal `.npmrc` from published
  * packages; it is written to the consumer as `.npmrc`.
  */
-const SUPPLY_CHAIN_ARCHETYPES: Array<[archetypeRel: string, destRel: string]> = [
-  [join('configDefaults', 'generic', 'pnpm-workspace.yaml'), 'pnpm-workspace.yaml'],
-  [join('configDefaults', 'generic', 'npmrc'), '.npmrc'],
-];
+const SUPPLY_CHAIN_ARCHETYPES: Array<[archetypeRel: string, destRel: string]> =
+  [
+    [
+      join("configDefaults", "generic", "pnpm-workspace.yaml"),
+      "pnpm-workspace.yaml",
+    ],
+    [join("configDefaults", "generic", "npmrc"), ".npmrc"],
+  ];
 
 /**
  * Scaffold a single file if it is missing; never overwrite. init is a scaffold
@@ -69,13 +73,13 @@ function scaffoldFile(path: string, content: string): void {
 
 /** ts-qa init (phase2-design.md §2.1): scaffold tsQaConfig/ + the CI archetype in the consumer project. */
 export async function init(options: InitOptions): Promise<void> {
-  const configDir = join(options.cwd, 'tsQaConfig');
+  const configDir = join(options.cwd, "tsQaConfig");
 
   const files: Array<[string, string]> = [
-    [join(configDir, 'hookPre.ts'), HOOK_PRE_STUB],
-    [join(configDir, 'hookPost.ts'), HOOK_POST_STUB],
-    [join(configDir, 'tier-a-exemptions.json'), EXEMPTIONS_STUB],
-    [join(configDir, 'eslint.config.js'), ESLINT_CONFIG_STUB],
+    [join(configDir, "hookPre.ts"), HOOK_PRE_STUB],
+    [join(configDir, "hookPost.ts"), HOOK_POST_STUB],
+    [join(configDir, "tier-a-exemptions.json"), EXEMPTIONS_STUB],
+    [join(configDir, "eslint.config.js"), ESLINT_CONFIG_STUB],
   ];
 
   for (const [path, content] of files) {
@@ -86,13 +90,20 @@ export async function init(options: InitOptions): Promise<void> {
   // workflow). Needs packageRoot to locate the shipped file; skipped when it is
   // absent or the archetype file is missing - never silently, always logged.
   if (options.packageRoot === undefined) {
-    console.log('ts-qa init: no packageRoot given — skipping CI + supply-chain scaffold.');
+    console.log(
+      "ts-qa init: no packageRoot given — skipping CI + supply-chain scaffold.",
+    );
   } else {
     const archetype = join(options.packageRoot, CI_ARCHETYPE_REL);
     if (existsSync(archetype)) {
-      scaffoldFile(join(options.cwd, CI_DEST_REL), readFileSync(archetype, 'utf-8'));
+      scaffoldFile(
+        join(options.cwd, CI_DEST_REL),
+        readFileSync(archetype, "utf-8"),
+      );
     } else {
-      console.log(`ts-qa init: CI archetype not found at ${archetype} — skipping CI workflow scaffold.`);
+      console.log(
+        `ts-qa init: CI archetype not found at ${archetype} — skipping CI workflow scaffold.`,
+      );
     }
 
     // Supply-chain hardening files (pnpm-workspace.yaml + .npmrc) — enforced by
@@ -100,12 +111,16 @@ export async function init(options: InitOptions): Promise<void> {
     for (const [archetypeRel, destRel] of SUPPLY_CHAIN_ARCHETYPES) {
       const src = join(options.packageRoot, archetypeRel);
       if (existsSync(src)) {
-        scaffoldFile(join(options.cwd, destRel), readFileSync(src, 'utf-8'));
+        scaffoldFile(join(options.cwd, destRel), readFileSync(src, "utf-8"));
       } else {
-        console.log(`ts-qa init: supply-chain archetype not found at ${src} — skipping.`);
+        console.log(
+          `ts-qa init: supply-chain archetype not found at ${src} — skipping.`,
+        );
       }
     }
   }
 
-  console.log('ts-qa init: complete. See docs/configuration.md and docs/github-actions.md.');
+  console.log(
+    "ts-qa init: complete. See docs/configuration.md and docs/github-actions.md.",
+  );
 }

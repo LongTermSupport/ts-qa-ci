@@ -1,12 +1,16 @@
-import { readFileSync } from 'node:fs';
-import { readFile } from 'node:fs/promises';
-import { glob } from 'node:fs/promises';
-import { remark } from 'remark';
-import remarkValidateLinksPlugin from 'remark-validate-links';
-import { VFile } from 'vfile';
+import { readFileSync } from "node:fs";
+import { readFile } from "node:fs/promises";
+import { glob } from "node:fs/promises";
+import { remark } from "remark";
+import remarkValidateLinksPlugin from "remark-validate-links";
+import { VFile } from "vfile";
 
-import { resolveConfigPath } from '../orchestrator/resolveConfigPath.js';
-import type { RunContext, ToolModule, ToolResult } from '../orchestrator/types.js';
+import { resolveConfigPath } from "../orchestrator/resolveConfigPath.js";
+import type {
+  RunContext,
+  ToolModule,
+  ToolResult,
+} from "../orchestrator/types.js";
 
 interface RemarkIgnoreConfig {
   ignorePatterns?: string[];
@@ -16,11 +20,13 @@ function loadIgnorePatterns(ctx: RunContext): string[] {
   const configPath = resolveConfigPath(
     ctx.cwd,
     ctx.platform,
-    'remark-ignore.json',
-    ctx.packageRoot
+    "remark-ignore.json",
+    ctx.packageRoot,
   );
-  const config = JSON.parse(readFileSync(configPath, 'utf-8')) as RemarkIgnoreConfig;
-  return config.ignorePatterns ?? ['**/node_modules/**'];
+  const config = JSON.parse(
+    readFileSync(configPath, "utf-8"),
+  ) as RemarkIgnoreConfig;
+  return config.ignorePatterns ?? ["**/node_modules/**"];
 }
 
 /**
@@ -31,37 +37,40 @@ function loadIgnorePatterns(ctx: RunContext): string[] {
  * `repository` field for autodetection throws on SSH-form URLs.
  */
 const tool: ToolModule = {
-  name: 'remarkValidateLinks',
+  name: "remarkValidateLinks",
   phase: 2,
   mutates: false,
   pathSupporting: true,
 
   async run(ctx: RunContext): Promise<ToolResult> {
-    const pattern = ctx.path ? `${ctx.path}/**/*.md` : '**/*.md';
+    const pattern = ctx.path ? `${ctx.path}/**/*.md` : "**/*.md";
     const exclude = loadIgnorePatterns(ctx);
     const files: string[] = [];
     for await (const file of glob(pattern, { cwd: ctx.cwd, exclude })) {
       files.push(file);
     }
 
-    const processor = remark().use(remarkValidateLinksPlugin, { repository: false });
+    const processor = remark().use(remarkValidateLinksPlugin, {
+      repository: false,
+    });
     let hadMessages = false;
     const stdoutLines: string[] = [];
 
     for (const file of files) {
-      const contents = await readFile(`${ctx.cwd}/${file}`, 'utf-8');
+      const contents = await readFile(`${ctx.cwd}/${file}`, "utf-8");
       const vfile = new VFile({ path: file, value: contents });
       const result = await processor.process(vfile);
       if (result.messages.length > 0) {
         hadMessages = true;
-        for (const message of result.messages) stdoutLines.push(`${file}: ${message.toString()}`);
+        for (const message of result.messages)
+          stdoutLines.push(`${file}: ${message.toString()}`);
       }
     }
 
     return {
-      exitClass: hadMessages ? 'failure' : 'clean',
-      stdout: stdoutLines.join('\n'),
-      stderr: '',
+      exitClass: hadMessages ? "failure" : "clean",
+      stdout: stdoutLines.join("\n"),
+      stderr: "",
     };
   },
 };

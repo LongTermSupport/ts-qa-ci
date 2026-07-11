@@ -1,22 +1,24 @@
-import { existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 
-import type { Platform } from './types.js';
+import type { Platform } from "./types.js";
 
 interface ConsumerPackageJson {
   dependencies?: Record<string, string>;
   devDependencies?: Record<string, string>;
 }
 
-function readConsumerPackageJson(pkgPath: string): ConsumerPackageJson | undefined {
+function readConsumerPackageJson(
+  pkgPath: string,
+): ConsumerPackageJson | undefined {
   if (!existsSync(pkgPath)) return undefined;
   try {
-    return JSON.parse(readFileSync(pkgPath, 'utf-8')) as ConsumerPackageJson;
+    return JSON.parse(readFileSync(pkgPath, "utf-8")) as ConsumerPackageJson;
   } catch (error) {
     // Malformed consumer package.json is a real, expected-at-this-boundary failure mode -
     // fall back to generic platform detection but surface it, don't hide it.
     console.warn(
-      `ts-qa: could not parse ${pkgPath} as JSON (${(error as Error).message}); assuming generic platform`
+      `ts-qa: could not parse ${pkgPath} as JSON (${(error as Error).message}); assuming generic platform`,
     );
     return undefined;
   }
@@ -28,12 +30,20 @@ function readConsumerPackageJson(pkgPath: string): ConsumerPackageJson | undefin
  * v1, per Plan 011's Non-Goals.
  */
 export function detectPlatform(projectRoot: string): Platform {
-  const viteConfigCandidates = ['vite.config.ts', 'vite.config.js', 'vite.config.mjs'];
-  const hasViteConfig = viteConfigCandidates.some((f) => existsSync(join(projectRoot, f)));
+  const viteConfigCandidates = [
+    "vite.config.ts",
+    "vite.config.js",
+    "vite.config.mjs",
+  ];
+  const hasViteConfig = viteConfigCandidates.some((f) =>
+    existsSync(join(projectRoot, f)),
+  );
 
-  const pkg = readConsumerPackageJson(join(projectRoot, 'package.json'));
-  const hasViteDependency = Boolean(pkg?.dependencies?.vite ?? pkg?.devDependencies?.vite);
+  const pkg = readConsumerPackageJson(join(projectRoot, "package.json"));
+  const hasViteDependency = Boolean(
+    pkg?.dependencies?.vite ?? pkg?.devDependencies?.vite,
+  );
 
-  if (hasViteConfig && hasViteDependency) return 'vite';
-  return 'generic';
+  if (hasViteConfig && hasViteDependency) return "vite";
+  return "generic";
 }

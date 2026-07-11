@@ -1,5 +1,5 @@
-import type { Rule } from 'eslint';
-import type { JSXAttribute, JSXOpeningElement } from 'estree-jsx';
+import type { Rule } from "eslint";
+import type { JSXAttribute, JSXOpeningElement } from "estree-jsx";
 
 /**
  * Tier B (opt-in CDD) — companion to variant-api-enforcement, axis 2 of the
@@ -39,25 +39,25 @@ function pathIncludesAny(filename: string, globs: string[]): boolean {
   // so `src/ui/` matches `/proj/src/ui/…` but NOT `…/adsrc/ui/…` (which merely
   // contains the substring). Reproduces the dbf originals' /\/src\/…\// anchoring
   // — an unanchored `includes` would wrongly carve out any dir ending in `src`.
-  const anchored = `/${filename.replace(/^\/+/, '')}`;
+  const anchored = `/${filename.replace(/^\/+/, "")}`;
   return globs.some((glob) =>
-    anchored.includes(`/${glob.replace(/^\/+/, '').replace(/\*+$/, '')}`)
+    anchored.includes(`/${glob.replace(/^\/+/, "").replace(/\*+$/, "")}`),
   );
 }
 
 const rule: Rule.RuleModule = {
   meta: {
-    type: 'problem',
+    type: "problem",
     docs: {
       description:
-        '`className` may not be passed to a custom component. Express presentation via variant/size/tone/density props on the component itself.',
+        "`className` may not be passed to a custom component. Express presentation via variant/size/tone/density props on the component itself.",
     },
     schema: [
       {
-        type: 'object',
+        type: "object",
         properties: {
-          scopeGlobs: { type: 'array', items: { type: 'string' } },
-          uiDirs: { type: 'array', items: { type: 'string' } },
+          scopeGlobs: { type: "array", items: { type: "string" } },
+          uiDirs: { type: "array", items: { type: "string" } },
         },
         additionalProperties: false,
       },
@@ -69,32 +69,37 @@ const rule: Rule.RuleModule = {
   },
   create(context) {
     const options = (context.options[0] ?? {}) as RuleOptions;
-    const scopeGlobs = options.scopeGlobs ?? ['src/'];
-    const uiDirs = options.uiDirs ?? ['src/ui/'];
+    const scopeGlobs = options.scopeGlobs ?? ["src/"];
+    const uiDirs = options.uiDirs ?? ["src/ui/"];
 
     if (!pathIncludesAny(context.filename, scopeGlobs)) return {};
     const insideUi = pathIncludesAny(context.filename, uiDirs);
 
     return {
       JSXAttribute(node: JSXAttribute) {
-        if (node.name.type !== 'JSXIdentifier' || node.name.name !== 'className') return;
-        const opening = (node as unknown as { parent?: JSXOpeningElement }).parent;
-        if (!opening || opening.type !== 'JSXOpeningElement') return;
+        if (
+          node.name.type !== "JSXIdentifier" ||
+          node.name.name !== "className"
+        )
+          return;
+        const opening = (node as unknown as { parent?: JSXOpeningElement })
+          .parent;
+        if (!opening || opening.type !== "JSXOpeningElement") return;
         const name = opening.name;
 
         // `<Foo.Bar />` — always a component, never raw HTML.
-        if (name.type === 'JSXMemberExpression') {
+        if (name.type === "JSXMemberExpression") {
           if (insideUi) return; // third-party compound passthrough carve-out
           const src = context.sourceCode.getText(name as unknown as Rule.Node);
           context.report({
             node: node as unknown as Rule.Node,
-            messageId: 'classNameOnComponent',
+            messageId: "classNameOnComponent",
             data: { component: src },
           });
           return;
         }
 
-        if (name.type !== 'JSXIdentifier') return;
+        if (name.type !== "JSXIdentifier") return;
         const tag = name.name;
         if (tag.length === 0) return;
         // Lowercase first char → raw HTML/SVG; native className is allowed.
@@ -104,7 +109,7 @@ const rule: Rule.RuleModule = {
         if (/^[a-z]/.test(tag)) return;
         context.report({
           node: node as unknown as Rule.Node,
-          messageId: 'classNameOnComponent',
+          messageId: "classNameOnComponent",
           data: { component: tag },
         });
       },

@@ -1,4 +1,4 @@
-import type { Platform } from './types.js';
+import type { Platform } from "./types.js";
 /**
  * Platform detection (phase2-design.md §2.4). Next.js detection is
  * architecturally reserved (next.config.* presence) but not implemented in

@@ -1,5 +1,5 @@
-import type { Rule } from 'eslint';
-import type { ExportNamedDeclaration, Program } from 'estree';
+import type { Rule } from "eslint";
+import type { ExportNamedDeclaration, Program } from "estree";
 
 /**
  * Tier B rule: one component per file, named after the file.
@@ -36,7 +36,7 @@ import type { ExportNamedDeclaration, Program } from 'estree';
  * `enforcePattern` option (a RegExp source string); the source default matches
  * `.tsx` files under `src/widgets/` or `src/ui/`.
  */
-const DEFAULT_ENFORCE_PATTERN = '/src/(widgets|ui)/.+\\.tsx$';
+const DEFAULT_ENFORCE_PATTERN = "/src/(widgets|ui)/.+\\.tsx$";
 const INDEX_PATTERN = /\/index\.tsx?$/;
 const TEST_PATTERN = /\.(test|spec)\.tsx?$/;
 
@@ -45,9 +45,9 @@ interface RuleOptions {
 }
 
 const basenameWithoutExt = (filename: string): string => {
-  const slash = filename.lastIndexOf('/');
+  const slash = filename.lastIndexOf("/");
   const base = slash === -1 ? filename : filename.slice(slash + 1);
-  const dot = base.lastIndexOf('.');
+  const dot = base.lastIndexOf(".");
   return dot === -1 ? base : base.slice(0, dot);
 };
 
@@ -59,31 +59,33 @@ const isPascalCase = (name: string): boolean => {
 
 const rule: Rule.RuleModule = {
   meta: {
-    type: 'problem',
+    type: "problem",
     docs: {
       description:
-        'Each `.tsx` file under `src/widgets/` or `src/ui/` exports exactly one component, named after the file.',
+        "Each `.tsx` file under `src/widgets/` or `src/ui/` exports exactly one component, named after the file.",
     },
     schema: [
       {
-        type: 'object',
+        type: "object",
         properties: {
-          enforcePattern: { type: 'string' },
+          enforcePattern: { type: "string" },
         },
         additionalProperties: false,
       },
     ],
     messages: {
       tooMany:
-        'File `{{file}}.tsx` exports multiple components: {{names}}. Doctrine: one component per file. Move helpers into their own files (and consider whether they belong in `~/ui/`). See ts/CLAUDE.md §Component-driven design.',
-      none: 'File `{{file}}.tsx` exports no component. Either rename to a lowercase filename (utility) or add the `{{file}}` component export.',
+        "File `{{file}}.tsx` exports multiple components: {{names}}. Doctrine: one component per file. Move helpers into their own files (and consider whether they belong in `~/ui/`). See ts/CLAUDE.md §Component-driven design.",
+      none: "File `{{file}}.tsx` exports no component. Either rename to a lowercase filename (utility) or add the `{{file}}` component export.",
       wrongName:
-        'File `{{file}}.tsx` exports component `{{exportedName}}` but should export `{{file}}` (one component per file, named after the file).',
+        "File `{{file}}.tsx` exports component `{{exportedName}}` but should export `{{file}}` (one component per file, named after the file).",
     },
   },
   create(context) {
     const options = (context.options[0] ?? {}) as RuleOptions;
-    const enforcePattern = new RegExp(options.enforcePattern ?? DEFAULT_ENFORCE_PATTERN);
+    const enforcePattern = new RegExp(
+      options.enforcePattern ?? DEFAULT_ENFORCE_PATTERN,
+    );
 
     const filename = context.filename;
     if (!enforcePattern.test(filename)) return {};
@@ -103,21 +105,26 @@ const rule: Rule.RuleModule = {
           // specifier as a component export.
           for (const spec of node.specifiers) {
             const exported = spec.exported;
-            if (exported.type !== 'Identifier') continue;
-            if (isPascalCase(exported.name)) componentExportNames.push(exported.name);
+            if (exported.type !== "Identifier") continue;
+            if (isPascalCase(exported.name))
+              componentExportNames.push(exported.name);
           }
           return;
         }
-        if (decl.type === 'VariableDeclaration') {
+        if (decl.type === "VariableDeclaration") {
           for (const declarator of decl.declarations) {
             const id = declarator.id;
-            if (id.type !== 'Identifier') continue;
+            if (id.type !== "Identifier") continue;
             if (isPascalCase(id.name)) componentExportNames.push(id.name);
           }
           return;
         }
-        if (decl.type === 'FunctionDeclaration') {
-          if (decl.id !== null && decl.id !== undefined && isPascalCase(decl.id.name)) {
+        if (decl.type === "FunctionDeclaration") {
+          if (
+            decl.id !== null &&
+            decl.id !== undefined &&
+            isPascalCase(decl.id.name)
+          ) {
             componentExportNames.push(decl.id.name);
           }
           return;
@@ -125,11 +132,11 @@ const rule: Rule.RuleModule = {
         // Type-only declarations (TSTypeAliasDeclaration, TSInterfaceDeclaration,
         // TSEnumDeclaration, ClassDeclaration) are NOT counted as components.
       },
-      'Program:exit'(node: Program) {
+      "Program:exit"(node: Program) {
         if (componentExportNames.length === 0) {
           context.report({
             node,
-            messageId: 'none',
+            messageId: "none",
             data: { file: expected },
           });
           return;
@@ -137,8 +144,8 @@ const rule: Rule.RuleModule = {
         if (componentExportNames.length > 1) {
           context.report({
             node,
-            messageId: 'tooMany',
-            data: { file: expected, names: componentExportNames.join(', ') },
+            messageId: "tooMany",
+            data: { file: expected, names: componentExportNames.join(", ") },
           });
           return;
         }
@@ -146,7 +153,7 @@ const rule: Rule.RuleModule = {
         if (only !== expected) {
           context.report({
             node,
-            messageId: 'wrongName',
+            messageId: "wrongName",
             data: { file: expected, exportedName: only },
           });
         }

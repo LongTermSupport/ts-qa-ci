@@ -1,5 +1,5 @@
-import type { Rule } from 'eslint';
-import type { JSXAttribute } from 'estree-jsx';
+import type { Rule } from "eslint";
+import type { JSXAttribute } from "estree-jsx";
 
 /**
  * Tier B (opt-in CDD): bans arbitrary/inline className string literals
@@ -20,57 +20,71 @@ interface RuleOptions {
 
 const rule: Rule.RuleModule = {
   meta: {
-    type: 'problem',
+    type: "problem",
     docs: {
       description:
-        'Disallow arbitrary className string/template literals outside a variant-resolver call (Tier B, opt-in CDD)',
+        "Disallow arbitrary className string/template literals outside a variant-resolver call (Tier B, opt-in CDD)",
     },
     schema: [
       {
-        type: 'object',
-        properties: { variantResolverNames: { type: 'array', items: { type: 'string' } } },
+        type: "object",
+        properties: {
+          variantResolverNames: { type: "array", items: { type: "string" } },
+        },
         additionalProperties: false,
       },
     ],
     messages: {
       adHocClassname:
-        'className is a raw string literal, not a variant-resolver call ({{resolvers}}). Route styling through the component variant-prop catalogue instead.',
+        "className is a raw string literal, not a variant-resolver call ({{resolvers}}). Route styling through the component variant-prop catalogue instead.",
     },
   },
   create(context) {
     const options = (context.options[0] ?? {}) as RuleOptions;
-    const resolvers = options.variantResolverNames ?? ['cva', 'cn', 'clsx', 'twMerge'];
+    const resolvers = options.variantResolverNames ?? [
+      "cva",
+      "cn",
+      "clsx",
+      "twMerge",
+    ];
 
     return {
       JSXAttribute(node: JSXAttribute) {
-        if (node.name.type !== 'JSXIdentifier' || node.name.name !== 'className') return;
+        if (
+          node.name.type !== "JSXIdentifier" ||
+          node.name.name !== "className"
+        )
+          return;
         if (!node.value) return;
 
-        if (node.value.type === 'Literal' && typeof node.value.value === 'string') {
+        if (
+          node.value.type === "Literal" &&
+          typeof node.value.value === "string"
+        ) {
           context.report({
             node: node as unknown as Rule.Node,
-            messageId: 'adHocClassname',
-            data: { resolvers: resolvers.join('/') },
+            messageId: "adHocClassname",
+            data: { resolvers: resolvers.join("/") },
           });
           return;
         }
 
-        if (node.value.type === 'JSXExpressionContainer') {
+        if (node.value.type === "JSXExpressionContainer") {
           const expr = node.value.expression;
           if (
-            expr.type === 'TemplateLiteral' ||
-            (expr.type === 'Literal' && typeof expr.value === 'string')
+            expr.type === "TemplateLiteral" ||
+            (expr.type === "Literal" && typeof expr.value === "string")
           ) {
             context.report({
               node: node as unknown as Rule.Node,
-              messageId: 'adHocClassname',
-              data: { resolvers: resolvers.join('/') },
+              messageId: "adHocClassname",
+              data: { resolvers: resolvers.join("/") },
             });
             return;
           }
           if (
-            expr.type === 'CallExpression' &&
-            expr.callee.type === 'Identifier' &&
+            expr.type === "CallExpression" &&
+            expr.callee.type === "Identifier" &&
             resolvers.includes(expr.callee.name)
           ) {
             return; // sanctioned variant-resolver call

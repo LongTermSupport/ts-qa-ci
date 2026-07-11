@@ -1,5 +1,9 @@
-import type { RunContext, ToolModule, ToolResult } from '../orchestrator/types.js';
-import { execTool } from './execTool.js';
+import type {
+  RunContext,
+  ToolModule,
+  ToolResult,
+} from "../orchestrator/types.js";
+import { execTool } from "./execTool.js";
 
 /**
  * Vitest (phase2-design.md §3): peerDependency, orchestrates the consumer's
@@ -8,16 +12,16 @@ import { execTool } from './execTool.js';
  * --noEmit has to the consumer's tsconfig.json.
  */
 const tool: ToolModule = {
-  name: 'vitest',
+  name: "vitest",
   phase: 4,
   mutates: false,
   pathSupporting: true,
 
   async run(ctx: RunContext): Promise<ToolResult> {
-    const args = ctx.path ? ['run', ctx.path] : ['run'];
-    const result = await execTool('npx', ['vitest', ...args], ctx.cwd);
+    const args = ctx.path ? ["run", ctx.path] : ["run"];
+    const result = await execTool("npx", ["vitest", ...args], ctx.cwd);
     return {
-      exitClass: result.exitCode === 0 ? 'clean' : 'failure',
+      exitClass: result.exitCode === 0 ? "clean" : "failure",
       stdout: result.stdout,
       stderr: result.stderr,
     };

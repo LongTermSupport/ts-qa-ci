@@ -1,5 +1,5 @@
-import { makeRuleTester } from '../testSupport/ruleTester.js';
-import rule from './exhaustiveDiscriminated.js';
+import { makeRuleTester } from "../testSupport/ruleTester.js";
+import rule from "./exhaustiveDiscriminated.js";
 
 const ruleTester = makeRuleTester();
 
@@ -8,19 +8,19 @@ const ruleTester = makeRuleTester();
 // There are therefore NO invalid cases — the valid cases assert that even the
 // exact pattern the rule will eventually flag (a non-exhaustive if-ladder over
 // a discriminated union) is currently accepted, proving the stub is inert.
-ruleTester.run('exhaustive-discriminated', rule, {
+ruleTester.run("exhaustive-discriminated", rule, {
   valid: [
-    { code: 'const x = 1;\n' },
+    { code: "const x = 1;\n" },
     {
       code: [
         "type Event = { kind: 'open' } | { kind: 'close' } | { kind: 'pending' };",
-        'function handle(e: Event): string {',
+        "function handle(e: Event): string {",
         "  if (e.kind === 'open') return 'o';",
         "  if (e.kind === 'close') return 'c';",
         "  return 'unhandled';",
-        '}',
-        '',
-      ].join('\n'),
+        "}",
+        "",
+      ].join("\n"),
     },
   ],
   invalid: [],

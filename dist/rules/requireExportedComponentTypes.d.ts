@@ -1,4 +1,4 @@
-import type { Rule } from 'eslint';
+import type { Rule } from "eslint";
 /**
  * Tier A core rule: requires *Props types declared under src/components/
  * to be exported. Generic component-library hygiene — a consumer importing

@@ -1,5 +1,5 @@
-import type { Rule } from 'eslint';
-import type { MemberExpression } from 'estree';
+import type { Rule } from "eslint";
+import type { MemberExpression } from "estree";
 
 /**
  * Tier A core rule: flags SSR-hydration-unsafe patterns — reading
@@ -35,13 +35,17 @@ import type { MemberExpression } from 'estree';
  * a real finding.
  */
 const BROWSER_GLOBALS = new Set([
-  'window',
-  'document',
-  'localStorage',
-  'sessionStorage',
-  'navigator',
+  "window",
+  "document",
+  "localStorage",
+  "sessionStorage",
+  "navigator",
 ]);
-const SYNC_RENDER_CALLBACK_HOOKS = new Set(['useMemo', 'useState', 'useReducer']);
+const SYNC_RENDER_CALLBACK_HOOKS = new Set([
+  "useMemo",
+  "useState",
+  "useReducer",
+]);
 
 // Deliberately loose/structural rather than the full Rule.Node discriminated union -
 // walking .parent generically across that union produces a combinatorial type TS
@@ -54,23 +58,25 @@ interface MinimalNode {
 
 function isSyncRenderCallback(fn: MinimalNode): boolean {
   const parent = fn.parent;
-  if (!parent || parent.type !== 'CallExpression' || !parent.callee) return false;
+  if (!parent || parent.type !== "CallExpression" || !parent.callee)
+    return false;
   return (
-    parent.callee.type === 'Identifier' &&
+    parent.callee.type === "Identifier" &&
     Boolean(parent.callee.name) &&
     SYNC_RENDER_CALLBACK_HOOKS.has(parent.callee.name as string)
   );
 }
 
 function isDeferred(node: Rule.Node): boolean {
-  let current: MinimalNode | null | undefined = (node as unknown as MinimalNode).parent;
+  let current: MinimalNode | null | undefined = (node as unknown as MinimalNode)
+    .parent;
   let functionBoundariesCrossed = 0;
 
   while (current) {
     if (
-      current.type === 'FunctionDeclaration' ||
-      current.type === 'FunctionExpression' ||
-      current.type === 'ArrowFunctionExpression'
+      current.type === "FunctionDeclaration" ||
+      current.type === "FunctionExpression" ||
+      current.type === "ArrowFunctionExpression"
     ) {
       if (isSyncRenderCallback(current)) return false;
       functionBoundariesCrossed++;
@@ -84,10 +90,10 @@ function isDeferred(node: Rule.Node): boolean {
 
 const rule: Rule.RuleModule = {
   meta: {
-    type: 'problem',
+    type: "problem",
     docs: {
       description:
-        'Disallow SSR-hydration-unsafe browser-global reads and non-deterministic values during render',
+        "Disallow SSR-hydration-unsafe browser-global reads and non-deterministic values during render",
     },
     schema: [],
     messages: {
@@ -103,14 +109,15 @@ const rule: Rule.RuleModule = {
         if (!BROWSER_GLOBALS.has(node.name)) return;
         const parent = (node as unknown as { parent?: Rule.Node }).parent;
         if (
-          parent?.type === 'MemberExpression' &&
+          parent?.type === "MemberExpression" &&
           (parent as unknown as MemberExpression).object !== node
         )
           return;
         // A non-computed object-literal / class member key named after a browser
         // global (e.g. `{ document: 1 }`) is just an identifier key, not a read.
         if (
-          (parent?.type === 'Property' || parent?.type === 'MethodDefinition') &&
+          (parent?.type === "Property" ||
+            parent?.type === "MethodDefinition") &&
           (parent as unknown as { key?: unknown }).key === node &&
           !(parent as unknown as { computed?: boolean }).computed
         )
@@ -118,38 +125,38 @@ const rule: Rule.RuleModule = {
         if (isDeferred(node as unknown as Rule.Node)) return;
         context.report({
           node: node as unknown as Rule.Node,
-          messageId: 'browserGlobal',
+          messageId: "browserGlobal",
           data: { name: node.name },
         });
       },
       NewExpression(node) {
         if (
-          node.callee.type === 'Identifier' &&
-          node.callee.name === 'Date' &&
+          node.callee.type === "Identifier" &&
+          node.callee.name === "Date" &&
           node.arguments.length === 0
         ) {
           if (!isDeferred(node as unknown as Rule.Node)) {
             context.report({
               node: node as unknown as Rule.Node,
-              messageId: 'nonDeterministic',
-              data: { name: 'new Date()' },
+              messageId: "nonDeterministic",
+              data: { name: "new Date()" },
             });
           }
         }
       },
       CallExpression(node) {
         if (
-          node.callee.type === 'MemberExpression' &&
-          node.callee.object.type === 'Identifier' &&
-          node.callee.object.name === 'Math' &&
-          node.callee.property.type === 'Identifier' &&
-          node.callee.property.name === 'random'
+          node.callee.type === "MemberExpression" &&
+          node.callee.object.type === "Identifier" &&
+          node.callee.object.name === "Math" &&
+          node.callee.property.type === "Identifier" &&
+          node.callee.property.name === "random"
         ) {
           if (!isDeferred(node as unknown as Rule.Node)) {
             context.report({
               node: node as unknown as Rule.Node,
-              messageId: 'nonDeterministic',
-              data: { name: 'Math.random()' },
+              messageId: "nonDeterministic",
+              data: { name: "Math.random()" },
             });
           }
         }

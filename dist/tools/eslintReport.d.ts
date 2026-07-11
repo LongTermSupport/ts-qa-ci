@@ -1,4 +1,4 @@
-import type { ToolModule } from '../orchestrator/types.js';
+import type { ToolModule } from "../orchestrator/types.js";
 /**
  * ESLint Phase 2 pass (phase2-design.md §2.2): pure report pass over
  * whatever the Phase 1 --fix pass could not resolve, including the CDD

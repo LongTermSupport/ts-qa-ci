@@ -1,4 +1,4 @@
-import type { Rule } from 'eslint';
+import type { Rule } from "eslint";
 /**
  * Tier A core rule: throwing a `new Error` inside a catch block without
  * `{ cause: original }` silently destroys the original stack. The debugger

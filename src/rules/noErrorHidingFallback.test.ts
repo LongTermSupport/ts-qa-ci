@@ -1,125 +1,125 @@
-import { makeRuleTester } from '../testSupport/ruleTester.js';
-import rule from './noErrorHidingFallback.js';
+import { makeRuleTester } from "../testSupport/ruleTester.js";
+import rule from "./noErrorHidingFallback.js";
 
 const ruleTester = makeRuleTester();
 
 // The rule only fires inside widgets/core/api-client-hooks, so every fixture
 // sets an explicit filename to place it in (or out of) scope.
-const IN_SCOPE = '/repo/src/widgets/zoho-tickets/Widget.tsx';
+const IN_SCOPE = "/repo/src/widgets/zoho-tickets/Widget.tsx";
 
-ruleTester.run('no-error-hiding-fallback', rule, {
+ruleTester.run("no-error-hiding-fallback", rule, {
   valid: [
     // Out of scope entirely — a top-level src file is not policed.
-    { code: 'const rows = data ?? [];\n', filename: '/repo/src/App.tsx' },
+    { code: "const rows = data ?? [];\n", filename: "/repo/src/App.tsx" },
     // Generated api-client code is explicitly excluded even though it is under api-client.
     {
-      code: 'const rows = data ?? [];\n',
-      filename: '/repo/src/api-client/generated/Api.ts',
+      code: "const rows = data ?? [];\n",
+      filename: "/repo/src/api-client/generated/Api.ts",
     },
     // A test file within scope is excluded.
     {
-      code: 'const rows = data ?? [];\n',
-      filename: '/repo/src/widgets/zoho-tickets/Widget.test.tsx',
+      code: "const rows = data ?? [];\n",
+      filename: "/repo/src/widgets/zoho-tickets/Widget.test.tsx",
     },
     // In scope but not an empty-literal fallback: a real default value is fine.
     { code: 'const name = user.name ?? "Anonymous";\n', filename: IN_SCOPE },
     // In scope, fallback to another expression (not an empty literal) is fine.
-    { code: 'const list = primary ?? secondary;\n', filename: IN_SCOPE },
+    { code: "const list = primary ?? secondary;\n", filename: IN_SCOPE },
     // The Map upsert idiom is allowlisted: `m.get(k) ?? 0` feeding a `.set(...)`.
     {
-      code: 'counts.set(key, (counts.get(key) ?? 0) + 1);\n',
+      code: "counts.set(key, (counts.get(key) ?? 0) + 1);\n",
       filename: IN_SCOPE,
     },
     // Map upsert idiom through a Binary arithmetic chain other than `+`.
     {
-      code: 'counts.set(key, (counts.get(key) ?? 0) - 1);\n',
+      code: "counts.set(key, (counts.get(key) ?? 0) - 1);\n",
       filename: IN_SCOPE,
     },
     // Map upsert idiom through a Unary operator ancestor.
     {
-      code: 'counts.set(key, -(counts.get(key) ?? 0));\n',
+      code: "counts.set(key, -(counts.get(key) ?? 0));\n",
       filename: IN_SCOPE,
     },
     // A non-empty array literal fallback is a genuine default, not an error-hider.
-    { code: 'const rows = data ?? [1, 2, 3];\n', filename: IN_SCOPE },
+    { code: "const rows = data ?? [1, 2, 3];\n", filename: IN_SCOPE },
     // A non-empty object literal fallback is a genuine default, not an error-hider.
-    { code: 'const meta = data ?? { page: 1 };\n', filename: IN_SCOPE },
+    { code: "const meta = data ?? { page: 1 };\n", filename: IN_SCOPE },
     // A non-zero / non-empty primitive fallback is a genuine default.
-    { code: 'const size = pageSize ?? 25;\n', filename: IN_SCOPE },
+    { code: "const size = pageSize ?? 25;\n", filename: IN_SCOPE },
   ],
   invalid: [
     // The core bug: `?? []` masks loading/error/empty for a list.
     {
-      code: 'const rows = tickets ?? [];\n',
+      code: "const rows = tickets ?? [];\n",
       filename: IN_SCOPE,
-      errors: [{ messageId: 'hiding' }],
+      errors: [{ messageId: "hiding" }],
     },
     // `|| []` form — same hidden state, different operator.
     {
-      code: 'const rows = tickets || [];\n',
+      code: "const rows = tickets || [];\n",
       filename: IN_SCOPE,
-      errors: [{ messageId: 'hiding' }],
+      errors: [{ messageId: "hiding" }],
     },
     // `?? {}` hides a missing object.
     {
-      code: 'const meta = response ?? {};\n',
+      code: "const meta = response ?? {};\n",
       filename: IN_SCOPE,
-      errors: [{ messageId: 'hiding' }],
+      errors: [{ messageId: "hiding" }],
     },
     // `|| ''` masks the difference between "no value yet" and "empty string".
     {
       code: 'const label = title || "";\n',
       filename: IN_SCOPE,
-      errors: [{ messageId: 'hiding' }],
+      errors: [{ messageId: "hiding" }],
     },
     // `?? 0` NOT part of a Map upsert — a plain error-hiding numeric fallback.
     {
-      code: 'const total = amount ?? 0;\n',
+      code: "const total = amount ?? 0;\n",
       filename: IN_SCOPE,
-      errors: [{ messageId: 'hiding' }],
+      errors: [{ messageId: "hiding" }],
     },
     // `?? false`, `?? null`, `?? undefined` are all banned empty-literal shapes.
     {
-      code: 'const ok = flag ?? false;\n',
+      code: "const ok = flag ?? false;\n",
       filename: IN_SCOPE,
-      errors: [{ messageId: 'hiding' }],
+      errors: [{ messageId: "hiding" }],
     },
     {
-      code: 'const value = maybe ?? null;\n',
+      code: "const value = maybe ?? null;\n",
       filename: IN_SCOPE,
-      errors: [{ messageId: 'hiding' }],
+      errors: [{ messageId: "hiding" }],
     },
     {
-      code: 'const value = maybe ?? undefined;\n',
+      code: "const value = maybe ?? undefined;\n",
       filename: IN_SCOPE,
-      errors: [{ messageId: 'hiding' }],
+      errors: [{ messageId: "hiding" }],
     },
     // Also fires under src/core and src/api-client/hooks (both in scope).
     {
-      code: 'const rows = data ?? [];\n',
-      filename: '/repo/src/core/loader.ts',
-      errors: [{ messageId: 'hiding' }],
+      code: "const rows = data ?? [];\n",
+      filename: "/repo/src/core/loader.ts",
+      errors: [{ messageId: "hiding" }],
     },
     {
-      code: 'const rows = data ?? [];\n',
-      filename: '/repo/src/api-client/hooks/useTickets.ts',
-      errors: [{ messageId: 'hiding' }],
+      code: "const rows = data ?? [];\n",
+      filename: "/repo/src/api-client/hooks/useTickets.ts",
+      errors: [{ messageId: "hiding" }],
     },
     // `m.get(k) ?? 0` that does NOT feed a `.set(...)` is a plain read with an
     // error-hiding fallback — the Map-upsert allowlist must not exempt it.
     {
-      code: 'const current = counts.get(key) ?? 0;\n',
+      code: "const current = counts.get(key) ?? 0;\n",
       filename: IN_SCOPE,
-      errors: [{ messageId: 'hiding' }],
+      errors: [{ messageId: "hiding" }],
     },
     // PORT PARITY: the source rule honoured a `// dbf-fallback-justification:`
     // inline-comment escape hatch. That hatch is deliberately DROPPED in this
     // port, so the same comment must NOT exempt the fallback — the port is
     // strictly stronger here.
     {
-      code: '// dbf-fallback-justification: legacy caller\nconst rows = tickets ?? [];\n',
+      code: "// dbf-fallback-justification: legacy caller\nconst rows = tickets ?? [];\n",
       filename: IN_SCOPE,
-      errors: [{ messageId: 'hiding' }],
+      errors: [{ messageId: "hiding" }],
     },
   ],
 });

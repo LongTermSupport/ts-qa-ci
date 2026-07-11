@@ -1,4 +1,4 @@
-import type { Rule } from 'eslint';
+import type { Rule } from "eslint";
 
 /**
  * Tier A stub rule: discriminated-union narrowing must be exhaustive.
@@ -26,13 +26,15 @@ import type { Rule } from 'eslint';
  */
 const rule: Rule.RuleModule = {
   meta: {
-    type: 'problem',
+    type: "problem",
     docs: {
-      description: 'Discriminated-union narrowing must be exhaustive (STUB — see file comment).',
+      description:
+        "Discriminated-union narrowing must be exhaustive (STUB — see file comment).",
     },
     schema: [],
     messages: {
-      missingBranches: 'Discriminated union narrowing is missing branch(es): {{missing}}.',
+      missingBranches:
+        "Discriminated union narrowing is missing branch(es): {{missing}}.",
     },
   },
   create() {

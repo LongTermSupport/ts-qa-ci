@@ -1,4 +1,4 @@
-import type { ToolModule } from '../orchestrator/types.js';
+import type { ToolModule } from "../orchestrator/types.js";
 /**
  * Phase 0 — Fast Fail (added 2026-07-10 per maintainer direction, see
  * PLAN.md Decision 7). oxlint is a Rust-based linter (the Oxc project)

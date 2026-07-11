@@ -1,4 +1,4 @@
-import type { Linter } from 'eslint';
+import type { Linter } from "eslint";
 
 /**
  * Strict-TypeScript baseline doctrine (Plan 00004 Task 1.4), upstreamed from
@@ -58,15 +58,16 @@ export const AS_ENUM_BAN_SELECTORS = [
   {
     selector: "TSAsExpression:not([typeAnnotation.typeName.name='const'])",
     message:
-      'Type assertions are banned. Use a type guard, a schema parse, or fix the upstream type. `as const` only.',
+      "Type assertions are banned. Use a type guard, a schema parse, or fix the upstream type. `as const` only.",
   },
   {
-    selector: 'TSTypeAssertion',
-    message: 'Angle-bracket type assertions are banned. `as const` only.',
+    selector: "TSTypeAssertion",
+    message: "Angle-bracket type assertions are banned. `as const` only.",
   },
   {
-    selector: 'TSEnumDeclaration',
-    message: 'Enums are banned — use a union of string literals or an `as const` object.',
+    selector: "TSEnumDeclaration",
+    message:
+      "Enums are banned — use a union of string literals or an `as const` object.",
   },
 ] as const;
 
@@ -76,39 +77,44 @@ export const STRICT_TYPESCRIPT_RULES: Linter.RulesRecord = {
   // the Tier A base config via AS_ENUM_BAN_SELECTORS — NOT duplicated here. This
   // preset carries the type-aware half: `consistent-type-assertions` forbids
   // object-literal assertions (which `as const` alone can't express).
-  '@typescript-eslint/consistent-type-assertions': [
-    'error',
-    { assertionStyle: 'as', objectLiteralTypeAssertions: 'never' },
+  "@typescript-eslint/consistent-type-assertions": [
+    "error",
+    { assertionStyle: "as", objectLiteralTypeAssertions: "never" },
   ],
 
   // --- Comment-suppression lockdown (§2c, §3) --------------------------------
   // Native complement to the always-on Tier A `no-eslint-disable` comment scan.
-  '@typescript-eslint/ban-ts-comment': [
-    'error',
-    { 'ts-expect-error': false, 'ts-ignore': false, 'ts-nocheck': false, 'ts-check': false },
+  "@typescript-eslint/ban-ts-comment": [
+    "error",
+    {
+      "ts-expect-error": false,
+      "ts-ignore": false,
+      "ts-nocheck": false,
+      "ts-check": false,
+    },
   ],
 
   // --- Cast-safety cluster ---------------------------------------------------
-  '@typescript-eslint/no-unnecessary-type-assertion': 'error',
-  '@typescript-eslint/no-unsafe-type-assertion': 'error',
+  "@typescript-eslint/no-unnecessary-type-assertion": "error",
+  "@typescript-eslint/no-unsafe-type-assertion": "error",
 
   // --- Load-bearing strict severities (§3) -----------------------------------
-  '@typescript-eslint/no-explicit-any': 'error',
-  '@typescript-eslint/no-non-null-assertion': 'error',
-  '@typescript-eslint/no-unsafe-argument': 'error',
-  '@typescript-eslint/no-unsafe-assignment': 'error',
-  '@typescript-eslint/no-unsafe-call': 'error',
-  '@typescript-eslint/no-unsafe-member-access': 'error',
-  '@typescript-eslint/no-unsafe-return': 'error',
-  '@typescript-eslint/strict-boolean-expressions': 'error',
-  '@typescript-eslint/no-floating-promises': 'error',
-  '@typescript-eslint/no-misused-promises': 'error',
-  '@typescript-eslint/switch-exhaustiveness-check': 'error',
-  '@typescript-eslint/restrict-template-expressions': 'error',
-  '@typescript-eslint/no-unnecessary-condition': 'error',
-  '@typescript-eslint/consistent-type-imports': 'error',
-  '@typescript-eslint/promise-function-async': 'error',
-  '@typescript-eslint/require-await': 'error',
+  "@typescript-eslint/no-explicit-any": "error",
+  "@typescript-eslint/no-non-null-assertion": "error",
+  "@typescript-eslint/no-unsafe-argument": "error",
+  "@typescript-eslint/no-unsafe-assignment": "error",
+  "@typescript-eslint/no-unsafe-call": "error",
+  "@typescript-eslint/no-unsafe-member-access": "error",
+  "@typescript-eslint/no-unsafe-return": "error",
+  "@typescript-eslint/strict-boolean-expressions": "error",
+  "@typescript-eslint/no-floating-promises": "error",
+  "@typescript-eslint/no-misused-promises": "error",
+  "@typescript-eslint/switch-exhaustiveness-check": "error",
+  "@typescript-eslint/restrict-template-expressions": "error",
+  "@typescript-eslint/no-unnecessary-condition": "error",
+  "@typescript-eslint/consistent-type-imports": "error",
+  "@typescript-eslint/promise-function-async": "error",
+  "@typescript-eslint/require-await": "error",
 };
 
 /**
@@ -119,14 +125,14 @@ export const STRICT_TYPESCRIPT_RULES: Linter.RulesRecord = {
  * ratchet is not dragged into readonly/module-boundary/type-export churn.
  */
 export const STRICT_TYPESCRIPT_STYLISTIC_RULES: Linter.RulesRecord = {
-  '@typescript-eslint/explicit-module-boundary-types': 'error',
-  '@typescript-eslint/method-signature-style': ['error', 'property'],
-  '@typescript-eslint/prefer-readonly': 'error',
-  '@typescript-eslint/consistent-type-exports': [
-    'error',
+  "@typescript-eslint/explicit-module-boundary-types": "error",
+  "@typescript-eslint/method-signature-style": ["error", "property"],
+  "@typescript-eslint/prefer-readonly": "error",
+  "@typescript-eslint/consistent-type-exports": [
+    "error",
     { fixMixedExportsWithInlineTypeSpecifier: true },
   ],
-  '@typescript-eslint/no-import-type-side-effects': 'error',
-  '@typescript-eslint/no-useless-empty-export': 'error',
-  '@typescript-eslint/default-param-last': 'error',
+  "@typescript-eslint/no-import-type-side-effects": "error",
+  "@typescript-eslint/no-useless-empty-export": "error",
+  "@typescript-eslint/default-param-last": "error",
 };

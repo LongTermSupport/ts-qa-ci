@@ -1,7 +1,7 @@
-import type { Rule } from 'eslint';
-import type { CallExpression } from 'estree';
-import { existsSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import type { Rule } from "eslint";
+import type { CallExpression } from "estree";
+import { existsSync } from "node:fs";
+import { dirname, join, resolve } from "node:path";
 
 /**
  * Tier A core rule: validates React.lazy(() => import('...')) paths
@@ -10,17 +10,17 @@ import { dirname, join, resolve } from 'node:path';
  * Completely generic; only `@/` alias resolution needs to match the
  * consumer's real tsconfig paths (configurable via ruleOptions).
  */
-const EXTENSIONS: string[] = ['.tsx', '.ts', '.jsx', '.js'];
+const EXTENSIONS: string[] = [".tsx", ".ts", ".jsx", ".js"];
 
 function resolveImportPath(
   fromFile: string,
   importPath: string,
-  aliasRoot: string | undefined
+  aliasRoot: string | undefined,
 ): string | undefined {
   let basePath: string;
-  if (importPath.startsWith('@/') && aliasRoot) {
+  if (importPath.startsWith("@/") && aliasRoot) {
     basePath = join(aliasRoot, importPath.slice(2));
-  } else if (importPath.startsWith('.')) {
+  } else if (importPath.startsWith(".")) {
     basePath = resolve(dirname(fromFile), importPath);
   } else {
     return undefined; // bare package specifier - not this rule's concern
@@ -29,29 +29,36 @@ function resolveImportPath(
   if (existsSync(basePath)) return basePath;
   for (const ext of EXTENSIONS) {
     if (existsSync(`${basePath}${ext}`)) return `${basePath}${ext}`;
-    if (existsSync(join(basePath, `index${ext}`))) return join(basePath, `index${ext}`);
+    if (existsSync(join(basePath, `index${ext}`)))
+      return join(basePath, `index${ext}`);
   }
   return undefined;
 }
 
 const rule: Rule.RuleModule = {
   meta: {
-    type: 'problem',
-    docs: { description: "Validate React.lazy(() => import('...')) paths resolve to a real file" },
+    type: "problem",
+    docs: {
+      description:
+        "Validate React.lazy(() => import('...')) paths resolve to a real file",
+    },
     schema: [
       {
-        type: 'object',
-        properties: { aliasRoot: { type: 'string' } },
+        type: "object",
+        properties: { aliasRoot: { type: "string" } },
         additionalProperties: false,
       },
     ],
     messages: {
-      unresolvedImport: 'lazy() import path "{{path}}" does not resolve to any file.',
+      unresolvedImport:
+        'lazy() import path "{{path}}" does not resolve to any file.',
     },
   },
   create(context) {
     const options = (context.options[0] ?? {}) as { aliasRoot?: string };
-    const aliasRoot = options.aliasRoot ? resolve(context.cwd, options.aliasRoot) : undefined;
+    const aliasRoot = options.aliasRoot
+      ? resolve(context.cwd, options.aliasRoot)
+      : undefined;
 
     // Local name that `lazy` was imported under from 'react' (usually `lazy`,
     // but honour aliases like `import { lazy as reactLazy }`). Only a bare call
@@ -59,28 +66,30 @@ const rule: Rule.RuleModule = {
     // unrelated helpers that happen to be called `lazy`.
     let lazyLocalName: string | undefined;
 
-    function isLazyCallee(callee: CallExpression['callee']): boolean {
-      if (callee.type === 'MemberExpression') {
+    function isLazyCallee(callee: CallExpression["callee"]): boolean {
+      if (callee.type === "MemberExpression") {
         return (
-          callee.object.type === 'Identifier' &&
-          callee.object.name === 'React' &&
-          callee.property.type === 'Identifier' &&
-          callee.property.name === 'lazy'
+          callee.object.type === "Identifier" &&
+          callee.object.name === "React" &&
+          callee.property.type === "Identifier" &&
+          callee.property.name === "lazy"
         );
       }
       return (
-        callee.type === 'Identifier' && lazyLocalName !== undefined && callee.name === lazyLocalName
+        callee.type === "Identifier" &&
+        lazyLocalName !== undefined &&
+        callee.name === lazyLocalName
       );
     }
 
     return {
       ImportDeclaration(node) {
-        if (node.source.value !== 'react') return;
+        if (node.source.value !== "react") return;
         for (const spec of node.specifiers) {
           if (
-            spec.type === 'ImportSpecifier' &&
-            spec.imported.type === 'Identifier' &&
-            spec.imported.name === 'lazy'
+            spec.type === "ImportSpecifier" &&
+            spec.imported.type === "Identifier" &&
+            spec.imported.name === "lazy"
           ) {
             lazyLocalName = spec.local.name;
           }
@@ -90,22 +99,32 @@ const rule: Rule.RuleModule = {
         if (!isLazyCallee(node.callee)) return;
 
         const arg = node.arguments[0];
-        if (!arg || (arg.type !== 'ArrowFunctionExpression' && arg.type !== 'FunctionExpression'))
+        if (
+          !arg ||
+          (arg.type !== "ArrowFunctionExpression" &&
+            arg.type !== "FunctionExpression")
+        )
           return;
         // Dynamic import() is its own ESTree node type (ImportExpression), not a
         // CallExpression with callee.type 'Import' - that was an older/non-standard
         // representation some parsers used.
-        const body = arg.body.type === 'ImportExpression' ? arg.body : undefined;
+        const body =
+          arg.body.type === "ImportExpression" ? arg.body : undefined;
         if (!body) return;
 
         const pathArg = body.source;
-        if (pathArg.type !== 'Literal' || typeof pathArg.value !== 'string') return;
+        if (pathArg.type !== "Literal" || typeof pathArg.value !== "string")
+          return;
 
-        const resolved = resolveImportPath(context.filename, pathArg.value, aliasRoot);
+        const resolved = resolveImportPath(
+          context.filename,
+          pathArg.value,
+          aliasRoot,
+        );
         if (!resolved) {
           context.report({
             node: node as unknown as Rule.Node,
-            messageId: 'unresolvedImport',
+            messageId: "unresolvedImport",
             data: { path: pathArg.value },
           });
         }

@@ -1,6 +1,6 @@
-import type { Rule } from 'eslint';
-import type { JSXOpeningElement } from 'estree-jsx';
-import { basename, extname } from 'node:path';
+import type { Rule } from "eslint";
+import type { JSXOpeningElement } from "estree-jsx";
+import { basename, extname } from "node:path";
 
 /**
  * Tier A core rule (CDD flagship): bans raw HTML elements in .tsx JSX
@@ -34,44 +34,44 @@ import { basename, extname } from 'node:path';
  * gap in this rule.
  */
 const DEFAULT_BANNED_ELEMENTS: string[] = [
-  'div',
-  'span',
-  'button',
-  'a',
-  'p',
-  'h1',
-  'h2',
-  'h3',
-  'h4',
-  'h5',
-  'h6',
-  'ul',
-  'ol',
-  'li',
-  'section',
-  'article',
-  'header',
-  'footer',
-  'nav',
-  'aside',
-  'form',
-  'input',
-  'select',
-  'textarea',
-  'label',
-  'table',
-  'tr',
-  'td',
-  'th',
-  'img',
-  'video',
-  'audio',
-  'iframe',
+  "div",
+  "span",
+  "button",
+  "a",
+  "p",
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "h5",
+  "h6",
+  "ul",
+  "ol",
+  "li",
+  "section",
+  "article",
+  "header",
+  "footer",
+  "nav",
+  "aside",
+  "form",
+  "input",
+  "select",
+  "textarea",
+  "label",
+  "table",
+  "tr",
+  "td",
+  "th",
+  "img",
+  "video",
+  "audio",
+  "iframe",
 ];
 
 // Sentinel in `bannedElements` meaning "ban every lowercase JSX identifier"
 // (rather than only the fixed DEFAULT_BANNED_ELEMENTS list).
-const BAN_ALL = '*';
+const BAN_ALL = "*";
 
 interface RuleOptions {
   scopeGlobs?: string[];
@@ -86,30 +86,31 @@ interface RuleOptions {
 // Minimal shape for the export-declaration forms this rule needs to recognise -
 // narrower than pulling in a full estree-flavoured Program type just for this scan.
 interface Identifier {
-  type: 'Identifier';
+  type: "Identifier";
   name: string;
 }
 interface VariableDeclarator {
   id: Identifier | { type: string };
 }
 interface FunctionDeclarationNode {
-  type: 'FunctionDeclaration';
+  type: "FunctionDeclaration";
   id: Identifier | null;
 }
 interface VariableDeclarationNode {
-  type: 'VariableDeclaration';
+  type: "VariableDeclaration";
   declarations: VariableDeclarator[];
 }
 interface ExportDefaultDeclarationNode {
-  type: 'ExportDefaultDeclaration';
+  type: "ExportDefaultDeclaration";
   declaration: FunctionDeclarationNode | Identifier | { type: string };
 }
 interface ExportSpecifierNode {
   exported: Identifier | { type: string; value?: string };
 }
 interface ExportNamedDeclarationNode {
-  type: 'ExportNamedDeclaration';
-  declaration: FunctionDeclarationNode | VariableDeclarationNode | { type: string } | null;
+  type: "ExportNamedDeclaration";
+  declaration:
+    FunctionDeclarationNode | VariableDeclarationNode | { type: string } | null;
   specifiers: ExportSpecifierNode[];
 }
 type ProgramStatement =
@@ -121,22 +122,30 @@ interface ProgramNode {
 function getExportedNames(program: ProgramNode): string[] {
   const names: string[] = [];
   for (const stmt of program.body) {
-    if (stmt.type === 'ExportDefaultDeclaration') {
+    if (stmt.type === "ExportDefaultDeclaration") {
       const decl = (stmt as ExportDefaultDeclarationNode).declaration;
-      if (decl.type === 'FunctionDeclaration' && (decl as FunctionDeclarationNode).id) {
+      if (
+        decl.type === "FunctionDeclaration" &&
+        (decl as FunctionDeclarationNode).id
+      ) {
         names.push((decl as FunctionDeclarationNode).id!.name);
-      } else if (decl.type === 'Identifier') {
+      } else if (decl.type === "Identifier") {
         names.push((decl as Identifier).name);
       }
-    } else if (stmt.type === 'ExportNamedDeclaration') {
+    } else if (stmt.type === "ExportNamedDeclaration") {
       const namedStmt = stmt as ExportNamedDeclarationNode;
       const decl = namedStmt.declaration;
       if (decl) {
-        if (decl.type === 'FunctionDeclaration' && (decl as FunctionDeclarationNode).id) {
+        if (
+          decl.type === "FunctionDeclaration" &&
+          (decl as FunctionDeclarationNode).id
+        ) {
           names.push((decl as FunctionDeclarationNode).id!.name);
-        } else if (decl.type === 'VariableDeclaration') {
-          for (const declarator of (decl as VariableDeclarationNode).declarations) {
-            if (declarator.id.type === 'Identifier') names.push((declarator.id as Identifier).name);
+        } else if (decl.type === "VariableDeclaration") {
+          for (const declarator of (decl as VariableDeclarationNode)
+            .declarations) {
+            if (declarator.id.type === "Identifier")
+              names.push((declarator.id as Identifier).name);
           }
         }
       }
@@ -146,7 +155,7 @@ function getExportedNames(program: ProgramNode): string[] {
       // (Plan 011 Task 4.2/4.3): Carousel.tsx uses exactly this shape and was still
       // being flagged for its own internal JSX despite exporting `Carousel`.
       for (const specifier of namedStmt.specifiers ?? []) {
-        if (specifier.exported.type === 'Identifier')
+        if (specifier.exported.type === "Identifier")
           names.push((specifier.exported as Identifier).name);
       }
     }
@@ -157,7 +166,7 @@ function getExportedNames(program: ProgramNode): string[] {
 function isComponentDefinitionFile(
   filename: string,
   exportedNames: string[],
-  exemptSuffixes: string[]
+  exemptSuffixes: string[],
 ): boolean {
   if (exemptSuffixes.some((suffix) => filename.endsWith(suffix))) return true;
   const basenameNoExt = basename(filename, extname(filename));
@@ -169,40 +178,40 @@ function pathIncludesAny(filename: string, globs: string[]): boolean {
   // so `src/ui/` matches `/proj/src/ui/…` but NOT `…/adsrc/ui/…` (substring-only).
   // An unanchored `includes` would wrongly scope/exempt any dir ending in the
   // glob's leading segment.
-  const anchored = `/${filename.replace(/^\/+/, '')}`;
+  const anchored = `/${filename.replace(/^\/+/, "")}`;
   return globs.some((glob) =>
-    anchored.includes(`/${glob.replace(/^\/+/, '').replace(/\*+$/, '')}`)
+    anchored.includes(`/${glob.replace(/^\/+/, "").replace(/\*+$/, "")}`),
   );
 }
 
 const rule: Rule.RuleModule = {
   meta: {
-    type: 'problem',
+    type: "problem",
     docs: {
       description:
-        'Disallow raw HTML elements in JSX outside designated component-definition files or UI dirs — the CDD flagship rule',
+        "Disallow raw HTML elements in JSX outside designated component-definition files or UI dirs — the CDD flagship rule",
     },
     schema: [
       {
-        type: 'object',
+        type: "object",
         properties: {
-          scopeGlobs: { type: 'array', items: { type: 'string' } },
-          allowedElements: { type: 'array', items: { type: 'string' } },
-          exemptFileSuffixes: { type: 'array', items: { type: 'string' } },
-          uiDirs: { type: 'array', items: { type: 'string' } },
-          bannedElements: { type: 'array', items: { type: 'string' } },
+          scopeGlobs: { type: "array", items: { type: "string" } },
+          allowedElements: { type: "array", items: { type: "string" } },
+          exemptFileSuffixes: { type: "array", items: { type: "string" } },
+          uiDirs: { type: "array", items: { type: "string" } },
+          bannedElements: { type: "array", items: { type: "string" } },
         },
         additionalProperties: false,
       },
     ],
     messages: {
       adHocHtml:
-        'Raw <{{tag}}> is banned outside component-definition files (Component-Driven Development). Use or create a typed, variant-driven component instead.',
+        "Raw <{{tag}}> is banned outside component-definition files (Component-Driven Development). Use or create a typed, variant-driven component instead.",
     },
   },
   create(context) {
     const options = (context.options[0] ?? {}) as RuleOptions;
-    const scopeGlobs = options.scopeGlobs ?? ['src/pages/', 'src/components/'];
+    const scopeGlobs = options.scopeGlobs ?? ["src/pages/", "src/components/"];
     const allowedElements = new Set(options.allowedElements ?? []);
     const exemptFileSuffixes = options.exemptFileSuffixes ?? [];
     const uiDirs = options.uiDirs ?? [];
@@ -228,11 +237,15 @@ const rule: Rule.RuleModule = {
       Program(node: ProgramNode) {
         exempt = allowlistMode
           ? false
-          : isComponentDefinitionFile(context.filename, getExportedNames(node), exemptFileSuffixes);
+          : isComponentDefinitionFile(
+              context.filename,
+              getExportedNames(node),
+              exemptFileSuffixes,
+            );
       },
       JSXOpeningElement(node: JSXOpeningElement) {
         if (exempt) return;
-        if (node.name.type !== 'JSXIdentifier') return;
+        if (node.name.type !== "JSXIdentifier") return;
         const tag = node.name.name;
         // PascalCase = custom component (always allowed); lowercase = raw HTML element.
         if (/^[A-Z]/.test(tag)) return;
@@ -241,7 +254,7 @@ const rule: Rule.RuleModule = {
 
         context.report({
           node: node as unknown as Rule.Node,
-          messageId: 'adHocHtml',
+          messageId: "adHocHtml",
           data: { tag },
         });
       },

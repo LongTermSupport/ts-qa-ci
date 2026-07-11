@@ -1,4 +1,4 @@
-import type { Rule } from 'eslint';
+import type { Rule } from "eslint";
 /**
  * Tier A stub rule: discriminated-union narrowing must be exhaustive.
  *

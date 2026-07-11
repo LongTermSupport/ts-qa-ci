@@ -38,28 +38,27 @@
  * Future rule extensions could narrow to TanStack-Query shapes specifically;
  * current breadth is intentional to make the policy unambiguous.
  */
-const SCOPE_INCLUDES = ['/src/widgets/', '/src/core/', '/src/api-client/hooks/'];
-const SCOPE_EXCLUDES = ['/src/api-client/generated/'];
+const SCOPE_INCLUDES = [
+  "/src/widgets/",
+  "/src/core/",
+  "/src/api-client/hooks/",
+];
+const SCOPE_EXCLUDES = ["/src/api-client/generated/"];
 const TEST_FILE_PATTERN = /\.test\.[cm]?[jt]sx?$/;
 function isEmptyLiteralFallback(node) {
-    if (node.type === 'ArrayExpression' && node.elements.length === 0)
-        return true;
-    if (node.type === 'ObjectExpression' && node.properties.length === 0)
-        return true;
-    if (node.type === 'Literal') {
-        const v = node.value;
-        if (v === null)
-            return true;
-        if (v === 0)
-            return true;
-        if (v === '')
-            return true;
-        if (v === false)
-            return true;
-    }
-    if (node.type === 'Identifier' && node.name === 'undefined')
-        return true;
-    return false;
+  if (node.type === "ArrayExpression" && node.elements.length === 0)
+    return true;
+  if (node.type === "ObjectExpression" && node.properties.length === 0)
+    return true;
+  if (node.type === "Literal") {
+    const v = node.value;
+    if (v === null) return true;
+    if (v === 0) return true;
+    if (v === "") return true;
+    if (v === false) return true;
+  }
+  if (node.type === "Identifier" && node.name === "undefined") return true;
+  return false;
 }
 /**
  * True for the Map upsert idiom `(m.get(k) ?? 0)` whose result feeds — possibly
@@ -67,67 +66,73 @@ function isEmptyLiteralFallback(node) {
  * That shape is a counting/accumulation pattern, not an error-hider.
  */
 function isMapUpsertIdiom(node) {
-    const left = node.left;
-    if (left.type !== 'CallExpression' ||
-        left.callee.type !== 'MemberExpression' ||
-        left.callee.property.type !== 'Identifier' ||
-        left.callee.property.name !== 'get') {
-        return false;
-    }
-    // Walk up through arithmetic to the enclosing call: BinaryExpression /
-    // UnaryExpression → CallExpression{ .set(...) }.
-    let p = node.parent;
-    while (p !== null && (p.type === 'BinaryExpression' || p.type === 'UnaryExpression')) {
-        p = p.parent;
-    }
-    return (p !== null &&
-        p.type === 'CallExpression' &&
-        p.callee.type === 'MemberExpression' &&
-        p.callee.property.type === 'Identifier' &&
-        p.callee.property.name === 'set');
+  const left = node.left;
+  if (
+    left.type !== "CallExpression" ||
+    left.callee.type !== "MemberExpression" ||
+    left.callee.property.type !== "Identifier" ||
+    left.callee.property.name !== "get"
+  ) {
+    return false;
+  }
+  // Walk up through arithmetic to the enclosing call: BinaryExpression /
+  // UnaryExpression → CallExpression{ .set(...) }.
+  let p = node.parent;
+  while (
+    p !== null &&
+    (p.type === "BinaryExpression" || p.type === "UnaryExpression")
+  ) {
+    p = p.parent;
+  }
+  return (
+    p !== null &&
+    p.type === "CallExpression" &&
+    p.callee.type === "MemberExpression" &&
+    p.callee.property.type === "Identifier" &&
+    p.callee.property.name === "set"
+  );
 }
 const rule = {
-    meta: {
-        type: 'problem',
-        docs: {
-            description: 'Disallow `?? <empty literal>` and `|| <empty literal>` fallbacks that hide error/missing-data states.',
-        },
-        schema: [],
-        messages: {
-            hiding: 'Error-hiding fallback `{{op}} {{value}}`. Branch on the query state explicitly (isSuccess/isPending/isError) or fail-fast.',
-        },
+  meta: {
+    type: "problem",
+    docs: {
+      description:
+        "Disallow `?? <empty literal>` and `|| <empty literal>` fallbacks that hide error/missing-data states.",
     },
-    create(context) {
-        const filename = context.filename;
-        const inScope = SCOPE_INCLUDES.some((p) => filename.includes(p)) &&
-            !SCOPE_EXCLUDES.some((p) => filename.includes(p));
-        if (!inScope)
-            return {};
-        // Exclude test files within scope.
-        if (TEST_FILE_PATTERN.test(filename))
-            return {};
-        const sourceCode = context.sourceCode;
-        return {
-            LogicalExpression(node) {
-                if (node.operator !== '??' && node.operator !== '||')
-                    return;
-                if (!isEmptyLiteralFallback(node.right))
-                    return;
-                if (isMapUpsertIdiom(node))
-                    return;
-                const valueText = node.right.type === 'ArrayExpression'
-                    ? '[]'
-                    : node.right.type === 'ObjectExpression'
-                        ? '{}'
-                        : sourceCode.getText(node.right);
-                context.report({
-                    node: node,
-                    messageId: 'hiding',
-                    data: { op: node.operator, value: valueText },
-                });
-            },
-        };
+    schema: [],
+    messages: {
+      hiding:
+        "Error-hiding fallback `{{op}} {{value}}`. Branch on the query state explicitly (isSuccess/isPending/isError) or fail-fast.",
     },
+  },
+  create(context) {
+    const filename = context.filename;
+    const inScope =
+      SCOPE_INCLUDES.some((p) => filename.includes(p)) &&
+      !SCOPE_EXCLUDES.some((p) => filename.includes(p));
+    if (!inScope) return {};
+    // Exclude test files within scope.
+    if (TEST_FILE_PATTERN.test(filename)) return {};
+    const sourceCode = context.sourceCode;
+    return {
+      LogicalExpression(node) {
+        if (node.operator !== "??" && node.operator !== "||") return;
+        if (!isEmptyLiteralFallback(node.right)) return;
+        if (isMapUpsertIdiom(node)) return;
+        const valueText =
+          node.right.type === "ArrayExpression"
+            ? "[]"
+            : node.right.type === "ObjectExpression"
+              ? "{}"
+              : sourceCode.getText(node.right);
+        context.report({
+          node: node,
+          messageId: "hiding",
+          data: { op: node.operator, value: valueText },
+        });
+      },
+    };
+  },
 };
 export default rule;
 //# sourceMappingURL=noErrorHidingFallback.js.map

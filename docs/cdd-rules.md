@@ -48,10 +48,10 @@ Requires top-level `const` object/array literals to carry an explicit type annot
 
 ```ts
 // ❌
-const config = { retries: 3 }
+const config = { retries: 3 };
 
 // ✅
-const config: RetryConfig = { retries: 3 }
+const config: RetryConfig = { retries: 3 };
 ```
 
 ### `require-exported-component-types`
@@ -88,12 +88,20 @@ Bans raw HTML elements (`div`, `span`, `button`, etc.) in `.tsx` JSX under `src/
 ```jsx
 // ❌ Banned in a page/composing component
 function HomePage() {
-  return <div className="hero"><button>Click</button></div>
+  return (
+    <div className="hero">
+      <button>Click</button>
+    </div>
+  );
 }
 
 // ✅ Use or create a typed component
 function HomePage() {
-  return <Hero><Button>Click</Button></Hero>
+  return (
+    <Hero>
+      <Button>Click</Button>
+    </Hero>
+  );
 }
 ```
 
@@ -112,14 +120,14 @@ Flags `throw new SomeError(...)` inside a `catch` block when no argument carries
 try {
   risky();
 } catch (e) {
-  throw new ApiError('failed');
+  throw new ApiError("failed");
 }
 
 // ✅ chain the cause
 try {
   risky();
 } catch (e) {
-  throw new ApiError('failed', { cause: e });
+  throw new ApiError("failed", { cause: e });
 }
 ```
 
@@ -198,13 +206,13 @@ The **syntactic** half of the ban is **always-on Tier A**, not part of these opt
 Adopt inside a type-aware, TS-scoped config block:
 
 ```js
-import { STRICT_TYPESCRIPT_RULES } from '@longtermsupport/ts-qa-ci';
-import tseslint from 'typescript-eslint';
+import { STRICT_TYPESCRIPT_RULES } from "@longtermsupport/ts-qa-ci";
+import tseslint from "typescript-eslint";
 
 export default [
   ...tseslint.configs.strictTypeChecked,
   {
-    files: ['**/*.{ts,tsx}'],
+    files: ["**/*.{ts,tsx}"],
     languageOptions: { parserOptions: { projectService: true } },
     rules: { ...STRICT_TYPESCRIPT_RULES },
   },

@@ -1,4 +1,4 @@
-import type { ToolModule } from '../orchestrator/types.js';
+import type { ToolModule } from "../orchestrator/types.js";
 /**
  * tsc --noEmit (phase2-design.md §2.5): non-mutating, always runs
  * unconditionally outside the read-only branch — there's no writable mode

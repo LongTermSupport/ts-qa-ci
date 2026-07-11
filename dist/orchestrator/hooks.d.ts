@@ -1,4 +1,4 @@
-import type { RunContext, ToolResult } from './types.js';
+import type { RunContext, ToolResult } from "./types.js";
 /**
  * tsQaConfig/hookPre.ts / hookPost.ts (phase2-design.md §2.7). Pre-hook runs
  * after config resolution but before any tool executes; post-hook runs only
@@ -6,12 +6,18 @@ import type { RunContext, ToolResult } from './types.js';
  * pipeline is fail-fast by default).
  */
 export interface HookContext {
-    phases: number[];
-    platform: RunContext['platform'];
-    ci: boolean;
-    readOnly: boolean;
-    toolResults: Record<string, ToolResult>;
+  phases: number[];
+  platform: RunContext["platform"];
+  ci: boolean;
+  readOnly: boolean;
+  toolResults: Record<string, ToolResult>;
 }
-export declare function runPreHook(projectRoot: string, ctx: HookContext): Promise<void>;
-export declare function runPostHook(projectRoot: string, ctx: HookContext): Promise<void>;
+export declare function runPreHook(
+  projectRoot: string,
+  ctx: HookContext,
+): Promise<void>;
+export declare function runPostHook(
+  projectRoot: string,
+  ctx: HookContext,
+): Promise<void>;
 //# sourceMappingURL=hooks.d.ts.map

@@ -1,4 +1,4 @@
-import type { ToolModule } from '../orchestrator/types.js';
+import type { ToolModule } from "../orchestrator/types.js";
 /**
  * dependency-cruiser, run as its own standalone phase-3 step (phase2-design.md
  * §1) - NOT via eslint-plugin-dependency-cruiser, which re-cruises per file

@@ -1,8 +1,8 @@
-import { dirname, join } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 
-import { makeRuleTester } from '../testSupport/ruleTester.js';
-import rule from './validateLazyImports.js';
+import { makeRuleTester } from "../testSupport/ruleTester.js";
+import rule from "./validateLazyImports.js";
 
 const ruleTester = makeRuleTester();
 
@@ -10,9 +10,9 @@ const ruleTester = makeRuleTester();
 // real files: this very rule module (validateLazyImports.ts) is a guaranteed
 // sibling that any relative-import fixture can point at.
 const here = dirname(fileURLToPath(import.meta.url));
-const fixtureFile = join(here, 'fixture.tsx');
+const fixtureFile = join(here, "fixture.tsx");
 
-ruleTester.run('validate-lazy-imports', rule, {
+ruleTester.run("validate-lazy-imports", rule, {
   valid: [
     // React.lazy() pointing at a real sibling file — resolves, so allowed.
     {
@@ -36,13 +36,13 @@ ruleTester.run('validate-lazy-imports', rule, {
     {
       code: "import React from 'react';\nconst C = React.lazy(() => import('./does-not-exist'));\n",
       filename: fixtureFile,
-      errors: [{ messageId: 'unresolvedImport' }],
+      errors: [{ messageId: "unresolvedImport" }],
     },
     // BUG A: bare `lazy()` imported from react with a non-existent path — flagged.
     {
       code: "import { lazy } from 'react';\nconst C = lazy(() => import('./does-not-exist'));\n",
       filename: fixtureFile,
-      errors: [{ messageId: 'unresolvedImport' }],
+      errors: [{ messageId: "unresolvedImport" }],
     },
   ],
 });

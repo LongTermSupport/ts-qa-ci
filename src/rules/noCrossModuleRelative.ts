@@ -1,5 +1,5 @@
-import type { Rule } from 'eslint';
-import type { ImportDeclaration } from 'estree';
+import type { Rule } from "eslint";
+import type { ImportDeclaration } from "estree";
 
 /**
  * WHY: relative imports across the top-level src/ modules (e.g.
@@ -24,15 +24,15 @@ import type { ImportDeclaration } from 'estree';
  * string literals and `context.filename`, so it needs no type information.
  */
 const DEFAULT_TOP_LEVEL_MODULES: string[] = [
-  'core',
-  'api-client',
-  'ui',
-  'auth',
-  'domain',
-  'widgets',
+  "core",
+  "api-client",
+  "ui",
+  "auth",
+  "domain",
+  "widgets",
 ];
-const DEFAULT_ALIAS = '~';
-const DEFAULT_SRC_MARKER = '/src/';
+const DEFAULT_ALIAS = "~";
+const DEFAULT_SRC_MARKER = "/src/";
 
 interface RuleOptions {
   modules?: string[];
@@ -42,18 +42,18 @@ interface RuleOptions {
 
 const rule: Rule.RuleModule = {
   meta: {
-    type: 'problem',
+    type: "problem",
     docs: {
       description:
-        'Disallow ../../ imports that cross top-level src/ module boundaries; use the ~/ path alias instead.',
+        "Disallow ../../ imports that cross top-level src/ module boundaries; use the ~/ path alias instead.",
     },
     schema: [
       {
-        type: 'object',
+        type: "object",
         properties: {
-          modules: { type: 'array', items: { type: 'string' } },
-          alias: { type: 'string' },
-          srcMarker: { type: 'string' },
+          modules: { type: "array", items: { type: "string" } },
+          alias: { type: "string" },
+          srcMarker: { type: "string" },
         },
         additionalProperties: false,
       },
@@ -78,18 +78,18 @@ const rule: Rule.RuleModule = {
     return {
       ImportDeclaration(node: ImportDeclaration) {
         const importPath = node.source.value;
-        if (typeof importPath !== 'string' || !importPath.startsWith('../')) {
+        if (typeof importPath !== "string" || !importPath.startsWith("../")) {
           return;
         }
         // Walk the ../ segments and see if we end up at a top-level module
         // that is not the importer's own module.
-        const segments = importPath.split('/');
+        const segments = importPath.split("/");
         // Find the first non-".." segment that names a known top-level module.
-        const firstNonParent = segments.find((s) => s !== '..');
+        const firstNonParent = segments.find((s) => s !== "..");
         if (firstNonParent !== undefined && modules.includes(firstNonParent)) {
           context.report({
             node: node.source,
-            messageId: 'cross',
+            messageId: "cross",
             data: { path: importPath, module: firstNonParent, alias },
           });
         }

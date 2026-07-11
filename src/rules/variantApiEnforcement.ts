@@ -1,4 +1,4 @@
-import type { Rule } from 'eslint';
+import type { Rule } from "eslint";
 
 /**
  * Tier B (opt-in CDD): variant-API enforcement — every styleable component
@@ -19,15 +19,15 @@ import type { Rule } from 'eslint';
  */
 const rule: Rule.RuleModule = {
   meta: {
-    type: 'suggestion',
+    type: "suggestion",
     docs: {
       description:
-        'Enforce the variant-prop API pattern (typed variant props, exhaustive internal class resolution) — NOT YET IMPLEMENTED, see Task 4.6',
+        "Enforce the variant-prop API pattern (typed variant props, exhaustive internal class resolution) — NOT YET IMPLEMENTED, see Task 4.6",
     },
     schema: [],
     messages: {
       notYetImplemented:
-        'variant-api-enforcement is a scaffold — real logic lands after Task 4.6 builds the variant-prop catalogue.',
+        "variant-api-enforcement is a scaffold — real logic lands after Task 4.6 builds the variant-prop catalogue.",
     },
   },
   create() {

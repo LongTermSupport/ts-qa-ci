@@ -1,4 +1,4 @@
-import type { Rule } from 'eslint';
+import type { Rule } from "eslint";
 
 /**
  * Tier A core rule.
@@ -35,15 +35,15 @@ import type { Rule } from 'eslint';
 // as `typeArguments` (a `TSTypeParameterInstantiation`) on the CallExpression —
 // a property the base ESTree CallExpression type does not carry.
 interface Identifier {
-  type: 'Identifier';
+  type: "Identifier";
   name: string;
 }
 interface MemberExpressionNode {
-  type: 'MemberExpression';
+  type: "MemberExpression";
   property: Identifier | { type: string };
 }
 interface TypeParameterInstantiationNode {
-  type: 'TSTypeParameterInstantiation';
+  type: "TSTypeParameterInstantiation";
   params: unknown[];
 }
 interface CallExpressionNode {
@@ -53,38 +53,39 @@ interface CallExpressionNode {
 
 const rule: Rule.RuleModule = {
   meta: {
-    type: 'problem',
+    type: "problem",
     docs: {
       description:
-        'Disallow explicit type arguments on querySelector/querySelectorAll; use a runtime instanceof filter.',
+        "Disallow explicit type arguments on querySelector/querySelectorAll; use a runtime instanceof filter.",
     },
     schema: [],
     messages: {
       typed:
-        '`{{name}}<T>(...)` is an unchecked cast — the runtime returns whatever matches the CSS selector, not necessarily a T. Filter with `instanceof` after, e.g. `Array.from(...).filter((el): el is HTMLElement => el instanceof HTMLElement)`.',
+        "`{{name}}<T>(...)` is an unchecked cast — the runtime returns whatever matches the CSS selector, not necessarily a T. Filter with `instanceof` after, e.g. `Array.from(...).filter((el): el is HTMLElement => el instanceof HTMLElement)`.",
     },
   },
   create(context) {
     const filename = context.filename;
-    if (filename.includes('/src/api-client/generated/')) return {};
+    if (filename.includes("/src/api-client/generated/")) return {};
     if (/\.test\.[cm]?[jt]sx?$/.test(filename)) return {};
 
     return {
       CallExpression(node) {
         const call = node as unknown as CallExpressionNode;
         const callee = call.callee;
-        if (callee.type !== 'MemberExpression') return;
+        if (callee.type !== "MemberExpression") return;
         const member = callee as MemberExpressionNode;
-        if (member.property.type !== 'Identifier') return;
+        if (member.property.type !== "Identifier") return;
         const name = (member.property as Identifier).name;
-        if (name !== 'querySelector' && name !== 'querySelectorAll') return;
+        if (name !== "querySelector" && name !== "querySelectorAll") return;
         // typescript-eslint exposes the type-argument list as
         // `typeArguments` on the CallExpression node.
         const args = call.typeArguments;
         if (args === undefined || args === null) return;
-        if (args.type !== 'TSTypeParameterInstantiation') return;
-        if ((args as TypeParameterInstantiationNode).params.length === 0) return;
-        context.report({ node, messageId: 'typed', data: { name } });
+        if (args.type !== "TSTypeParameterInstantiation") return;
+        if ((args as TypeParameterInstantiationNode).params.length === 0)
+          return;
+        context.report({ node, messageId: "typed", data: { name } });
       },
     };
   },

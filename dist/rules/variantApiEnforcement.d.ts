@@ -1,4 +1,4 @@
-import type { Rule } from 'eslint';
+import type { Rule } from "eslint";
 /**
  * Tier B (opt-in CDD): variant-API enforcement — every styleable component
  * must expose typed variant props; internal class resolution is the only

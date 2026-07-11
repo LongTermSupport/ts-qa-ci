@@ -1,6 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { RunContext } from '../orchestrator/types.js';
+import type { RunContext } from "../orchestrator/types.js";
 
 /**
  * dependency-cruiser is the only count-based tool in the set: it sets its exit
@@ -15,75 +15,76 @@ import type { RunContext } from '../orchestrator/types.js';
  * never spawned - only this module's own classification logic is under test.
  */
 const { execToolMock } = vi.hoisted(() => ({ execToolMock: vi.fn() }));
-vi.mock('./execTool.js', () => ({ execTool: execToolMock }));
-vi.mock('../orchestrator/resolveConfigPath.js', () => ({
-  resolveConfigPath: () => '/fake/dependency-cruiser.config.cjs',
+vi.mock("./execTool.js", () => ({ execTool: execToolMock }));
+vi.mock("../orchestrator/resolveConfigPath.js", () => ({
+  resolveConfigPath: () => "/fake/dependency-cruiser.config.cjs",
 }));
 
-const { default: tool } = await import('./dependencyCruiser.js');
+const { default: tool } = await import("./dependencyCruiser.js");
 
 const ctx: RunContext = {
-  cwd: '/does-not-matter',
-  platform: 'generic',
+  cwd: "/does-not-matter",
+  platform: "generic",
   ci: true,
   readOnly: true,
   aggregate: false,
   hasBeenRestarted: false,
   json: true,
-  packageRoot: '/does-not-matter',
+  packageRoot: "/does-not-matter",
 };
 
-describe('dependencyCruiser tool', () => {
+describe("dependencyCruiser tool", () => {
   beforeEach(() => execToolMock.mockReset());
 
-  it('maps a genuinely clean run (exit 0, no violations) to clean', async () => {
+  it("maps a genuinely clean run (exit 0, no violations) to clean", async () => {
     execToolMock.mockResolvedValue({
       exitCode: 0,
-      stdout: '\n✔ no dependency violations found (120 modules, 340 dependencies cruised)\n',
-      stderr: '',
+      stdout:
+        "\n✔ no dependency violations found (120 modules, 340 dependencies cruised)\n",
+      stderr: "",
     });
 
     const result = await tool.run(ctx);
 
-    expect(result.exitClass).toBe('clean');
+    expect(result.exitClass).toBe("clean");
   });
 
-  it('maps an unwrapped non-zero exit (small violation count) to failure', async () => {
+  it("maps an unwrapped non-zero exit (small violation count) to failure", async () => {
     execToolMock.mockResolvedValue({
       exitCode: 3,
       stdout:
-        'x 3 dependency violations (3 errors, 0 warnings). 120 modules, 340 dependencies cruised.',
-      stderr: '',
+        "x 3 dependency violations (3 errors, 0 warnings). 120 modules, 340 dependencies cruised.",
+      stderr: "",
     });
 
     const result = await tool.run(ctx);
 
-    expect(result.exitClass).toBe('failure');
+    expect(result.exitClass).toBe("failure");
   });
 
-  it('classifies 256 error-level violations as failure even though the OS wraps the exit code to 0', async () => {
+  it("classifies 256 error-level violations as failure even though the OS wraps the exit code to 0", async () => {
     execToolMock.mockResolvedValue({
       exitCode: 0,
       stdout:
-        'x 256 dependency violations (256 errors, 0 warnings). 120 modules, 340 dependencies cruised.',
-      stderr: '',
+        "x 256 dependency violations (256 errors, 0 warnings). 120 modules, 340 dependencies cruised.",
+      stderr: "",
     });
 
     const result = await tool.run(ctx);
 
-    expect(result.exitClass).toBe('failure');
+    expect(result.exitClass).toBe("failure");
   });
 
-  it('keeps a warnings-only run (exit 0, 0 errors) clean', async () => {
+  it("keeps a warnings-only run (exit 0, 0 errors) clean", async () => {
     execToolMock.mockResolvedValue({
       exitCode: 0,
       stdout:
-        'x 4 dependency violations (0 errors, 4 warnings). 120 modules, 340 dependencies cruised.',
-      stderr: '',
+        "x 4 dependency violations (0 errors, 4 warnings). 120 modules, 340 dependencies cruised.",
+      stderr: "",
     });
 
     const result = await tool.run(ctx);
 
-    expect(result.exitClass).toBe('clean');
+    expect(result.exitClass).toBe("clean");
   });
 });

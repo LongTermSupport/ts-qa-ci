@@ -5,24 +5,18 @@
  * TSQA_READONLY, only TSQA_CI, so a Claude Code session stays writable.
  */
 export function detectCi(env, stdinIsTTY, stdoutIsTTY) {
-    if (env.CI === 'true')
-        return true;
-    // BUG A: this used to console.log unconditionally, corrupting `--json` output.
-    // detectCi is now pure; the CLAUDECODE diagnostic lives in runPipeline, where
-    // the json flag is known and the message can be gated on non-json runs.
-    if (env.CLAUDECODE === '1')
-        return true;
-    if (!stdinIsTTY || !stdoutIsTTY)
-        return true;
-    return false;
+  if (env.CI === "true") return true;
+  // BUG A: this used to console.log unconditionally, corrupting `--json` output.
+  // detectCi is now pure; the CLAUDECODE diagnostic lives in runPipeline, where
+  // the json flag is known and the message can be gated on non-json runs.
+  if (env.CLAUDECODE === "1") return true;
+  if (!stdinIsTTY || !stdoutIsTTY) return true;
+  return false;
 }
 export function detectReadOnly(env) {
-    if (env.TSQA_READONLY === '1')
-        return true;
-    if (env.TSQA_READONLY === '0')
-        return false;
-    if (env.GITHUB_ACTIONS === 'true')
-        return true;
-    return false;
+  if (env.TSQA_READONLY === "1") return true;
+  if (env.TSQA_READONLY === "0") return false;
+  if (env.GITHUB_ACTIONS === "true") return true;
+  return false;
 }
 //# sourceMappingURL=detectReadOnly.js.map

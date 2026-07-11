@@ -1,4 +1,4 @@
-import type { Rule } from 'eslint';
+import type { Rule } from "eslint";
 /**
  * Tier A core rule: requires top-level `const` object/array data literals
  * to carry an explicit, imported type annotation rather than relying on

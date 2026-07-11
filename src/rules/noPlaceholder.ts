@@ -1,4 +1,4 @@
-import type { Rule } from 'eslint';
+import type { Rule } from "eslint";
 
 /**
  * Tier A core rule: bans the literal string "PLACEHOLDER" anywhere in
@@ -8,9 +8,10 @@ import type { Rule } from 'eslint';
  */
 const rule: Rule.RuleModule = {
   meta: {
-    type: 'problem',
+    type: "problem",
     docs: {
-      description: 'Disallow the literal string "PLACEHOLDER" in string and template literals',
+      description:
+        'Disallow the literal string "PLACEHOLDER" in string and template literals',
     },
     schema: [],
     messages: {
@@ -21,13 +22,16 @@ const rule: Rule.RuleModule = {
   create(context) {
     return {
       Literal(node) {
-        if (typeof node.value === 'string' && node.value.includes('PLACEHOLDER')) {
-          context.report({ node, messageId: 'placeholder' });
+        if (
+          typeof node.value === "string" &&
+          node.value.includes("PLACEHOLDER")
+        ) {
+          context.report({ node, messageId: "placeholder" });
         }
       },
       TemplateElement(node) {
-        if (node.value.raw.includes('PLACEHOLDER')) {
-          context.report({ node, messageId: 'placeholder' });
+        if (node.value.raw.includes("PLACEHOLDER")) {
+          context.report({ node, messageId: "placeholder" });
         }
       },
     };

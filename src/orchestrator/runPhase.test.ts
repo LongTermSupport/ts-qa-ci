@@ -1,10 +1,10 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
-import { afterEach, describe, expect, it } from 'vitest';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { afterEach, describe, expect, it } from "vitest";
 
-import { runPhase } from './runPhase.js';
-import type { PhaseDefinition, RunContext } from './types.js';
+import { runPhase } from "./runPhase.js";
+import type { PhaseDefinition, RunContext } from "./types.js";
 
 /**
  * runPhase aggregation semantics (GitHub issue #6, BUG B): a plain `failure`
@@ -15,20 +15,24 @@ import type { PhaseDefinition, RunContext } from './types.js';
  * Each tool is dropped as a `tsQaConfig/tools/<name>.ts` project override
  * (resolveToolModule.ts's first cascade step) so no real binary is invoked.
  */
-describe('runPhase', () => {
+describe("runPhase", () => {
   const dirs: string[] = [];
 
   const proj = (tools: Record<string, string>): string => {
-    const dir = mkdtempSync(join(tmpdir(), 'tsqa-run-phase-'));
+    const dir = mkdtempSync(join(tmpdir(), "tsqa-run-phase-"));
     dirs.push(dir);
-    mkdirSync(join(dir, 'tsQaConfig', 'tools'), { recursive: true });
+    mkdirSync(join(dir, "tsQaConfig", "tools"), { recursive: true });
     for (const [name, source] of Object.entries(tools)) {
-      writeFileSync(join(dir, 'tsQaConfig', 'tools', `${name}.ts`), source);
+      writeFileSync(join(dir, "tsQaConfig", "tools", `${name}.ts`), source);
     }
     return dir;
   };
 
-  const toolSource = (name: string, phase: number, exitClass: string): string => `
+  const toolSource = (
+    name: string,
+    phase: number,
+    exitClass: string,
+  ): string => `
     const tool = {
       name: ${JSON.stringify(name)},
       phase: ${phase},
@@ -42,88 +46,89 @@ describe('runPhase', () => {
   `;
 
   const baseCtx = (overrides: Partial<RunContext> = {}): RunContext => ({
-    cwd: '/does-not-matter',
-    platform: 'generic',
+    cwd: "/does-not-matter",
+    platform: "generic",
     ci: true,
     readOnly: true,
     aggregate: false,
     hasBeenRestarted: false,
     json: true,
-    packageRoot: '/does-not-matter',
+    packageRoot: "/does-not-matter",
     ...overrides,
   });
 
   afterEach(() => {
-    while (dirs.length > 0) rmSync(dirs.pop() as string, { recursive: true, force: true });
+    while (dirs.length > 0)
+      rmSync(dirs.pop() as string, { recursive: true, force: true });
   });
 
-  it('aborts the phase on a crash even under --aggregate (does not run later tools)', async () => {
+  it("aborts the phase on a crash even under --aggregate (does not run later tools)", async () => {
     const projectRoot = proj({
-      tsc: toolSource('tsc', 3, 'crash'),
-      dependencyCruiser: toolSource('dependencyCruiser', 3, 'clean'),
+      tsc: toolSource("tsc", 3, "crash"),
+      dependencyCruiser: toolSource("dependencyCruiser", 3, "clean"),
     });
     const phaseDef: PhaseDefinition = {
       number: 3,
-      name: 'Static Analysis',
-      tools: ['tsc', 'dependencyCruiser'],
+      name: "Static Analysis",
+      tools: ["tsc", "dependencyCruiser"],
       mutates: false,
     };
 
     const result = await runPhase(
       phaseDef,
       baseCtx({ aggregate: true }),
-      '/package-root-unused',
-      projectRoot
+      "/package-root-unused",
+      projectRoot,
     );
 
     expect(result.failed).toBe(true);
-    expect(result.toolResults.tsc?.exitClass).toBe('crash');
+    expect(result.toolResults.tsc?.exitClass).toBe("crash");
     // dependencyCruiser must NOT have run — the crash aborted the phase.
     expect(result.toolResults.dependencyCruiser).toBeUndefined();
   });
 
-  it('keeps running later tools after a plain failure under --aggregate', async () => {
+  it("keeps running later tools after a plain failure under --aggregate", async () => {
     const projectRoot = proj({
-      eslintReport: toolSource('eslintReport', 2, 'failure'),
-      knip: toolSource('knip', 2, 'clean'),
+      eslintReport: toolSource("eslintReport", 2, "failure"),
+      knip: toolSource("knip", 2, "clean"),
     });
     const phaseDef: PhaseDefinition = {
       number: 2,
-      name: 'Lint & Validation',
-      tools: ['eslintReport', 'knip'],
+      name: "Lint & Validation",
+      tools: ["eslintReport", "knip"],
       mutates: false,
     };
 
     const result = await runPhase(
       phaseDef,
       baseCtx({ aggregate: true }),
-      '/package-root-unused',
-      projectRoot
+      "/package-root-unused",
+      projectRoot,
     );
 
     expect(result.failed).toBe(true);
-    expect(result.toolResults.eslintReport?.exitClass).toBe('failure');
+    expect(result.toolResults.eslintReport?.exitClass).toBe("failure");
     // Both tools ran — a plain failure aggregates.
-    expect(result.toolResults.knip?.exitClass).toBe('clean');
+    expect(result.toolResults.knip?.exitClass).toBe("clean");
   });
 
-  it('stops at the first non-clean tool when not aggregating', async () => {
+  it("stops at the first non-clean tool when not aggregating", async () => {
     const projectRoot = proj({
-      eslintReport: toolSource('eslintReport', 2, 'failure'),
-      knip: toolSource('knip', 2, 'clean'),
+      eslintReport: toolSource("eslintReport", 2, "failure"),
+      knip: toolSource("knip", 2, "clean"),
     });
     const phaseDef: PhaseDefinition = {
       number: 2,
-      name: 'Lint & Validation',
-      tools: ['eslintReport', 'knip'],
+      name: "Lint & Validation",
+      tools: ["eslintReport", "knip"],
       mutates: false,
     };
 
     const result = await runPhase(
       phaseDef,
       baseCtx({ aggregate: false }),
-      '/package-root-unused',
-      projectRoot
+      "/package-root-unused",
+      projectRoot,
     );
 
     expect(result.failed).toBe(true);

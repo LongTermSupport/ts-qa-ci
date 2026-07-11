@@ -1,4 +1,4 @@
-import type { Rule } from 'eslint';
+import type { Rule } from "eslint";
 
 /**
  * Tier A core rule: bans eslint-disable (and its variants), @ts-ignore, and
@@ -26,15 +26,15 @@ const SUPPRESSION_PATTERN =
 
 const rule: Rule.RuleModule = {
   meta: {
-    type: 'problem',
+    type: "problem",
     docs: {
       description:
-        'Disallow eslint-disable*, eslint-enable, and @ts-ignore/@ts-expect-error/@ts-nocheck suppression comments',
+        "Disallow eslint-disable*, eslint-enable, and @ts-ignore/@ts-expect-error/@ts-nocheck suppression comments",
     },
     schema: [],
     messages: {
       noSuppression:
-        'Suppression comments are banned. Fix the underlying issue, or add a justified entry to tsQaConfig/tier-a-exemptions.json.',
+        "Suppression comments are banned. Fix the underlying issue, or add a justified entry to tsQaConfig/tier-a-exemptions.json.",
     },
   },
   create(context) {
@@ -44,7 +44,7 @@ const rule: Rule.RuleModule = {
         for (const comment of sourceCode.getAllComments()) {
           const text = comment.value.trim();
           if (SUPPRESSION_PATTERN.test(text)) {
-            context.report({ loc: comment.loc!, messageId: 'noSuppression' });
+            context.report({ loc: comment.loc!, messageId: "noSuppression" });
           }
         }
       },

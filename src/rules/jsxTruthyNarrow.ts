@@ -1,4 +1,4 @@
-import type { Rule } from 'eslint';
+import type { Rule } from "eslint";
 import type {
   CallExpression,
   ChainExpression,
@@ -8,7 +8,7 @@ import type {
   Node,
   PrivateIdentifier,
   Super,
-} from 'estree';
+} from "estree";
 
 /**
  * Tier A rule: `{x && <Foo/>}` short-circuits to the falsy value of `x` when
@@ -37,40 +37,46 @@ import type {
  */
 const BOOLEAN_NAME = /^(is|has|should|can|did|was|will|are)[A-Z]/;
 
-const isBooleanShape = (node: Node | Super | PrivateIdentifier | null | undefined): boolean => {
+const isBooleanShape = (
+  node: Node | Super | PrivateIdentifier | null | undefined,
+): boolean => {
   if (node === undefined || node === null) return false;
-  if (node.type === 'ChainExpression') {
+  if (node.type === "ChainExpression") {
     // ESTree wraps the root of an optional chain (`foo?.bar`) in a
     // ChainExpression; unwrap to the inner expression so the member-name
     // heuristic still applies to `user?.isActive`.
     return isBooleanShape((node as ChainExpression).expression);
   }
-  if (node.type === 'BinaryExpression') return true; // ===, !==, >, <, in, instanceof
-  if (node.type === 'LogicalExpression') return isBooleanShape((node as LogicalExpression).right);
-  if (node.type === 'UnaryExpression' && (node.operator === '!' || node.operator === 'typeof'))
+  if (node.type === "BinaryExpression") return true; // ===, !==, >, <, in, instanceof
+  if (node.type === "LogicalExpression")
+    return isBooleanShape((node as LogicalExpression).right);
+  if (
+    node.type === "UnaryExpression" &&
+    (node.operator === "!" || node.operator === "typeof")
+  )
     return true;
-  if (node.type === 'Literal' && typeof node.value === 'boolean') return true;
-  if (node.type === 'CallExpression') {
+  if (node.type === "Literal" && typeof node.value === "boolean") return true;
+  if (node.type === "CallExpression") {
     // Boolean(x) / Array.isArray(x) / String.includes(...) etc are bool-ish;
     // rather than maintain an allowlist, accept anything whose callee is the
     // identifier `Boolean`.
     const callee = (node as CallExpression).callee;
-    if (callee.type === 'Identifier' && callee.name === 'Boolean') return true;
+    if (callee.type === "Identifier" && callee.name === "Boolean") return true;
     return false;
   }
-  if (node.type === 'Identifier') {
+  if (node.type === "Identifier") {
     // Naming-convention heuristic: identifiers matching common boolean-prefix
     // patterns are treated as boolean. Conservative — type-aware lint would do
     // better.
     return BOOLEAN_NAME.test(node.name);
   }
-  if (node.type === 'MemberExpression') {
+  if (node.type === "MemberExpression") {
     // Same heuristic on the property side: `foo.isOpen`, `e.hasAttach`,
     // `props.canEdit`. Computed access (`foo['bar']`) skipped — we can't
     // introspect the key safely.
     const member = node as MemberExpression;
     if (member.computed) return false;
-    if (member.property.type !== 'Identifier') return false;
+    if (member.property.type !== "Identifier") return false;
     return BOOLEAN_NAME.test(member.property.name);
   }
   return false;
@@ -78,10 +84,10 @@ const isBooleanShape = (node: Node | Super | PrivateIdentifier | null | undefine
 
 const rule: Rule.RuleModule = {
   meta: {
-    type: 'problem',
+    type: "problem",
     docs: {
       description:
-        'JSX `{x && <Foo/>}` short-circuits with primitive falsy values rendering as DOM text; use `x != null && ...` or a ternary.',
+        "JSX `{x && <Foo/>}` short-circuits with primitive falsy values rendering as DOM text; use `x != null && ...` or a ternary.",
     },
     schema: [],
     messages: {
@@ -91,14 +97,17 @@ const rule: Rule.RuleModule = {
   },
   create(context) {
     const filename = context.filename;
-    if (filename.includes('/src/api-client/generated/')) return {};
+    if (filename.includes("/src/api-client/generated/")) return {};
     if (/\.test\.[cm]?[jt]sx?$/.test(filename)) return {};
 
     return {
-      'JSXExpressionContainer > LogicalExpression'(node: LogicalExpression) {
-        if (node.operator !== '&&') return;
+      "JSXExpressionContainer > LogicalExpression"(node: LogicalExpression) {
+        if (node.operator !== "&&") return;
         if (isBooleanShape(node.left as Expression)) return;
-        context.report({ node: node as unknown as Rule.Node, messageId: 'truthy' });
+        context.report({
+          node: node as unknown as Rule.Node,
+          messageId: "truthy",
+        });
       },
     };
   },

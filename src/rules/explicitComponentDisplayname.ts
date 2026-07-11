@@ -1,5 +1,9 @@
-import type { Rule } from 'eslint';
-import type { AssignmentExpression, ExportNamedDeclaration, Node } from 'estree';
+import type { Rule } from "eslint";
+import type {
+  AssignmentExpression,
+  ExportNamedDeclaration,
+  Node,
+} from "estree";
 
 /**
  * Tier B rule: in React DevTools, components show their `displayName` (or fall
@@ -39,7 +43,7 @@ function isPascalCase(name: string): boolean {
 
 const rule: Rule.RuleModule = {
   meta: {
-    type: 'problem',
+    type: "problem",
     docs: {
       description:
         'Arrow-form components (`export const Foo = () => …`) must include a `Foo.displayName = "Foo"` assignment so devtools shows the real name in production builds.',
@@ -60,38 +64,41 @@ const rule: Rule.RuleModule = {
     return {
       ExportNamedDeclaration(node: ExportNamedDeclaration) {
         const decl = node.declaration;
-        if (decl?.type !== 'VariableDeclaration') return;
+        if (decl?.type !== "VariableDeclaration") return;
         for (const v of decl.declarations) {
           const id = v.id;
-          if (id.type !== 'Identifier') continue;
+          if (id.type !== "Identifier") continue;
           if (!isPascalCase(id.name)) continue;
           const init = v.init;
-          if (init?.type !== 'ArrowFunctionExpression' && init?.type !== 'FunctionExpression') {
+          if (
+            init?.type !== "ArrowFunctionExpression" &&
+            init?.type !== "FunctionExpression"
+          ) {
             continue;
           }
           arrowComponentExports.set(id.name, v);
         }
       },
       AssignmentExpression(node: AssignmentExpression) {
-        if (node.operator !== '=') return;
+        if (node.operator !== "=") return;
         const left = node.left;
-        if (left.type !== 'MemberExpression') return;
+        if (left.type !== "MemberExpression") return;
         if (left.computed) return;
-        if (left.object.type !== 'Identifier') return;
-        if (left.property.type !== 'Identifier') return;
-        if (left.property.name !== 'displayName') return;
+        if (left.object.type !== "Identifier") return;
+        if (left.property.type !== "Identifier") return;
+        if (left.property.name !== "displayName") return;
         const right = node.right;
-        if (right.type !== 'Literal') return;
-        if (typeof right.value !== 'string') return;
+        if (right.type !== "Literal") return;
+        if (typeof right.value !== "string") return;
         if (right.value !== left.object.name) return;
         displayNameAssignments.add(left.object.name);
       },
-      'Program:exit'() {
+      "Program:exit"() {
         for (const [name, declaratorNode] of arrowComponentExports) {
           if (displayNameAssignments.has(name)) continue;
           context.report({
             node: declaratorNode as Rule.Node,
-            messageId: 'missing',
+            messageId: "missing",
             data: { name },
           });
         }

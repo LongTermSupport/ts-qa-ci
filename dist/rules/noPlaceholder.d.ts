@@ -1,4 +1,4 @@
-import type { Rule } from 'eslint';
+import type { Rule } from "eslint";
 /**
  * Tier A core rule: bans the literal string "PLACEHOLDER" anywhere in
  * string/template literals — repo-wide, including data files like

@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitest/config';
+import { defineConfig } from "vitest/config";
 
 // Test harness for ts-qa-ci's own rules. `globals: true` exposes describe/it,
 // which ESLint's RuleTester picks up automatically so each ruleTester.run(...)
@@ -7,7 +7,7 @@ import { defineConfig } from 'vitest/config';
 export default defineConfig({
   test: {
     globals: true,
-    include: ['src/**/*.test.ts'],
-    environment: 'node',
+    include: ["src/**/*.test.ts"],
+    environment: "node",
   },
 });

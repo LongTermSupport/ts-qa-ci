@@ -1,4 +1,4 @@
-import type { ToolModule } from '../orchestrator/types.js';
+import type { ToolModule } from "../orchestrator/types.js";
 /**
  * Stryker Mutator (phase2-design.md §1): optional mutation tier, mirrors
  * Infection's optional-tier treatment - opt-in, not part of the core

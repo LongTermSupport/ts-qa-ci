@@ -1,41 +1,42 @@
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { join } from 'node:path';
-import { afterEach, describe, expect, it } from 'vitest';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { afterEach, describe, expect, it } from "vitest";
 
-import { deploySkills } from './deploySkills.js';
+import { deploySkills } from "./deploySkills.js";
 
 /**
  * deploy-skills reads settings.local.json only for an advisory "hooks key
  * present" warning. A malformed or empty settings.local.json must never abort
  * the whole deploy - the read+parse is guarded and downgraded to a warning.
  */
-describe('deploySkills', () => {
+describe("deploySkills", () => {
   const dirs: string[] = [];
   const project = (): { cwd: string; packageRoot: string } => {
-    const cwd = mkdtempSync(join(tmpdir(), 'tsqa-deploy-cwd-'));
-    const packageRoot = mkdtempSync(join(tmpdir(), 'tsqa-deploy-pkg-'));
+    const cwd = mkdtempSync(join(tmpdir(), "tsqa-deploy-cwd-"));
+    const packageRoot = mkdtempSync(join(tmpdir(), "tsqa-deploy-pkg-"));
     dirs.push(cwd, packageRoot);
     return { cwd, packageRoot };
   };
   afterEach(() => {
-    while (dirs.length > 0) rmSync(dirs.pop() as string, { recursive: true, force: true });
+    while (dirs.length > 0)
+      rmSync(dirs.pop() as string, { recursive: true, force: true });
   });
 
-  it('does not throw when settings.local.json contains invalid JSON', async () => {
+  it("does not throw when settings.local.json contains invalid JSON", async () => {
     const { cwd, packageRoot } = project();
-    const claudeDir = join(cwd, '.claude');
+    const claudeDir = join(cwd, ".claude");
     mkdirSync(claudeDir, { recursive: true });
-    writeFileSync(join(claudeDir, 'settings.local.json'), '{ not valid json');
+    writeFileSync(join(claudeDir, "settings.local.json"), "{ not valid json");
 
     await expect(deploySkills({ cwd, packageRoot })).resolves.toBeUndefined();
   });
 
-  it('does not throw when settings.local.json is empty', async () => {
+  it("does not throw when settings.local.json is empty", async () => {
     const { cwd, packageRoot } = project();
-    const claudeDir = join(cwd, '.claude');
+    const claudeDir = join(cwd, ".claude");
     mkdirSync(claudeDir, { recursive: true });
-    writeFileSync(join(claudeDir, 'settings.local.json'), '');
+    writeFileSync(join(claudeDir, "settings.local.json"), "");
 
     await expect(deploySkills({ cwd, packageRoot })).resolves.toBeUndefined();
   });

@@ -1,9 +1,9 @@
-import { makeRuleTester } from '../testSupport/ruleTester.js';
-import rule from './noTypedQuerySelector.js';
+import { makeRuleTester } from "../testSupport/ruleTester.js";
+import rule from "./noTypedQuerySelector.js";
 
 const ruleTester = makeRuleTester();
 
-ruleTester.run('no-typed-query-selector', rule, {
+ruleTester.run("no-typed-query-selector", rule, {
   valid: [
     // The sanctioned shape: no type argument, narrow at runtime with instanceof.
     {
@@ -22,12 +22,12 @@ ruleTester.run('no-typed-query-selector', rule, {
     // Carve-out: generated api-client code is exempt even with a type argument.
     {
       code: 'const els = document.querySelectorAll<HTMLElement>("[data-bw-widget]");\n',
-      filename: '/repo/src/api-client/generated/dom.ts',
+      filename: "/repo/src/api-client/generated/dom.ts",
     },
     // Carve-out: test files are exempt even with a type argument.
     {
       code: 'const el = document.querySelector<HTMLInputElement>("#name");\n',
-      filename: '/repo/src/widget/widget.test.ts',
+      filename: "/repo/src/widget/widget.test.ts",
     },
     // Computed (non-Identifier) property is not the querySelector shape — not flagged.
     {
@@ -43,32 +43,32 @@ ruleTester.run('no-typed-query-selector', rule, {
   invalid: [
     {
       code: 'const els = document.querySelectorAll<HTMLElement>("[data-bw-widget]");\n',
-      errors: [{ messageId: 'typed' }],
+      errors: [{ messageId: "typed" }],
     },
     {
       code: 'const els = root.querySelectorAll<HTMLLIElement>("li");\n',
-      errors: [{ messageId: 'typed' }],
+      errors: [{ messageId: "typed" }],
     },
     {
       code: 'const el = document.querySelector<HTMLInputElement>("#name");\n',
-      errors: [{ messageId: 'typed' }],
+      errors: [{ messageId: "typed" }],
     },
     // Chained member expression still resolves to a querySelector call.
     {
       code: 'const el = document.body.querySelector<HTMLElement>(".foo");\n',
-      errors: [{ messageId: 'typed' }],
+      errors: [{ messageId: "typed" }],
     },
     // A typed call in a NON-generated src file is flagged (carve-out is path-specific).
     {
       code: 'const els = root.querySelectorAll<HTMLElement>("[data-bw-widget]");\n',
-      filename: '/repo/src/api-client/manual/dom.ts',
-      errors: [{ messageId: 'typed' }],
+      filename: "/repo/src/api-client/manual/dom.ts",
+      errors: [{ messageId: "typed" }],
     },
     // A .ts file that merely contains "test" in the name (not a *.test.ts) is NOT exempt.
     {
       code: 'const el = document.querySelector<HTMLInputElement>("#name");\n',
-      filename: '/repo/src/testHelpers.ts',
-      errors: [{ messageId: 'typed' }],
+      filename: "/repo/src/testHelpers.ts",
+      errors: [{ messageId: "typed" }],
     },
   ],
 });

@@ -1,6 +1,10 @@
-import { resolveConfigPath } from '../orchestrator/resolveConfigPath.js';
-import type { RunContext, ToolModule, ToolResult } from '../orchestrator/types.js';
-import { execTool } from './execTool.js';
+import { resolveConfigPath } from "../orchestrator/resolveConfigPath.js";
+import type {
+  RunContext,
+  ToolModule,
+  ToolResult,
+} from "../orchestrator/types.js";
+import { execTool } from "./execTool.js";
 
 /**
  * knip (phase2-design.md §1) - dead code / unused deps / unused exports.
@@ -10,16 +14,25 @@ import { execTool } from './execTool.js';
  * first dogfood run will surface false-positive noise.
  */
 const tool: ToolModule = {
-  name: 'knip',
+  name: "knip",
   phase: 2,
   mutates: false,
   pathSupporting: false,
 
   async run(ctx: RunContext): Promise<ToolResult> {
-    const configPath = resolveConfigPath(ctx.cwd, ctx.platform, 'knip.json', ctx.packageRoot);
-    const result = await execTool('npx', ['knip', '--config', configPath], ctx.cwd);
+    const configPath = resolveConfigPath(
+      ctx.cwd,
+      ctx.platform,
+      "knip.json",
+      ctx.packageRoot,
+    );
+    const result = await execTool(
+      "npx",
+      ["knip", "--config", configPath],
+      ctx.cwd,
+    );
     return {
-      exitClass: result.exitCode === 0 ? 'clean' : 'failure',
+      exitClass: result.exitCode === 0 ? "clean" : "failure",
       stdout: result.stdout,
       stderr: result.stderr,
     };

@@ -1,9 +1,19 @@
-import { existsSync, mkdirSync, readFileSync, readdirSync, statSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import {
+  existsSync,
+  mkdirSync,
+  readFileSync,
+  readdirSync,
+  statSync,
+  writeFileSync,
+} from "node:fs";
+import { dirname, join } from "node:path";
 
 /** Idempotent write: only writes if content actually differs (byte-compare before write). */
-export function writeIfChanged(path: string, content: string): { written: boolean } {
-  if (existsSync(path) && readFileSync(path, 'utf-8') === content) {
+export function writeIfChanged(
+  path: string,
+  content: string,
+): { written: boolean } {
+  if (existsSync(path) && readFileSync(path, "utf-8") === content) {
     return { written: false };
   }
   mkdirSync(dirname(path), { recursive: true });
@@ -14,7 +24,7 @@ export function writeIfChanged(path: string, content: string): { written: boolea
 /** Recursively copies a directory, byte-comparing each file so unchanged files are never rewritten. */
 export function copyDirIdempotent(
   srcDir: string,
-  destDir: string
+  destDir: string,
 ): { copied: string[]; unchanged: string[] } {
   const copied: string[] = [];
   const unchanged: string[] = [];
@@ -29,7 +39,8 @@ export function copyDirIdempotent(
       unchanged.push(...nested.unchanged);
     } else {
       const content = readFileSync(srcPath);
-      const alreadyMatches = existsSync(destPath) && readFileSync(destPath).equals(content);
+      const alreadyMatches =
+        existsSync(destPath) && readFileSync(destPath).equals(content);
       if (alreadyMatches) {
         unchanged.push(destPath);
       } else {

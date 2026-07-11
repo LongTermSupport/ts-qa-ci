@@ -1,5 +1,5 @@
-import { type PhaseResult } from './runPhase.js';
-import type { RunContext } from './types.js';
+import { type PhaseResult } from "./runPhase.js";
+import type { RunContext } from "./types.js";
 /**
  * Runs exactly one named tool, bypassing phase grouping entirely
  * (`ts-qa -t <tool>` — docs/pipeline.md "Running a single phase or tool").
@@ -14,5 +14,10 @@ import type { RunContext } from './types.js';
  * invoked this way). Silently no-op'ing it because of an unrelated
  * `disabledTools` entry would be far more surprising than honouring it.
  */
-export declare function runSingleTool(toolName: string, ctx: RunContext, packageRoot: string, projectRoot: string): Promise<PhaseResult>;
+export declare function runSingleTool(
+  toolName: string,
+  ctx: RunContext,
+  packageRoot: string,
+  projectRoot: string,
+): Promise<PhaseResult>;
 //# sourceMappingURL=runSingleTool.d.ts.map

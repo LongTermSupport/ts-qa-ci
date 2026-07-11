@@ -1,6 +1,10 @@
-import { resolveConfigPath } from '../orchestrator/resolveConfigPath.js';
-import type { RunContext, ToolModule, ToolResult } from '../orchestrator/types.js';
-import { execTool } from './execTool.js';
+import { resolveConfigPath } from "../orchestrator/resolveConfigPath.js";
+import type {
+  RunContext,
+  ToolModule,
+  ToolResult,
+} from "../orchestrator/types.js";
+import { execTool } from "./execTool.js";
 
 /**
  * dependency-cruiser, run as its own standalone phase-3 step (phase2-design.md
@@ -10,7 +14,7 @@ import { execTool } from './execTool.js';
  * principle exists to prevent.
  */
 const tool: ToolModule = {
-  name: 'dependencyCruiser',
+  name: "dependencyCruiser",
   phase: 3,
   mutates: false,
   pathSupporting: false, // paths live in dependency-cruiser's own config, same as PHPArkitect
@@ -23,10 +27,14 @@ const tool: ToolModule = {
     const configPath = resolveConfigPath(
       ctx.cwd,
       ctx.platform,
-      'dependency-cruiser.config.cjs',
-      ctx.packageRoot
+      "dependency-cruiser.config.cjs",
+      ctx.packageRoot,
     );
-    const result = await execTool('npx', ['depcruise', '--config', configPath, 'src'], ctx.cwd);
+    const result = await execTool(
+      "npx",
+      ["depcruise", "--config", configPath, "src"],
+      ctx.cwd,
+    );
 
     // depcruise is the only count-based tool here: it sets its exit code to the
     // number of error-level violations, which the OS truncates to 8 bits. So
@@ -35,11 +43,13 @@ const tool: ToolModule = {
     // Never trust the raw integer: cross-check the summary line depcruise always
     // prints ("x N dependency violations (E errors, W warnings)."). If the
     // summary reports > 0 errors, it is a failure regardless of the numeric exit.
-    const summaryMatch = result.stdout.match(/(\d+)\s+dependency violations\s*\((\d+)\s+errors/);
+    const summaryMatch = result.stdout.match(
+      /(\d+)\s+dependency violations\s*\((\d+)\s+errors/,
+    );
     const summaryErrors = summaryMatch ? Number(summaryMatch[2]) : 0;
     const clean = result.exitCode === 0 && summaryErrors === 0;
     return {
-      exitClass: clean ? 'clean' : 'failure',
+      exitClass: clean ? "clean" : "failure",
       stdout: result.stdout,
       stderr: result.stderr,
     };

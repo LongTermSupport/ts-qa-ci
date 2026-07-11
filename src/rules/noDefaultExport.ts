@@ -1,4 +1,4 @@
-import type { Rule } from 'eslint';
+import type { Rule } from "eslint";
 
 /**
  * WHY: default exports defeat refactor tooling — renaming the symbol in
@@ -19,13 +19,14 @@ const WIDGET_MOUNT_ENTRY = /\/src\/widgets\/[^/]+\/index\.[cm]?tsx?$/;
 
 const rule: Rule.RuleModule = {
   meta: {
-    type: 'problem',
+    type: "problem",
     docs: {
-      description: 'Disallow `export default` except in widget mount entries.',
+      description: "Disallow `export default` except in widget mount entries.",
     },
     schema: [],
     messages: {
-      default: 'Avoid `export default`. Use a named export so renames propagate cleanly.',
+      default:
+        "Avoid `export default`. Use a named export so renames propagate cleanly.",
     },
   },
   create(context) {
@@ -36,7 +37,7 @@ const rule: Rule.RuleModule = {
     }
     return {
       ExportDefaultDeclaration(node) {
-        context.report({ node, messageId: 'default' });
+        context.report({ node, messageId: "default" });
       },
     };
   },

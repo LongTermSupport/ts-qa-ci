@@ -1,8 +1,8 @@
-import { existsSync } from 'node:fs';
-import { join } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { existsSync } from "node:fs";
+import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 
-import type { Platform, ToolModule } from './types.js';
+import type { Platform, ToolModule } from "./types.js";
 
 /**
  * Tool-resolution cascade (phase2-design.md §2.4): project override (full
@@ -15,21 +15,38 @@ export async function resolveToolModule(
   projectRoot: string,
   platform: Platform,
   packageRoot: string,
-  toolName: string
+  toolName: string,
 ): Promise<ToolModule> {
-  const projectOverride = join(projectRoot, 'tsQaConfig', 'tools', `${toolName}.ts`);
+  const projectOverride = join(
+    projectRoot,
+    "tsQaConfig",
+    "tools",
+    `${toolName}.ts`,
+  );
   if (existsSync(projectOverride)) {
-    const mod = (await import(pathToFileURL(projectOverride).href)) as { default: ToolModule };
+    const mod = (await import(pathToFileURL(projectOverride).href)) as {
+      default: ToolModule;
+    };
     return mod.default;
   }
 
-  const platformImpl = join(packageRoot, 'dist', 'tools', platform, `${toolName}.js`);
+  const platformImpl = join(
+    packageRoot,
+    "dist",
+    "tools",
+    platform,
+    `${toolName}.js`,
+  );
   if (existsSync(platformImpl)) {
-    const mod = (await import(pathToFileURL(platformImpl).href)) as { default: ToolModule };
+    const mod = (await import(pathToFileURL(platformImpl).href)) as {
+      default: ToolModule;
+    };
     return mod.default;
   }
 
-  const genericImplPath = join(packageRoot, 'dist', 'tools', `${toolName}.js`);
-  const mod = (await import(pathToFileURL(genericImplPath).href)) as { default: ToolModule };
+  const genericImplPath = join(packageRoot, "dist", "tools", `${toolName}.js`);
+  const mod = (await import(pathToFileURL(genericImplPath).href)) as {
+    default: ToolModule;
+  };
   return mod.default;
 }

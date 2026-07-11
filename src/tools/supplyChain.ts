@@ -1,7 +1,11 @@
-import { existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
 
-import type { RunContext, ToolModule, ToolResult } from '../orchestrator/types.js';
+import type {
+  RunContext,
+  ToolModule,
+  ToolResult,
+} from "../orchestrator/types.js";
 
 /**
  * Phase 0 — supply-chain config audit (Plan 00004; doctrine upstreamed from
@@ -38,20 +42,20 @@ import type { RunContext, ToolModule, ToolResult } from '../orchestrator/types.j
  */
 
 const DEFAULT_MIN_RELEASE_AGE_MINUTES = 4320; // 3 days
-const PUBLIC_REGISTRY = 'https://registry.npmjs.org/';
+const PUBLIC_REGISTRY = "https://registry.npmjs.org/";
 
 interface SupplyChainConfig {
   minReleaseAgeMinutes: number;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function readJsonFile(path: string): Record<string, unknown> | null {
   if (!existsSync(path)) return null;
   try {
-    const parsed: unknown = JSON.parse(readFileSync(path, 'utf-8'));
+    const parsed: unknown = JSON.parse(readFileSync(path, "utf-8"));
     return isRecord(parsed) ? parsed : null;
   } catch {
     return null;
@@ -59,11 +63,11 @@ function readJsonFile(path: string): Record<string, unknown> | null {
 }
 
 function loadConfig(cwd: string): SupplyChainConfig {
-  const tsQa = readJsonFile(join(cwd, 'tsQaConfig', 'ts-qa.json'));
-  const raw = tsQa?.['supplyChain'];
+  const tsQa = readJsonFile(join(cwd, "tsQaConfig", "ts-qa.json"));
+  const raw = tsQa?.["supplyChain"];
   if (isRecord(raw)) {
-    const value = raw['minReleaseAgeMinutes'];
-    if (typeof value === 'number' && Number.isFinite(value) && value >= 0) {
+    const value = raw["minReleaseAgeMinutes"];
+    if (typeof value === "number" && Number.isFinite(value) && value >= 0) {
       return { minReleaseAgeMinutes: value };
     }
   }
@@ -78,11 +82,11 @@ function loadConfig(cwd: string): SupplyChainConfig {
  * (nested) keys are ignored.
  */
 function readYamlScalar(content: string, key: string): string | null {
-  for (const line of content.split('\n')) {
+  for (const line of content.split("\n")) {
     if (/^\s*#/.test(line) || /^\s/.test(line)) continue; // comment or nested
     const match = new RegExp(`^${key}\\s*:\\s*(.+?)\\s*$`).exec(line);
     if (match?.[1] !== undefined) {
-      return match[1].replace(/\s+#.*$/, '').trim(); // strip trailing comment
+      return match[1].replace(/\s+#.*$/, "").trim(); // strip trailing comment
     }
   }
   return null;
@@ -90,7 +94,7 @@ function readYamlScalar(content: string, key: string): string | null {
 
 /** Extract a key from an .npmrc (ini `key=value`, `;`/`#` comments). */
 function readIniValue(content: string, key: string): string | null {
-  for (const line of content.split('\n')) {
+  for (const line of content.split("\n")) {
     if (/^\s*[;#]/.test(line)) continue;
     const match = new RegExp(`^\\s*${key}\\s*=\\s*(.+?)\\s*$`).exec(line);
     if (match?.[1] !== undefined) return match[1].trim();
@@ -104,36 +108,46 @@ interface PmConfig {
 }
 
 function readPmConfig(cwd: string): PmConfig {
-  const wsPath = join(cwd, 'pnpm-workspace.yaml');
-  const npmrcPath = join(cwd, '.npmrc');
+  const wsPath = join(cwd, "pnpm-workspace.yaml");
+  const npmrcPath = join(cwd, ".npmrc");
   return {
-    workspaceYaml: existsSync(wsPath) ? readFileSync(wsPath, 'utf-8') : null,
-    npmrc: existsSync(npmrcPath) ? readFileSync(npmrcPath, 'utf-8') : null,
+    workspaceYaml: existsSync(wsPath) ? readFileSync(wsPath, "utf-8") : null,
+    npmrc: existsSync(npmrcPath) ? readFileSync(npmrcPath, "utf-8") : null,
   };
 }
 
 /** Look a pnpm setting up in pnpm-workspace.yaml first, then .npmrc (kebab-case). */
-function readSetting(pm: PmConfig, camelKey: string, kebabKey: string): string | null {
+function readSetting(
+  pm: PmConfig,
+  camelKey: string,
+  kebabKey: string,
+): string | null {
   if (pm.workspaceYaml) {
     const fromYaml = readYamlScalar(pm.workspaceYaml, camelKey);
     if (fromYaml !== null) return fromYaml;
   }
   if (pm.npmrc) {
-    const fromNpmrc = readIniValue(pm.npmrc, kebabKey) ?? readIniValue(pm.npmrc, camelKey);
+    const fromNpmrc =
+      readIniValue(pm.npmrc, kebabKey) ?? readIniValue(pm.npmrc, camelKey);
     if (fromNpmrc !== null) return fromNpmrc;
   }
   return null;
 }
 
-export function auditSupplyChain(cwd: string, config: SupplyChainConfig): string[] {
+export function auditSupplyChain(
+  cwd: string,
+  config: SupplyChainConfig,
+): string[] {
   const violations: string[] = [];
 
   // 1. pnpm required, pinned to an exact version.
-  const pkg = readJsonFile(join(cwd, 'package.json'));
-  const pmField: unknown = pkg?.['packageManager'];
-  const packageManager = typeof pmField === 'string' ? pmField : null;
+  const pkg = readJsonFile(join(cwd, "package.json"));
+  const pmField: unknown = pkg?.["packageManager"];
+  const packageManager = typeof pmField === "string" ? pmField : null;
   if (packageManager === null) {
-    violations.push('package.json "packageManager" is not set. Pin it to an exact pnpm version, e.g. "pnpm@11.1.2".');
+    violations.push(
+      'package.json "packageManager" is not set. Pin it to an exact pnpm version, e.g. "pnpm@11.1.2".',
+    );
   } else if (!/^pnpm@\d+\.\d+\.\d+/.test(packageManager)) {
     violations.push(
       `package.json "packageManager" is "${packageManager}". pnpm is required (it is the only package manager that enforces the minimumReleaseAge bake window); pin it to pnpm@<exact version>.`,
@@ -143,7 +157,7 @@ export function auditSupplyChain(cwd: string, config: SupplyChainConfig): string
   const pm = readPmConfig(cwd);
 
   // 2. minimumReleaseAge — the bake window.
-  const minAgeRaw = readSetting(pm, 'minimumReleaseAge', 'minimum-release-age');
+  const minAgeRaw = readSetting(pm, "minimumReleaseAge", "minimum-release-age");
   if (minAgeRaw === null) {
     violations.push(
       `minimumReleaseAge is not configured. Set it in pnpm-workspace.yaml to at least ${config.minReleaseAgeMinutes} (minutes) — the bake window that blocks freshly-published (potentially compromised) versions.`,
@@ -151,23 +165,33 @@ export function auditSupplyChain(cwd: string, config: SupplyChainConfig): string
   } else {
     const minAge = Number.parseInt(minAgeRaw, 10);
     if (!Number.isFinite(minAge) || minAge < config.minReleaseAgeMinutes) {
-      violations.push(`minimumReleaseAge is ${minAgeRaw} but must be at least ${config.minReleaseAgeMinutes} minutes.`);
+      violations.push(
+        `minimumReleaseAge is ${minAgeRaw} but must be at least ${config.minReleaseAgeMinutes} minutes.`,
+      );
     }
   }
 
   // 3. dangerouslyAllowAllBuilds must not be true (install scripts blocked by default).
-  const allowAllBuilds = readSetting(pm, 'dangerouslyAllowAllBuilds', 'dangerously-allow-all-builds');
-  if (allowAllBuilds === 'true') {
+  const allowAllBuilds = readSetting(
+    pm,
+    "dangerouslyAllowAllBuilds",
+    "dangerously-allow-all-builds",
+  );
+  if (allowAllBuilds === "true") {
     violations.push(
-      'dangerouslyAllowAllBuilds is true — this runs every dependency install script. Set it false and allowlist specific packages via allowBuilds.',
+      "dangerouslyAllowAllBuilds is true — this runs every dependency install script. Set it false and allowlist specific packages via allowBuilds.",
     );
   }
 
   // 4. verifyDepsBeforeRun must fail (error) on lockfile drift.
-  const verifyDeps = readSetting(pm, 'verifyDepsBeforeRun', 'verify-deps-before-run');
-  if (verifyDeps !== 'error') {
+  const verifyDeps = readSetting(
+    pm,
+    "verifyDepsBeforeRun",
+    "verify-deps-before-run",
+  );
+  if (verifyDeps !== "error") {
     violations.push(
-      `verifyDepsBeforeRun is ${verifyDeps ?? 'unset'} but must be "error" so a lockfile that drifts from the manifests fails loudly.`,
+      `verifyDepsBeforeRun is ${verifyDeps ?? "unset"} but must be "error" so a lockfile that drifts from the manifests fails loudly.`,
     );
   }
 
@@ -175,8 +199,11 @@ export function auditSupplyChain(cwd: string, config: SupplyChainConfig): string
   //    redirect is a classic exfiltration vector. Absent = pnpm's public default = OK.
   //    Git deps are NOT governed here — they are a sanctioned first-party channel.
   if (pm.npmrc) {
-    const registry = readIniValue(pm.npmrc, 'registry');
-    if (registry !== null && registry.replace(/\/$/, '') !== PUBLIC_REGISTRY.replace(/\/$/, '')) {
+    const registry = readIniValue(pm.npmrc, "registry");
+    if (
+      registry !== null &&
+      registry.replace(/\/$/, "") !== PUBLIC_REGISTRY.replace(/\/$/, "")
+    ) {
       violations.push(
         `registry is "${registry}" — only the public npm registry (${PUBLIC_REGISTRY}) is allowed. (First-party SHA-pinned git dependencies are fine — they do not go through the registry.)`,
       );
@@ -187,7 +214,7 @@ export function auditSupplyChain(cwd: string, config: SupplyChainConfig): string
 }
 
 const tool: ToolModule = {
-  name: 'supplyChain',
+  name: "supplyChain",
   phase: 0,
   mutates: false,
   pathSupporting: false,
@@ -198,21 +225,25 @@ const tool: ToolModule = {
 
     if (violations.length === 0) {
       return Promise.resolve({
-        exitClass: 'clean',
-        stdout: 'ts-qa supplyChain: all supply-chain protections configured.\n',
-        stderr: '',
+        exitClass: "clean",
+        stdout: "ts-qa supplyChain: all supply-chain protections configured.\n",
+        stderr: "",
       });
     }
 
     const report = [
-      'ts-qa supplyChain: supply-chain protections missing or misconfigured:',
+      "ts-qa supplyChain: supply-chain protections missing or misconfigured:",
       ...violations.map((v) => `  ✗ ${v}`),
-      '',
-      'See docs/supply-chain.md. Run `ts-qa init` to scaffold a compliant pnpm-workspace.yaml + .npmrc.',
-      '',
-    ].join('\n');
+      "",
+      "See docs/supply-chain.md. Run `ts-qa init` to scaffold a compliant pnpm-workspace.yaml + .npmrc.",
+      "",
+    ].join("\n");
 
-    return Promise.resolve({ exitClass: 'failure', stdout: report, stderr: '' });
+    return Promise.resolve({
+      exitClass: "failure",
+      stdout: report,
+      stderr: "",
+    });
   },
 };
 

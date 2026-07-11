@@ -1,5 +1,5 @@
-import type { Rule } from 'eslint';
-import type { FunctionDeclaration, Node, VariableDeclarator } from 'estree';
+import type { Rule } from "eslint";
+import type { FunctionDeclaration, Node, VariableDeclarator } from "estree";
 
 /**
  * WHY: declaring a React component inside another component's body causes
@@ -30,9 +30,9 @@ import type { FunctionDeclaration, Node, VariableDeclarator } from 'estree';
 const ENFORCE_PATTERN = /\/src\//;
 
 const FUNCTION_NODE_TYPES = new Set([
-  'FunctionDeclaration',
-  'FunctionExpression',
-  'ArrowFunctionExpression',
+  "FunctionDeclaration",
+  "FunctionExpression",
+  "ArrowFunctionExpression",
 ]);
 
 function isPascalCase(name: string): boolean {
@@ -55,15 +55,15 @@ function isInsideFunction(node: Rule.Node): boolean {
 
 const rule: Rule.RuleModule = {
   meta: {
-    type: 'problem',
+    type: "problem",
     docs: {
       description:
-        'React components must be declared at module scope. Declaring a component inside another component body re-creates it on every render and remounts its subtree.',
+        "React components must be declared at module scope. Declaring a component inside another component body re-creates it on every render and remounts its subtree.",
     },
     schema: [],
     messages: {
       inlineComponent:
-        'Component `{{name}}` is declared inside another function body. Move it to module scope (and probably to its own file — see `dbf/one-component-per-file`). Inline component decls remount on every parent render, destroying internal state.',
+        "Component `{{name}}` is declared inside another function body. Move it to module scope (and probably to its own file — see `dbf/one-component-per-file`). Inline component decls remount on every parent render, destroying internal state.",
     },
   },
   create(context) {
@@ -73,25 +73,29 @@ const rule: Rule.RuleModule = {
     return {
       VariableDeclarator(node: VariableDeclarator) {
         const id = node.id;
-        if (id.type !== 'Identifier') return;
+        if (id.type !== "Identifier") return;
         if (!isPascalCase(id.name)) return;
         const init = node.init;
         if (init === null || init === undefined) return;
-        if (init.type !== 'ArrowFunctionExpression' && init.type !== 'FunctionExpression') return;
+        if (
+          init.type !== "ArrowFunctionExpression" &&
+          init.type !== "FunctionExpression"
+        )
+          return;
         if (!isInsideFunction(node as Node as Rule.Node)) return;
         context.report({
           node,
-          messageId: 'inlineComponent',
+          messageId: "inlineComponent",
           data: { name: id.name },
         });
       },
       FunctionDeclaration(node: FunctionDeclaration) {
-        if (node.id === null || node.id.type !== 'Identifier') return;
+        if (node.id === null || node.id.type !== "Identifier") return;
         if (!isPascalCase(node.id.name)) return;
         if (!isInsideFunction(node as Node as Rule.Node)) return;
         context.report({
           node,
-          messageId: 'inlineComponent',
+          messageId: "inlineComponent",
           data: { name: node.id.name },
         });
       },

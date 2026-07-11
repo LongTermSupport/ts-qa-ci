@@ -1,8 +1,8 @@
-import { KNOWN_TOOLS } from './resolveDisabledTools.js';
-import { resolveToolModule } from './resolveToolModule.js';
-import { type PhaseResult, logToolResult } from './runPhase.js';
-import { runTool } from './runTool.js';
-import type { RunContext } from './types.js';
+import { KNOWN_TOOLS } from "./resolveDisabledTools.js";
+import { resolveToolModule } from "./resolveToolModule.js";
+import { type PhaseResult, logToolResult } from "./runPhase.js";
+import { runTool } from "./runTool.js";
+import type { RunContext } from "./types.js";
 
 /**
  * Runs exactly one named tool, bypassing phase grouping entirely
@@ -22,15 +22,20 @@ export async function runSingleTool(
   toolName: string,
   ctx: RunContext,
   packageRoot: string,
-  projectRoot: string
+  projectRoot: string,
 ): Promise<PhaseResult> {
   if (!(KNOWN_TOOLS as readonly string[]).includes(toolName)) {
     throw new Error(
-      `ts-qa: unknown tool "${toolName}" (-t). Known tools: ${KNOWN_TOOLS.join(', ')}`
+      `ts-qa: unknown tool "${toolName}" (-t). Known tools: ${KNOWN_TOOLS.join(", ")}`,
     );
   }
 
-  const tool = await resolveToolModule(projectRoot, ctx.platform, packageRoot, toolName);
+  const tool = await resolveToolModule(
+    projectRoot,
+    ctx.platform,
+    packageRoot,
+    toolName,
+  );
   const result = await runTool(tool, ctx);
   logToolResult(toolName, result, ctx.json);
 
@@ -40,6 +45,6 @@ export async function runSingleTool(
   return {
     phase: tool.phase,
     toolResults: { [toolName]: result },
-    failed: result.exitClass !== 'clean',
+    failed: result.exitClass !== "clean",
   };
 }

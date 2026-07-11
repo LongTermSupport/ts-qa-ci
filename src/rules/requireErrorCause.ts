@@ -1,5 +1,5 @@
-import type { Rule } from 'eslint';
-import type { CatchClause, NewExpression, ThrowStatement } from 'estree';
+import type { Rule } from "eslint";
+import type { CatchClause, NewExpression, ThrowStatement } from "estree";
 
 /**
  * Tier A core rule: throwing a `new Error` inside a catch block without
@@ -24,14 +24,15 @@ import type { CatchClause, NewExpression, ThrowStatement } from 'estree';
  */
 const rule: Rule.RuleModule = {
   meta: {
-    type: 'problem',
+    type: "problem",
     docs: {
-      description: 'New Error throws inside catch blocks must pass { cause: <caught-var> }.',
+      description:
+        "New Error throws inside catch blocks must pass { cause: <caught-var> }.",
     },
     schema: [],
     messages: {
       missing:
-        '`throw new Error(...)` inside a catch must pass `{ cause: <caught-var> }` as 2nd arg, otherwise the original error context is lost.',
+        "`throw new Error(...)` inside a catch must pass `{ cause: <caught-var> }` as 2nd arg, otherwise the original error context is lost.",
     },
   },
   create(context) {
@@ -43,16 +44,17 @@ const rule: Rule.RuleModule = {
     const catchStack: Array<string | null> = [];
     return {
       CatchClause(node: CatchClause) {
-        const paramName = node.param?.type === 'Identifier' ? node.param.name : null;
+        const paramName =
+          node.param?.type === "Identifier" ? node.param.name : null;
         catchStack.push(paramName);
       },
-      'CatchClause:exit'() {
+      "CatchClause:exit"() {
         catchStack.pop();
       },
       ThrowStatement(node: ThrowStatement) {
         if (catchStack.length === 0) return;
         const arg = node.argument;
-        if (!arg || arg.type !== 'NewExpression') return;
+        if (!arg || arg.type !== "NewExpression") return;
         // Police any constructor whose identifier ends in `Error`. Built-in
         // (`Error`, `TypeError`, ...) AND custom (`ApiError`, `AuthError`,
         // `ValidationError`, `BallicomError`) — both must thread `cause`
@@ -62,17 +64,21 @@ const rule: Rule.RuleModule = {
         // `cause` property.
         const newExpr = arg as NewExpression;
         const callee = newExpr.callee;
-        if (callee.type !== 'Identifier' || !callee.name.endsWith('Error')) return;
+        if (callee.type !== "Identifier" || !callee.name.endsWith("Error"))
+          return;
 
         const hasCauseArg = newExpr.arguments.some(
           (a) =>
-            a.type === 'ObjectExpression' &&
+            a.type === "ObjectExpression" &&
             a.properties.some(
-              (p) => p.type === 'Property' && p.key.type === 'Identifier' && p.key.name === 'cause'
-            )
+              (p) =>
+                p.type === "Property" &&
+                p.key.type === "Identifier" &&
+                p.key.name === "cause",
+            ),
         );
         if (!hasCauseArg) {
-          context.report({ node: arg as Rule.Node, messageId: 'missing' });
+          context.report({ node: arg as Rule.Node, messageId: "missing" });
         }
       },
     };

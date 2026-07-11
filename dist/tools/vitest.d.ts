@@ -1,4 +1,4 @@
-import type { ToolModule } from '../orchestrator/types.js';
+import type { ToolModule } from "../orchestrator/types.js";
 /**
  * Vitest (phase2-design.md §3): peerDependency, orchestrates the consumer's
  * own configured test setup rather than shipping a default one - invokes

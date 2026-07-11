@@ -1,4 +1,4 @@
-import type { ToolModule } from '../orchestrator/types.js';
+import type { ToolModule } from "../orchestrator/types.js";
 /**
  * knip (phase2-design.md §1) - dead code / unused deps / unused exports.
  * §7 risk 3: ships with only a default single-entry-point config; the

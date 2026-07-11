@@ -1,4 +1,4 @@
-import type { Linter } from 'eslint';
+import type { Linter } from "eslint";
 /**
  * Strict-TypeScript baseline doctrine (Plan 00004 Task 1.4), upstreamed from
  * admin-ts's hand-rolled `eslint.config.mjs`. This is the load-bearing quality
@@ -53,16 +53,20 @@ import type { Linter } from 'eslint';
  * `[...AS_ENUM_BAN_SELECTORS, ...ownSelectors]` instead of clobbering the ban
  * (`no-restricted-syntax` is last-entry-wins and single-instance).
  */
-export declare const AS_ENUM_BAN_SELECTORS: readonly [{
+export declare const AS_ENUM_BAN_SELECTORS: readonly [
+  {
     readonly selector: "TSAsExpression:not([typeAnnotation.typeName.name='const'])";
     readonly message: "Type assertions are banned. Use a type guard, a schema parse, or fix the upstream type. `as const` only.";
-}, {
+  },
+  {
     readonly selector: "TSTypeAssertion";
     readonly message: "Angle-bracket type assertions are banned. `as const` only.";
-}, {
+  },
+  {
     readonly selector: "TSEnumDeclaration";
     readonly message: "Enums are banned — use a union of string literals or an `as const` object.";
-}];
+  },
+];
 export declare const STRICT_TYPESCRIPT_RULES: Linter.RulesRecord;
 /**
  * Opinionated / stylistic elevations (rule-classification.md §3, "kept optional

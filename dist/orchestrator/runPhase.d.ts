@@ -1,8 +1,8 @@
-import type { PhaseDefinition, RunContext, ToolResult } from './types.js';
+import type { PhaseDefinition, RunContext, ToolResult } from "./types.js";
 export interface PhaseResult {
-    phase: number;
-    toolResults: Record<string, ToolResult>;
-    failed: boolean;
+  phase: number;
+  toolResults: Record<string, ToolResult>;
+  failed: boolean;
 }
 /**
  * Runs one phase's tool list in order (phase2-design.md §2.2/§2.3).
@@ -20,6 +20,15 @@ export interface PhaseResult {
  * --json mode suppresses this: the caller gets the full structured result
  * instead and would see duplicated output otherwise.
  */
-export declare function logToolResult(toolName: string, result: ToolResult, json: boolean): void;
-export declare function runPhase(phaseDef: PhaseDefinition, ctx: RunContext, packageRoot: string, projectRoot: string): Promise<PhaseResult>;
+export declare function logToolResult(
+  toolName: string,
+  result: ToolResult,
+  json: boolean,
+): void;
+export declare function runPhase(
+  phaseDef: PhaseDefinition,
+  ctx: RunContext,
+  packageRoot: string,
+  projectRoot: string,
+): Promise<PhaseResult>;
 //# sourceMappingURL=runPhase.d.ts.map

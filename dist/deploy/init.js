@@ -1,5 +1,5 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
 const HOOK_PRE_STUB = `import type { HookContext } from '@longtermsupport/ts-qa-ci';
 
 export default async function hookPre(_ctx: HookContext): Promise<void> {
@@ -21,9 +21,9 @@ const ESLINT_CONFIG_STUB = `// Project-specific ESLint additions. This file is m
 export default [];
 `;
 /** Relative location of the shipped consumer CI archetype within the package. */
-const CI_ARCHETYPE_REL = join('configDefaults', 'github-workflows', 'ci.yml');
+const CI_ARCHETYPE_REL = join("configDefaults", "github-workflows", "ci.yml");
 /** Where the archetype is scaffolded in the consumer project. */
-const CI_DEST_REL = join('.github', 'workflows', 'ts-qa.yml');
+const CI_DEST_REL = join(".github", "workflows", "ts-qa.yml");
 /**
  * Supply-chain hardening archetypes scaffolded into the consumer root and
  * enforced by the `supplyChain` Phase 0 check. The .npmrc archetype ships as
@@ -31,8 +31,11 @@ const CI_DEST_REL = join('.github', 'workflows', 'ts-qa.yml');
  * packages; it is written to the consumer as `.npmrc`.
  */
 const SUPPLY_CHAIN_ARCHETYPES = [
-    [join('configDefaults', 'generic', 'pnpm-workspace.yaml'), 'pnpm-workspace.yaml'],
-    [join('configDefaults', 'generic', 'npmrc'), '.npmrc'],
+  [
+    join("configDefaults", "generic", "pnpm-workspace.yaml"),
+    "pnpm-workspace.yaml",
+  ],
+  [join("configDefaults", "generic", "npmrc"), ".npmrc"],
 ];
 /**
  * Scaffold a single file if it is missing; never overwrite. init is a scaffold
@@ -40,52 +43,60 @@ const SUPPLY_CHAIN_ARCHETYPES = [
  * has already customised.
  */
 function scaffoldFile(path, content) {
-    if (existsSync(path)) {
-        console.log(`ts-qa init: ${path} already present, left untouched.`);
-        return;
-    }
-    mkdirSync(dirname(path), { recursive: true });
-    writeFileSync(path, content);
-    console.log(`ts-qa init: ${path} written.`);
+  if (existsSync(path)) {
+    console.log(`ts-qa init: ${path} already present, left untouched.`);
+    return;
+  }
+  mkdirSync(dirname(path), { recursive: true });
+  writeFileSync(path, content);
+  console.log(`ts-qa init: ${path} written.`);
 }
 /** ts-qa init (phase2-design.md §2.1): scaffold tsQaConfig/ + the CI archetype in the consumer project. */
 export async function init(options) {
-    const configDir = join(options.cwd, 'tsQaConfig');
-    const files = [
-        [join(configDir, 'hookPre.ts'), HOOK_PRE_STUB],
-        [join(configDir, 'hookPost.ts'), HOOK_POST_STUB],
-        [join(configDir, 'tier-a-exemptions.json'), EXEMPTIONS_STUB],
-        [join(configDir, 'eslint.config.js'), ESLINT_CONFIG_STUB],
-    ];
-    for (const [path, content] of files) {
-        scaffoldFile(path, content);
+  const configDir = join(options.cwd, "tsQaConfig");
+  const files = [
+    [join(configDir, "hookPre.ts"), HOOK_PRE_STUB],
+    [join(configDir, "hookPost.ts"), HOOK_POST_STUB],
+    [join(configDir, "tier-a-exemptions.json"), EXEMPTIONS_STUB],
+    [join(configDir, "eslint.config.js"), ESLINT_CONFIG_STUB],
+  ];
+  for (const [path, content] of files) {
+    scaffoldFile(path, content);
+  }
+  // Scaffold the shipped GitHub Actions archetype (the auto-fix-and-commit
+  // workflow). Needs packageRoot to locate the shipped file; skipped when it is
+  // absent or the archetype file is missing - never silently, always logged.
+  if (options.packageRoot === undefined) {
+    console.log(
+      "ts-qa init: no packageRoot given — skipping CI + supply-chain scaffold.",
+    );
+  } else {
+    const archetype = join(options.packageRoot, CI_ARCHETYPE_REL);
+    if (existsSync(archetype)) {
+      scaffoldFile(
+        join(options.cwd, CI_DEST_REL),
+        readFileSync(archetype, "utf-8"),
+      );
+    } else {
+      console.log(
+        `ts-qa init: CI archetype not found at ${archetype} — skipping CI workflow scaffold.`,
+      );
     }
-    // Scaffold the shipped GitHub Actions archetype (the auto-fix-and-commit
-    // workflow). Needs packageRoot to locate the shipped file; skipped when it is
-    // absent or the archetype file is missing - never silently, always logged.
-    if (options.packageRoot === undefined) {
-        console.log('ts-qa init: no packageRoot given — skipping CI + supply-chain scaffold.');
+    // Supply-chain hardening files (pnpm-workspace.yaml + .npmrc) — enforced by
+    // the supplyChain Phase 0 check, so scaffold compliant starters here.
+    for (const [archetypeRel, destRel] of SUPPLY_CHAIN_ARCHETYPES) {
+      const src = join(options.packageRoot, archetypeRel);
+      if (existsSync(src)) {
+        scaffoldFile(join(options.cwd, destRel), readFileSync(src, "utf-8"));
+      } else {
+        console.log(
+          `ts-qa init: supply-chain archetype not found at ${src} — skipping.`,
+        );
+      }
     }
-    else {
-        const archetype = join(options.packageRoot, CI_ARCHETYPE_REL);
-        if (existsSync(archetype)) {
-            scaffoldFile(join(options.cwd, CI_DEST_REL), readFileSync(archetype, 'utf-8'));
-        }
-        else {
-            console.log(`ts-qa init: CI archetype not found at ${archetype} — skipping CI workflow scaffold.`);
-        }
-        // Supply-chain hardening files (pnpm-workspace.yaml + .npmrc) — enforced by
-        // the supplyChain Phase 0 check, so scaffold compliant starters here.
-        for (const [archetypeRel, destRel] of SUPPLY_CHAIN_ARCHETYPES) {
-            const src = join(options.packageRoot, archetypeRel);
-            if (existsSync(src)) {
-                scaffoldFile(join(options.cwd, destRel), readFileSync(src, 'utf-8'));
-            }
-            else {
-                console.log(`ts-qa init: supply-chain archetype not found at ${src} — skipping.`);
-            }
-        }
-    }
-    console.log('ts-qa init: complete. See docs/configuration.md and docs/github-actions.md.');
+  }
+  console.log(
+    "ts-qa init: complete. See docs/configuration.md and docs/github-actions.md.",
+  );
 }
 //# sourceMappingURL=init.js.map

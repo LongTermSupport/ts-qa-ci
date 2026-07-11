@@ -1,10 +1,10 @@
-import { existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
-import { pathToFileURL } from 'node:url';
+import { existsSync, readFileSync } from "node:fs";
+import { join } from "node:path";
+import { pathToFileURL } from "node:url";
 
-import { globIntersects } from './glob.js';
-import { TIER_A_RULE_IDS } from './tierARules.js';
-import type { Platform } from './types.js';
+import { globIntersects } from "./glob.js";
+import { TIER_A_RULE_IDS } from "./tierARules.js";
+import type { Platform } from "./types.js";
 
 /**
  * ESLint config resolution (phase2-design.md §2.4/§4). This is the ONE
@@ -34,13 +34,19 @@ interface TierAExemption {
 }
 
 function loadExemptions(projectRoot: string): TierAExemption[] {
-  const exemptionsPath = join(projectRoot, 'tsQaConfig', 'tier-a-exemptions.json');
+  const exemptionsPath = join(
+    projectRoot,
+    "tsQaConfig",
+    "tier-a-exemptions.json",
+  );
   if (!existsSync(exemptionsPath)) return [];
-  const raw = JSON.parse(readFileSync(exemptionsPath, 'utf-8')) as TierAExemption[];
+  const raw = JSON.parse(
+    readFileSync(exemptionsPath, "utf-8"),
+  ) as TierAExemption[];
   for (const entry of raw) {
     if (!entry.ruleId || !entry.justification || !entry.files?.length) {
       throw new Error(
-        `ts-qa: tsQaConfig/tier-a-exemptions.json has an entry missing ruleId, files, or justification: ${JSON.stringify(entry)}`
+        `ts-qa: tsQaConfig/tier-a-exemptions.json has an entry missing ruleId, files, or justification: ${JSON.stringify(entry)}`,
       );
     }
   }
@@ -56,10 +62,12 @@ interface LinterOptions {
   reportUnusedDisableDirectives?: unknown;
 }
 
-export function findTierARuleOverrides(configEntries: FlatConfigEntry[]): TierAOverride[] {
+export function findTierARuleOverrides(
+  configEntries: FlatConfigEntry[],
+): TierAOverride[] {
   const overrides: TierAOverride[] = [];
   for (const entry of configEntries) {
-    const files = entry.files ?? ['**/*'];
+    const files = entry.files ?? ["**/*"];
     if (entry.rules) {
       for (const ruleId of Object.keys(entry.rules)) {
         if (TIER_A_RULE_IDS.includes(ruleId)) {
@@ -75,17 +83,19 @@ export function findTierARuleOverrides(configEntries: FlatConfigEntry[]): TierAO
     const linterOptions = entry.linterOptions as LinterOptions | undefined;
     if (
       linterOptions?.reportUnusedDisableDirectives !== undefined &&
-      linterOptions.reportUnusedDisableDirectives !== 'error' &&
-      TIER_A_RULE_IDS.includes('reportUnusedDisableDirectives')
+      linterOptions.reportUnusedDisableDirectives !== "error" &&
+      TIER_A_RULE_IDS.includes("reportUnusedDisableDirectives")
     ) {
-      overrides.push({ ruleId: 'reportUnusedDisableDirectives', files });
+      overrides.push({ ruleId: "reportUnusedDisableDirectives", files });
     }
   }
   return overrides;
 }
 
 async function importConfig(path: string): Promise<FlatConfigEntry[]> {
-  const mod = (await import(pathToFileURL(path).href)) as { default: FlatConfigEntry[] };
+  const mod = (await import(pathToFileURL(path).href)) as {
+    default: FlatConfigEntry[];
+  };
   return mod.default;
 }
 
@@ -99,14 +109,26 @@ export async function resolveEslintConfig(
   projectRoot: string,
   platform: Platform,
   packageRoot: string,
-  quiet: boolean = process.env.TSQA_JSON === '1'
+  quiet: boolean = process.env.TSQA_JSON === "1",
 ): Promise<FlatConfigEntry[]> {
-  const platformBasePath = join(packageRoot, 'configDefaults', platform, 'eslint.config.js');
-  const genericBasePath = join(packageRoot, 'configDefaults', 'generic', 'eslint.config.js');
-  const basePath = existsSync(platformBasePath) ? platformBasePath : genericBasePath;
+  const platformBasePath = join(
+    packageRoot,
+    "configDefaults",
+    platform,
+    "eslint.config.js",
+  );
+  const genericBasePath = join(
+    packageRoot,
+    "configDefaults",
+    "generic",
+    "eslint.config.js",
+  );
+  const basePath = existsSync(platformBasePath)
+    ? platformBasePath
+    : genericBasePath;
   const base = await importConfig(basePath);
 
-  const projectConfigPath = join(projectRoot, 'tsQaConfig', 'eslint.config.js');
+  const projectConfigPath = join(projectRoot, "tsQaConfig", "eslint.config.js");
   if (!existsSync(projectConfigPath)) return base;
 
   const projectAdditions = await importConfig(projectConfigPath);
@@ -117,22 +139,23 @@ export async function resolveEslintConfig(
     (touched) =>
       !exemptions.some(
         (exemption) =>
-          exemption.ruleId === touched.ruleId && globIntersects(exemption.files, touched.files)
-      )
+          exemption.ruleId === touched.ruleId &&
+          globIntersects(exemption.files, touched.files),
+      ),
   );
 
   if (unsanctioned.length > 0) {
-    const ruleList = unsanctioned.map((t) => t.ruleId).join(', ');
+    const ruleList = unsanctioned.map((t) => t.ruleId).join(", ");
     throw new Error(
       `ts-qa: tsQaConfig/eslint.config.js attempts to override Tier A rule(s) ${ruleList} ` +
-        `with no matching tsQaConfig/tier-a-exemptions.json entry. Add a justified exemption or remove the override.`
+        `with no matching tsQaConfig/tier-a-exemptions.json entry. Add a justified exemption or remove the override.`,
     );
   }
 
   if (exemptions.length > 0 && !quiet) {
     for (const exemption of exemptions) {
       console.log(
-        `ts-qa: Tier A exemption active — ${exemption.ruleId} on ${exemption.files.join(',')} — "${exemption.justification}"`
+        `ts-qa: Tier A exemption active — ${exemption.ruleId} on ${exemption.files.join(",")} — "${exemption.justification}"`,
       );
     }
   }
