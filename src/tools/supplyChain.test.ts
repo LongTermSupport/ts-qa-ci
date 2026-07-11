@@ -156,6 +156,7 @@ describe("supplyChain tool", () => {
     aggregate: false,
     hasBeenRestarted: false,
     json: true,
+    llm: false,
     packageRoot: "/pkg",
   };
 

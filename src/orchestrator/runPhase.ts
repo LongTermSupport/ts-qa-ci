@@ -57,7 +57,9 @@ export async function runPhase(
     );
     const result = await runTool(tool, ctx);
     toolResults[toolName] = result;
-    logToolResult(toolName, result, ctx.json);
+    // `--llm` captures every tool's stdout/stderr into the persisted cache and
+    // prints only a compact summary, so it suppresses this passthrough like `--json`.
+    logToolResult(toolName, result, ctx.json || ctx.llm);
 
     if (result.exitClass !== "clean") {
       failed = true;

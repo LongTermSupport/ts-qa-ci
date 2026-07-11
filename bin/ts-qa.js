@@ -33,6 +33,7 @@ export function parseArgs(argv) {
     packageRoot,
     aggregate: false,
     json: false,
+    llm: false,
   };
   let command;
 
@@ -74,6 +75,9 @@ export function parseArgs(argv) {
       case "--json":
         options.json = true;
         break;
+      case '--llm':
+        options.llm = true;
+        break;
       default:
         throw new Error(`ts-qa: unrecognized argument "${arg}"`);
     }
@@ -85,6 +89,15 @@ export function parseArgs(argv) {
   if (options.aggregate && options.forceWrite) {
     throw new Error(
       "ts-qa: --aggregate is only valid for read-only runs (it conflicts with --write)",
+    );
+  }
+  // --json and --llm both own stdout but with opposite contracts: --json dumps
+  // the whole PipelineResult, --llm prints a compact summary and writes the full
+  // result to a cache file. Combining them is contradictory, so reject it.
+  if (options.json && options.llm) {
+    throw new Error(
+      'ts-qa: --json and --llm are mutually exclusive — --json dumps the full result to stdout, ' +
+        '--llm prints a compact summary and writes the full result to node_modules/.cache/ts-qa/llm/'
     );
   }
   if (options.tool && options.onlyPhase !== undefined) {
@@ -124,6 +137,9 @@ async function main() {
 
   if (options.json) {
     console.log(JSON.stringify(result, null, 2));
+  } else if (options.llm) {
+    const { emitLlmOutput } = await import('../dist/orchestrator/llmOutput.js');
+    emitLlmOutput(result, options.cwd);
   }
 
   process.exit(result.success ? 0 : 1);

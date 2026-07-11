@@ -30,6 +30,7 @@ const ctx = (overrides: Partial<RunContext> = {}): RunContext => ({
   aggregate: false,
   hasBeenRestarted: false,
   json: true,
+  llm: false,
   packageRoot: "/does-not-matter",
   ...overrides,
 });

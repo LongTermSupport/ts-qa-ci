@@ -51,6 +51,7 @@ describe("retryGate", () => {
     aggregate: false,
     hasBeenRestarted: false,
     json: true,
+    llm: false,
     packageRoot: "/x",
     ...overrides,
   });
