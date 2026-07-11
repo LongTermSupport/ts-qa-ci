@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { RunContext } from "../orchestrator/types.js";
+import type { SupplyChainConfig } from "./supplyChain.js";
 
 /**
  * The supply-chain audit reads config FILES (package.json, pnpm-workspace.yaml,
@@ -37,7 +38,7 @@ function setCompliant(): void {
   files.set(`${CWD}/.npmrc`, "registry=https://registry.npmjs.org/\n");
 }
 
-const config = { minReleaseAgeMinutes: 4320 };
+const config: SupplyChainConfig = { minReleaseAgeMinutes: 4320 };
 
 describe("auditSupplyChain", () => {
   beforeEach(() => files.clear());
