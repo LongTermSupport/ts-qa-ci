@@ -44,7 +44,7 @@ import type {
 const DEFAULT_MIN_RELEASE_AGE_MINUTES = 4320; // 3 days
 const PUBLIC_REGISTRY = "https://registry.npmjs.org/";
 
-interface SupplyChainConfig {
+export interface SupplyChainConfig {
   minReleaseAgeMinutes: number;
 }
 

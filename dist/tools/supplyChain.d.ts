@@ -1,5 +1,5 @@
 import type { ToolModule } from "../orchestrator/types.js";
-interface SupplyChainConfig {
+export interface SupplyChainConfig {
   minReleaseAgeMinutes: number;
 }
 export declare function auditSupplyChain(
