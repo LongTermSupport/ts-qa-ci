@@ -42,7 +42,10 @@ const rule = {
         else if (key.type === "Literal") name = key.value;
         else return;
         if (name !== "className") return;
-        context.report({ node: node, messageId: "classNameDeclared" });
+        context.report({
+          node: node,
+          messageId: "classNameDeclared",
+        });
       },
     };
   },

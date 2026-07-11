@@ -46,6 +46,13 @@ ruleTester.run("no-error-hiding-fallback", rule, {
     { code: "const meta = data ?? { page: 1 };\n", filename: IN_SCOPE },
     // A non-zero / non-empty primitive fallback is a genuine default.
     { code: "const size = pageSize ?? 25;\n", filename: IN_SCOPE },
+    // The `allow` option (config-based escape) exempts a file whose path matches
+    // a listed substring — for a genuinely legitimate empty-literal default.
+    {
+      code: "const answers = initialAnswers ?? {};\n",
+      filename: "/repo/src/widgets/zoho-tickets/create/wizard/WizardEngine.tsx",
+      options: [{ allow: ["wizard/WizardEngine.tsx"] }],
+    },
   ],
   invalid: [
     // The core bug: `?? []` masks loading/error/empty for a list.

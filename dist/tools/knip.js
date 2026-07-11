@@ -1,5 +1,6 @@
+import { dirname } from "node:path";
 import { resolveConfigPath } from "../orchestrator/resolveConfigPath.js";
-import { execTool } from "./execTool.js";
+import { bundledBin, execTool } from "./execTool.js";
 /**
  * knip (phase2-design.md §1) - dead code / unused deps / unused exports.
  * §7 risk 3: ships with only a default single-entry-point config; the
@@ -19,10 +20,13 @@ const tool = {
       "knip.json",
       ctx.packageRoot,
     );
+    // Bundled dependency (not a peer): spawn ts-qa-ci's own copy directly. See bundledBin.
+    const bin = bundledBin(ctx.packageRoot, "knip");
     const result = await execTool(
-      "npx",
-      ["knip", "--config", configPath],
+      bin,
+      ["--config", configPath],
       ctx.cwd,
+      dirname(bin),
     );
     return {
       exitClass: result.exitCode === 0 ? "clean" : "failure",

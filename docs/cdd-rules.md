@@ -44,14 +44,21 @@ Bans the literal string `"PLACEHOLDER"` anywhere in string or template literals 
 
 ### `require-explicit-type-annotations`
 
-Requires top-level `const` object/array literals to carry an explicit type annotation rather than relying on inference.
+Requires **exported** top-level `const` object/array literals to carry an explicit type annotation rather than relying on inference — they are the module's API surface, where an inferred-and-widened type is a real hazard for consumers. **Non-exported** top-level consts are private implementation detail (e.g. an internal zod shape consumed by `z.object(...)`, where an explicit annotation would destroy precise inference) and are not policed.
 
 ```ts
-// ❌
-const config = { retries: 3 };
+// ❌ exported, inferred
+export const config = { retries: 3 };
 
-// ✅
-const config: RetryConfig = { retries: 3 };
+// ✅ exported, annotated
+export const config: RetryConfig = { retries: 3 };
+
+// ✅ not exported — private detail, left alone
+const internalShape = { retries: 3 };
+
+// ✅ explicit WITHOUT widening — `satisfies` / `as const` both satisfy the rule
+export const config = { retries: 3 } satisfies RetryConfig;
+export const codes = [400, 500] as const;
 ```
 
 ### `require-exported-component-types`
@@ -151,11 +158,31 @@ Flags a PascalCase component declared inside another component/function — it i
 
 The generic base config wires `no-restricted-syntax` at `error` with three selectors: non-`const` `TSAsExpression`, angle-bracket `TSTypeAssertion`, and `TSEnumDeclaration`. An `as` cast is a typing lie — use a type guard, a schema parse, or fix the upstream type (`as const` is allowed); use unions / `as const` objects instead of enums. This is the one strict-TS-baseline rule that is **always-on** (not opt-in) because it is purely syntactic: it reads the TS AST your parser already emits, needs no `projectService`, and cannot crash. Compose extra patterns with the exported `AS_ENUM_BAN_SELECTORS` (`['error', ...AS_ENUM_BAN_SELECTORS, ...yourSelectors]`) rather than re-declaring `no-restricted-syntax`, which is single-instance/last-wins and would clobber the ban. Overriding it needs a `tsQaConfig/tier-a-exemptions.json` entry.
 
+### Closed component styling (Tier A doctrine)
+
+The established encapsulation pattern **"closed / encapsulated component styling"**: a component owns all its CSS **internally** (static or dynamic — either is fine) and exposes styling **only** through semantic variant props (`variant`, `size`, `tone`, …). There is **no `className`/`style` passthrough** — the styling API is _closed_, so the implementation can change once for the whole codebase and call-site intent stays explicit. It is plain encapsulation + Open/Closed applied to styling; the banned anti-pattern is "className passthrough" / style-prop drilling.
+
+Three always-on rules enforce it together, and none of them touch a component's _internal_ classes:
+
+- **`no-ad-hoc-html`** — raw HTML lives only in the base-primitive dir (the element half).
+- **`no-classname-prop`** — no `className` passed _into_ a component (call-site half).
+- **`no-classname-public-prop`** — no `className` _declared_ as a public prop (declaration-site half).
+
+> This doctrine is **not** the same as `require-variant-resolver` (opt-in, Tier B), which is about _how internal classes are built_ (via a `cva`/`cn` resolver) — a separate, opinionated choice. A project can fully satisfy closed styling while writing plain static Tailwind strings internally. Do not conflate the two.
+
+### `no-classname-prop` (closed styling — call-site)
+
+`className` may not be passed to a custom component; components own presentation via typed variant props. Allowed on raw lowercase HTML tags, and (carve-out) on `Foo.Bar` member-expression targets inside `uiDirs` (third-party compound passthrough, e.g. Radix parts). Config: `scopeGlobs`, `uiDirs` (default `['src/ui/']`).
+
+### `no-classname-public-prop` (closed styling — declaration-site)
+
+Companion to `no-classname-prop`: bans a `className` member on any interface or inline object type (`TSPropertySignature`), so the prop is never _published_ as a public surface even if unused. Config: `scopeGlobs`.
+
 ## Tier B rules (opt-in CDD)
 
-### `no-ad-hoc-classnames`
+### `require-variant-resolver`
 
-Bans arbitrary `className="..."` string/template literals outside a call to an allowlisted variant-resolver function (`cva`, `cn`, `clsx`, `twMerge` by default — configurable via `variantResolverNames`). Presupposes a variant-prop component catalogue; enabling before one exists will fail everywhere with no fix path.
+_Formerly `no-ad-hoc-classnames`._ Requires a component's **own internal** `className` strings to be built through an allowlisted variant-resolver call (`cva`, `cn`, `clsx`, `twMerge` by default — configurable via `variantResolverNames`) rather than a bare string/template literal. This is a _how-you-build-internal-classes_ opinion for projects that have adopted a CVA + tailwind-merge catalogue — **not** the closed-styling boundary (that is the Tier A trio above). Kept opt-in so a project using plain static Tailwind strings internally is not forced into meaningless `cn('static')` wrappers.
 
 ### `variant-api-enforcement`
 
@@ -171,19 +198,11 @@ Arrow-form components in scope need an explicit `Foo.displayName`, or minified R
 
 ### `no-error-hiding-fallback`
 
-Bans silent empty-value fallbacks (`?? []`, `|| ''`, `?? 0`, …) that collapse the loading/error/empty distinction into "looks fine but empty". Tier B with no options (`schema: []`): where the fallback is genuinely correct, model it explicitly (handle the empty/error state) rather than suppressing — the rule has no inline escape hatch by design.
+Bans silent empty-value fallbacks (`?? []`, `|| ''`, `?? 0`, …) that collapse the loading/error/empty distinction into "looks fine but empty". Where a fallback is genuinely correct (e.g. a nullable prop's `?? {}` initial state, not a masked query error), model it explicitly or add the file to the `allow` option — a reviewable list of path substrings, visible in the ESLint config (the same "config carve-out, not inline comment" model as `no-dom-classname-mutation`). There is no inline-comment escape hatch by design (it would collide with `no-eslint-disable`).
 
 ### `no-dom-classname-mutation`
 
 Bans imperative `el.className = …` and `classList.add('literal')` — an end-run around the JSX-level className rules. `allow` option accepts path fragments to exempt (e.g. a low-level DOM loader).
-
-### `no-classname-prop` (className doctrine, axis 2 — call-site)
-
-`className` may not be passed to a custom component; components own presentation via typed variant props. Allowed on raw lowercase HTML tags, and (carve-out) on `Foo.Bar` member-expression targets inside `uiDirs` (third-party compound passthrough, e.g. Radix parts). Config: `scopeGlobs`, `uiDirs` (default `['src/ui/']`).
-
-### `no-classname-public-prop` (className doctrine, axis 3 — declaration-site)
-
-Companion to `no-classname-prop`: bans a `className` member on any interface or inline object type (`TSPropertySignature`), so the prop is never _published_ as a public surface even if unused. Config: `scopeGlobs`.
 
 ## Tier C rules (opt-in, architecture/convention)
 

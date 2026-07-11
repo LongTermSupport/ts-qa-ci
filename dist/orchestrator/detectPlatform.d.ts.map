@@ -1,1 +1,1 @@
-{"version":3,"file":"detectPlatform.d.ts","sourceRoot":"","sources":["../../src/orchestrator/detectPlatform.ts"],"names":[],"mappings":"AAGA,OAAO,KAAK,EAAE,QAAQ,EAAE,MAAM,YAAY,CAAC;AAqB3C;;;;GAIG;AACH,wBAAgB,cAAc,CAAC,WAAW,EAAE,MAAM,GAAG,QAAQ,CAS5D"}
+{"version":3,"file":"detectPlatform.d.ts","sourceRoot":"","sources":["../../src/orchestrator/detectPlatform.ts"],"names":[],"mappings":"AAGA,OAAO,KAAK,EAAE,QAAQ,EAAE,MAAM,YAAY,CAAC;AAuB3C;;;;GAIG;AACH,wBAAgB,cAAc,CAAC,WAAW,EAAE,MAAM,GAAG,QAAQ,CAiB5D"}

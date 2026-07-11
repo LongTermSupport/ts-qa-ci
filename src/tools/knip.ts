@@ -1,10 +1,12 @@
+import { dirname } from "node:path";
+
 import { resolveConfigPath } from "../orchestrator/resolveConfigPath.js";
 import type {
   RunContext,
   ToolModule,
   ToolResult,
 } from "../orchestrator/types.js";
-import { execTool } from "./execTool.js";
+import { bundledBin, execTool } from "./execTool.js";
 
 /**
  * knip (phase2-design.md §1) - dead code / unused deps / unused exports.
@@ -26,10 +28,13 @@ const tool: ToolModule = {
       "knip.json",
       ctx.packageRoot,
     );
+    // Bundled dependency (not a peer): spawn ts-qa-ci's own copy directly. See bundledBin.
+    const bin = bundledBin(ctx.packageRoot, "knip");
     const result = await execTool(
-      "npx",
-      ["knip", "--config", configPath],
+      bin,
+      ["--config", configPath],
       ctx.cwd,
+      dirname(bin),
     );
     return {
       exitClass: result.exitCode === 0 ? "clean" : "failure",

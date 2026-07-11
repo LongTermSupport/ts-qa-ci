@@ -26,6 +26,14 @@ export const TIER_A_RULE_IDS = [
   "ts-qa/jsx-truthy-narrow",
   "ts-qa/no-inline-component-decl-in-render",
   "ts-qa/exhaustive-discriminated",
+  // "Closed component styling" doctrine (Plan 00004): a component owns its CSS
+  // internally (static or dynamic) and exposes ONLY semantic variant props — no
+  // className/style passthrough. The boundary is universal encapsulation
+  // (Open/Closed), so these two live in Tier A alongside no-ad-hoc-html (which
+  // covers the raw-element half). NOT to be confused with require-variant-resolver
+  // (opt-in Tier B), which is about adopting a cva/cn resolver for INTERNAL classes.
+  "ts-qa/no-classname-prop",
+  "ts-qa/no-classname-public-prop",
   // Always-on strict-TS baseline pieces wired into the generic base config
   // (Plan 00004 Task 1.4). These are core-ESLint, not ts-qa/* rules:
   //   - no-restricted-syntax carries the always-on as/enum ban.

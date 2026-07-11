@@ -72,4 +72,4 @@ const rule = {
   },
 };
 export default rule;
-//# sourceMappingURL=noAdHocClassnames.js.map
+//# sourceMappingURL=requireVariantResolver.js.map

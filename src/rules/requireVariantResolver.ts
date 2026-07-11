@@ -2,17 +2,25 @@ import type { Rule } from "eslint";
 import type { JSXAttribute } from "estree-jsx";
 
 /**
- * Tier B (opt-in CDD): bans arbitrary/inline className string literals
- * outside a component's internal variant-to-class mapping. Presupposes a
- * CVA + tailwind-merge + clsx catalogue (Decision 4/Task 4.6) — enabling
- * before that catalogue exists would fail everywhere with no fix path, so
- * this rule stays opt-in until a consumer confirms the catalogue is in
- * place (matches phase2-design.md §4.1's Tier B framing).
+ * require-variant-resolver (formerly `no-ad-hoc-classnames`) — Tier B, OPT-IN.
  *
- * v1 mechanism: flag any `className="..."` JSX attribute whose value is a
- * plain string/template literal (not a call to an allowlisted
- * variant-resolver function like cva()/cn()/clsx()). Consumers configure
- * variantResolverNames to match their own catalogue's helper names.
+ * Requires a component's OWN internal className strings to be built through a
+ * variant-resolver call (cva/cn/clsx/twMerge) rather than a bare string/template
+ * literal. It is a HOW-you-build-internal-classes opinion for projects that have
+ * adopted a CVA + tailwind-merge + clsx catalogue.
+ *
+ * IMPORTANT — this is NOT the "closed component styling" boundary. That doctrine
+ * (a component owns its CSS internally and exposes only variant props; no
+ * className/style passthrough) is enforced by the Tier A rules `no-classname-prop`
+ * (call-site) + `no-classname-public-prop` (declaration-site) + `no-ad-hoc-html`.
+ * A project may fully satisfy the closed-styling doctrine while using plain
+ * static Tailwind strings internally — for which this rule's cn('static')
+ * wrapping would be meaningless ceremony. Hence it stays OPT-IN, distinct from
+ * the always-on boundary, and must never be mistaken for it.
+ *
+ * Mechanism: flag any `className="..."` JSX attribute whose value is a plain
+ * string/template literal (not a call to an allowlisted resolver). Consumers
+ * configure variantResolverNames to match their own catalogue's helper names.
  */
 interface RuleOptions {
   variantResolverNames?: string[];

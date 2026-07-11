@@ -1,7 +1,6 @@
 import exhaustiveDiscriminated from "./exhaustiveDiscriminated.js";
 import explicitComponentDisplayname from "./explicitComponentDisplayname.js";
 import jsxTruthyNarrow from "./jsxTruthyNarrow.js";
-import noAdHocClassnames from "./noAdHocClassnames.js";
 import noAdHocHtml from "./noAdHocHtml.js";
 import noClassnameProp from "./noClassnameProp.js";
 import noClassnamePublicProp from "./noClassnamePublicProp.js";
@@ -19,6 +18,7 @@ import oneComponentPerFile from "./oneComponentPerFile.js";
 import requireErrorCause from "./requireErrorCause.js";
 import requireExplicitTypeAnnotations from "./requireExplicitTypeAnnotations.js";
 import requireExportedComponentTypes from "./requireExportedComponentTypes.js";
+import requireVariantResolver from "./requireVariantResolver.js";
 import ssrSafeHooks from "./ssrSafeHooks.js";
 import validateLazyImports from "./validateLazyImports.js";
 import variantApiEnforcement from "./variantApiEnforcement.js";
@@ -37,7 +37,7 @@ export const tsQaPlugin = {
     "ssr-safe-hooks": ssrSafeHooks,
     "validate-lazy-imports": validateLazyImports,
     "no-ad-hoc-html": noAdHocHtml,
-    "no-ad-hoc-classnames": noAdHocClassnames,
+    "require-variant-resolver": requireVariantResolver,
     "variant-api-enforcement": variantApiEnforcement,
     // Ported from admin-ts's eslint-plugin-dbf (Plan 00004).
     "require-error-cause": requireErrorCause,
@@ -77,23 +77,29 @@ export const TIER_A_ESLINT_RULES = {
   "ts-qa/jsx-truthy-narrow": "error",
   "ts-qa/no-inline-component-decl-in-render": "error",
   "ts-qa/exhaustive-discriminated": "error", // scaffolded stub — reports nothing until type-aware support lands
+  // "Closed component styling" doctrine (Plan 00004): components own their CSS
+  // internally and expose ONLY variant props — no className/style passthrough.
+  // Universal encapsulation, so Tier A alongside no-ad-hoc-html. (Distinct from
+  // the opt-in require-variant-resolver, which is about HOW internal classes are
+  // built — a cva/cn resolver call — not about the passthrough boundary.)
+  "ts-qa/no-classname-prop": "error",
+  "ts-qa/no-classname-public-prop": "error",
 };
 /** Tier B rule IDs — opt-in, NOT spread by default (consumer must enable explicitly). */
 export const TIER_B_ESLINT_RULES = {
-  "ts-qa/no-ad-hoc-classnames": "warn",
+  // require-variant-resolver (formerly no-ad-hoc-classnames): OPT-IN adoption of a
+  // cva/cn/clsx/twMerge resolver for a component's OWN internal className strings.
+  // This is a HOW-you-build-internal-classes opinion, NOT the closed-styling
+  // boundary (that is Tier A no-classname-prop / no-classname-public-prop). Kept
+  // opt-in so a project using plain static Tailwind strings internally is not
+  // forced into meaningless cn('static') wrappers.
+  "ts-qa/require-variant-resolver": "warn",
   "ts-qa/variant-api-enforcement": "off", // scaffold only, see variantApiEnforcement.ts
   // Ported CDD / hygiene rules (Plan 00004) — opinionated, opt-in.
   "ts-qa/one-component-per-file": "warn",
   "ts-qa/explicit-component-displayname": "warn",
   "ts-qa/no-error-hiding-fallback": "warn",
   "ts-qa/no-dom-classname-mutation": "warn",
-  // className doctrine axes 2 + 3 (Plan 00004 Task 1.3), ported from admin-ts as
-  // dedicated companion rules rather than fleshing out the variant-api-enforcement
-  // scaffold (which its author reserves for the future variant-prop catalogue).
-  // Opinionated CDD — opt-in Tier B; recommended severity 'error' when a project
-  // adopts the className doctrine (admin-ts enables at error).
-  "ts-qa/no-classname-prop": "warn",
-  "ts-qa/no-classname-public-prop": "warn",
 };
 /**
  * Tier C rule IDs — opt-in, project/framework-specific, NOT spread by default.

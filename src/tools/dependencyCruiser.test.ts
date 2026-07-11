@@ -15,7 +15,11 @@ import type { RunContext } from "../orchestrator/types.js";
  * never spawned - only this module's own classification logic is under test.
  */
 const { execToolMock } = vi.hoisted(() => ({ execToolMock: vi.fn() }));
-vi.mock("./execTool.js", () => ({ execTool: execToolMock }));
+vi.mock("./execTool.js", () => ({
+  execTool: execToolMock,
+  bundledBin: (root: string, name: string) =>
+    `${root}/node_modules/.bin/${name}`,
+}));
 vi.mock("../orchestrator/resolveConfigPath.js", () => ({
   resolveConfigPath: () => "/fake/dependency-cruiser.config.cjs",
 }));
@@ -47,6 +51,30 @@ describe("dependencyCruiser tool", () => {
     const result = await tool.run(ctx);
 
     expect(result.exitClass).toBe("clean");
+  });
+
+  it("spawns ts-qa-ci's OWN bundled depcruise bin (not `npx depcruise`) so pnpm consumers resolve it", async () => {
+    // Regression (Defence Before Fix): dependency-cruiser is a ts-qa-ci
+    // `dependency`, unreachable via `npx depcruise` from a pnpm consumer root.
+    // The tool must spawn <packageRoot>/node_modules/.bin/depcruise directly.
+    execToolMock.mockResolvedValue({
+      exitCode: 0,
+      stdout:
+        "✔ no dependency violations found (1 modules, 0 dependencies cruised)",
+      stderr: "",
+    });
+
+    await tool.run({ ...ctx, packageRoot: "/pkg" });
+
+    const [command, , , extraPath] = execToolMock.mock.calls[0] as [
+      string,
+      string[],
+      string,
+      string,
+    ];
+    expect(command).toBe("/pkg/node_modules/.bin/depcruise");
+    expect(command).not.toBe("npx");
+    expect(extraPath).toBe("/pkg/node_modules/.bin");
   });
 
   it("maps an unwrapped non-zero exit (small violation count) to failure", async () => {

@@ -86,7 +86,10 @@ const rule = {
       "JSXExpressionContainer > LogicalExpression"(node) {
         if (node.operator !== "&&") return;
         if (isBooleanShape(node.left)) return;
-        context.report({ node: node, messageId: "truthy" });
+        context.report({
+          node: node,
+          messageId: "truthy",
+        });
       },
     };
   },

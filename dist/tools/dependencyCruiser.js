@@ -1,5 +1,6 @@
+import { dirname } from "node:path";
 import { resolveConfigPath } from "../orchestrator/resolveConfigPath.js";
-import { execTool } from "./execTool.js";
+import { bundledBin, execTool } from "./execTool.js";
 /**
  * dependency-cruiser, run as its own standalone phase-3 step (phase2-design.md
  * §1) - NOT via eslint-plugin-dependency-cruiser, which re-cruises per file
@@ -23,10 +24,13 @@ const tool = {
       "dependency-cruiser.config.cjs",
       ctx.packageRoot,
     );
+    // Bundled dependency (not a peer): spawn ts-qa-ci's own copy directly. See bundledBin.
+    const bin = bundledBin(ctx.packageRoot, "depcruise");
     const result = await execTool(
-      "npx",
-      ["depcruise", "--config", configPath, "src"],
+      bin,
+      ["--config", configPath, "src"],
       ctx.cwd,
+      dirname(bin),
     );
     // depcruise is the only count-based tool here: it sets its exit code to the
     // number of error-level violations, which the OS truncates to 8 bits. So

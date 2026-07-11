@@ -28,17 +28,17 @@ export declare const TIER_A_ESLINT_RULES: {
   readonly "ts-qa/jsx-truthy-narrow": "error";
   readonly "ts-qa/no-inline-component-decl-in-render": "error";
   readonly "ts-qa/exhaustive-discriminated": "error";
+  readonly "ts-qa/no-classname-prop": "error";
+  readonly "ts-qa/no-classname-public-prop": "error";
 };
 /** Tier B rule IDs — opt-in, NOT spread by default (consumer must enable explicitly). */
 export declare const TIER_B_ESLINT_RULES: {
-  readonly "ts-qa/no-ad-hoc-classnames": "warn";
+  readonly "ts-qa/require-variant-resolver": "warn";
   readonly "ts-qa/variant-api-enforcement": "off";
   readonly "ts-qa/one-component-per-file": "warn";
   readonly "ts-qa/explicit-component-displayname": "warn";
   readonly "ts-qa/no-error-hiding-fallback": "warn";
   readonly "ts-qa/no-dom-classname-mutation": "warn";
-  readonly "ts-qa/no-classname-prop": "warn";
-  readonly "ts-qa/no-classname-public-prop": "warn";
 };
 /**
  * Tier C rule IDs — opt-in, project/framework-specific, NOT spread by default.

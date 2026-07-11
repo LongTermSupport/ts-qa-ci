@@ -31,9 +31,11 @@
  * hatch is deliberately DROPPED here to match ts-qa-ci authoring convention —
  * a governance policy whose escape hatch is an inline comment cannot coexist
  * with `no-eslint-disable`, which bans suppression comments (see
- * noEslintDisable.ts). The sanctioned override in ts-qa-ci is a scoped ESLint
- * config, not a comment. The source exposes no config options, so this port
- * keeps `schema: []`.
+ * noEslintDisable.ts). The sanctioned override is a config-based `allow` option
+ * (Plan 00004): a reviewable list of path substrings for files with a genuinely
+ * legitimate empty-literal default (e.g. a nullable prop's `?? {}` initial state,
+ * not a masked query error). It lives in the ESLint config, visible in diffs —
+ * the same "config carve-out, not inline comment" model as no-dom-classname-mutation.
  *
  * Future rule extensions could narrow to TanStack-Query shapes specifically;
  * current breadth is intentional to make the policy unambiguous.
@@ -99,7 +101,15 @@ const rule = {
       description:
         "Disallow `?? <empty literal>` and `|| <empty literal>` fallbacks that hide error/missing-data states.",
     },
-    schema: [],
+    schema: [
+      {
+        type: "object",
+        properties: {
+          allow: { type: "array", items: { type: "string" } },
+        },
+        additionalProperties: false,
+      },
+    ],
     messages: {
       hiding:
         "Error-hiding fallback `{{op}} {{value}}`. Branch on the query state explicitly (isSuccess/isPending/isError) or fail-fast.",
@@ -107,6 +117,11 @@ const rule = {
   },
   create(context) {
     const filename = context.filename;
+    const options = context.options[0] ?? {};
+    const allow = options.allow ?? [];
+    // Config-based escape (reviewable in eslint config): files with a genuinely
+    // legitimate empty-literal default are allow-listed by path substring.
+    if (allow.some((entry) => filename.includes(entry))) return {};
     const inScope =
       SCOPE_INCLUDES.some((p) => filename.includes(p)) &&
       !SCOPE_EXCLUDES.some((p) => filename.includes(p));

@@ -5,38 +5,27 @@ const ruleTester = makeRuleTester();
 
 ruleTester.run("require-explicit-type-annotations", rule, {
   valid: [
-    // Object literal with an explicit annotation — the sanctioned shape.
-    { code: "const cfg: Config = {};\n" },
-    // Array literal with an explicit annotation.
-    { code: "const list: readonly string[] = [];\n" },
-    // Exported object literal with an explicit annotation — the exported form
-    // must be held to the same standard as the local form.
+    // Exported object/array literal WITH an explicit annotation — the sanctioned shape.
     { code: "export const cfg: Config = {};\n" },
     { code: "export const list: readonly string[] = [];\n" },
+    // NON-exported top-level consts are private implementation detail — NOT
+    // policed (scope refinement, Plan 00004). Was previously flagged.
+    { code: "const cfg = {};\n" },
+    { code: "const list = [];\n" },
+    // `satisfies T` / `as const` are the idiomatic "explicit without widening"
+    // escapes: they wrap the literal so `init` is no longer a bare Object/Array
+    // expression, so the rule does not fire even on an exported const.
+    { code: "export const cfg = {} satisfies Config;\n" },
+    { code: "export const list = [] as const;\n" },
     // Non-literal initialisers are out of scope — only object/array literals.
-    { code: "const n = 1;\n" },
     { code: "export const n = 1;\n" },
-    { code: 'const s = "text";\n' },
-    // A call-expression initialiser is not an object/array literal.
-    { code: "const client = makeClient();\n" },
-    // Nested (non-top-level) literals are unaffected — the rule targets only
-    // the Program / ExportNamedDeclaration levels.
+    { code: 'export const s = "text";\n' },
+    { code: "export const client = makeClient();\n" },
+    // Nested (non-top-level) literals are unaffected.
     { code: "function f() {\n  const inner = {};\n  return inner;\n}\n" },
   ],
   invalid: [
-    // Top-level const object literal without an annotation.
-    {
-      code: "const cfg = {};\n",
-      errors: [{ messageId: "missingAnnotation" }],
-    },
-    // Top-level const array literal without an annotation.
-    {
-      code: "const list = [];\n",
-      errors: [{ messageId: "missingAnnotation" }],
-    },
-    // Exported const object literal without an annotation — parses as
-    // ExportNamedDeclaration > VariableDeclaration > VariableDeclarator, which
-    // the direct-child Program selector alone would miss.
+    // Exported const object literal without an annotation — the API-surface hazard.
     {
       code: "export const cfg = {};\n",
       errors: [{ messageId: "missingAnnotation" }],

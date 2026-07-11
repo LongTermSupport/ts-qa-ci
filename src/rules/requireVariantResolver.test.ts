@@ -1,9 +1,9 @@
 import { makeRuleTester } from "../testSupport/ruleTester.js";
-import rule from "./noAdHocClassnames.js";
+import rule from "./requireVariantResolver.js";
 
 const ruleTester = makeRuleTester();
 
-ruleTester.run("no-ad-hoc-classnames", rule, {
+ruleTester.run("require-variant-resolver", rule, {
   valid: [
     // Sanctioned variant-resolver call — the whole point of the rule.
     {

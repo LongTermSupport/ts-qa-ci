@@ -56,7 +56,10 @@ const rule = {
           left.property.type === "Identifier" &&
           left.property.name === "className"
         ) {
-          context.report({ node: node, messageId: "mutation" });
+          context.report({
+            node: node,
+            messageId: "mutation",
+          });
         }
       },
       CallExpression(node) {
@@ -73,7 +76,10 @@ const rule = {
             (arg) => arg.type === "Literal" && typeof arg.value === "string",
           );
           if (hasStringLiteralArg) {
-            context.report({ node: node, messageId: "mutation" });
+            context.report({
+              node: node,
+              messageId: "mutation",
+            });
           }
         }
       },

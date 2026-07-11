@@ -78,6 +78,9 @@ export default [
       // JSX-scoped Tier A rules ported from admin-ts (Plan 00004).
       'ts-qa/jsx-truthy-narrow': TIER_A_ESLINT_RULES['ts-qa/jsx-truthy-narrow'],
       'ts-qa/no-inline-component-decl-in-render': TIER_A_ESLINT_RULES['ts-qa/no-inline-component-decl-in-render'],
+      // "Closed component styling" doctrine (call-site half): no className passed
+      // INTO a component. Internal className strings are unaffected.
+      'ts-qa/no-classname-prop': TIER_A_ESLINT_RULES['ts-qa/no-classname-prop'],
     },
   },
   {
@@ -92,6 +95,10 @@ export default [
       'ts-qa/require-error-cause': TIER_A_ESLINT_RULES['ts-qa/require-error-cause'],
       'ts-qa/no-typed-query-selector': TIER_A_ESLINT_RULES['ts-qa/no-typed-query-selector'],
       'ts-qa/exhaustive-discriminated': TIER_A_ESLINT_RULES['ts-qa/exhaustive-discriminated'],
+      // "Closed component styling" doctrine (declaration-site half): a component
+      // must not DECLARE className as a public prop. Repo-wide because a prop type
+      // may live in a .ts module.
+      'ts-qa/no-classname-public-prop': TIER_A_ESLINT_RULES['ts-qa/no-classname-public-prop'],
     },
   },
 ]

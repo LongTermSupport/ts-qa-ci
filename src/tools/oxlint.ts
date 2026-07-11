@@ -1,10 +1,12 @@
+import { dirname } from "node:path";
+
 import { resolveConfigPath } from "../orchestrator/resolveConfigPath.js";
 import type {
   RunContext,
   ToolModule,
   ToolResult,
 } from "../orchestrator/types.js";
-import { execTool } from "./execTool.js";
+import { bundledBin, execTool } from "./execTool.js";
 
 /**
  * Phase 0 — Fast Fail (added 2026-07-10 per maintainer direction, see
@@ -52,7 +54,10 @@ const tool: ToolModule = {
     const args = ctx.readOnly
       ? [...baseArgs, target]
       : [...baseArgs, "--fix", target];
-    const result = await execTool("npx", ["oxlint", ...args], ctx.cwd);
+    // Bundled dependency (not a peer): spawn ts-qa-ci's own copy directly, since
+    // it is not on the consumer's PATH under pnpm. See bundledBin.
+    const bin = bundledBin(ctx.packageRoot, "oxlint");
+    const result = await execTool(bin, args, ctx.cwd, dirname(bin));
 
     // oxlint: exit 0 = clean, exit 1 = lint problems found (with --deny-warnings, this
     // includes warnings), anything else = crash/config error.
