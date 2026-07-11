@@ -90,3 +90,26 @@ test("runs through a symlinked bin path (realpath-based direct-invocation check)
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+// --llm output mode.
+test('--llm sets options.llm', () => {
+  const { options } = parseArgs(['--llm']);
+  assert.equal(options.llm, true);
+});
+
+test('a plain run defaults options.llm to false', () => {
+  const { options } = parseArgs([]);
+  assert.equal(options.llm, false);
+});
+
+test('--llm and --json are mutually exclusive', () => {
+  assert.throws(() => parseArgs(['--llm', '--json']), /--json and --llm are mutually exclusive/);
+  assert.throws(() => parseArgs(['--json', '--llm']), /--json and --llm are mutually exclusive/);
+});
+
+test('--llm --aggregate is allowed and forces read-only', () => {
+  const { options } = parseArgs(['--llm', '--aggregate']);
+  assert.equal(options.llm, true);
+  assert.equal(options.aggregate, true);
+  assert.equal(options.forceReadOnly, true);
+});

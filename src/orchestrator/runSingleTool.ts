@@ -37,7 +37,7 @@ export async function runSingleTool(
     toolName,
   );
   const result = await runTool(tool, ctx);
-  logToolResult(toolName, result, ctx.json);
+  logToolResult(toolName, result, ctx.json || ctx.llm);
 
   // Report the tool module's own `phase`, not a phase from the PHASES
   // ladder — an opt-in tool like stryker has no ladder slot at all, and for

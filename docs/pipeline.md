@@ -42,6 +42,30 @@ ts-qa --skip playwright # run everything EXCEPT the named tool(s); repeatable
 
 To disable a tool persistently (e.g. run browser tests in a separate CI job), use `disabledTools` in `tsQaConfig/ts-qa.json` — see [`configuration.md`](configuration.md#disabling-tools-tsqaconfigts-qajson).
 
+## Output modes (`--llm`, `--json`)
+
+By default `ts-qa` prints each tool's captured output inline as it runs. Two flags change what lands on stdout:
+
+```bash
+ts-qa --json   # dump the entire structured PipelineResult to stdout as JSON
+ts-qa --llm    # compact summary to stdout, full result persisted to a cache file
+```
+
+`--llm` is the mode for agent-driven QA. Instead of flooding an agent's context with the full result (which also gets truncated the moment it's piped to `head`), it prints a small deterministic summary — a per-phase PASS/FAIL table, the failing tool(s) and their exit class, and a one-line verdict — while writing the **full** `PipelineResult` (every phase, every tool's `exitClass`/`stdout`/`stderr`/`diffPending`) to a stable cache file:
+
+```
+node_modules/.cache/ts-qa/llm/last-run.json
+```
+
+The summary ends with `jq` hints for pulling detail out of that file, e.g. the failing tool's stderr:
+
+```bash
+jq -r '.phases[].toolResults | to_entries[] | select(.value.exitClass != "clean") | .value.stderr' \
+  node_modules/.cache/ts-qa/llm/last-run.json
+```
+
+`--llm` composes with `--aggregate` (which forces read-only and collects every failure in a phase). It is **mutually exclusive with `--json`**: both own stdout with opposite contracts (full dump vs. compact summary), so combining them is rejected.
+
 ## Retry behaviour
 
 Outside CI, a failing tool prompts `(y/n)` to retry. If you retry and it passes, `ts-qa` warns at the end: re-run the whole pipeline, because a retried tool doesn't re-validate phases that already passed before the fix.
