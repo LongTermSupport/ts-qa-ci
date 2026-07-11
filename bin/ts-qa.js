@@ -5,8 +5,9 @@
  * to the compiled orchestrator in dist/. Kept deliberately thin - all real
  * logic lives in src/orchestrator/, compiled to dist/orchestrator/.
  */
+import { realpathSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { fileURLToPath, pathToFileURL } from 'node:url';
+import { fileURLToPath } from 'node:url';
 
 const packageRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -128,9 +129,24 @@ async function main() {
 
 // Only run the CLI when executed directly (`ts-qa ...`), not when imported by a
 // test that exercises parseArgs — importing must have no side effects.
-const invokedDirectly =
-  process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href;
-if (invokedDirectly) {
+//
+// Compare REAL paths, not URLs: a package manager installs this package behind a
+// symlink (pnpm's virtual store `.pnpm/…`, npm/yarn workspace links), so the
+// invoked argv[1] path (through the symlink) differs from import.meta.url (Node
+// resolves the module URL to its realpath). A naive URL comparison is therefore
+// false for every symlink-installed consumer — main() never runs and `ts-qa` /
+// `ts-qa init` silently no-op. Resolving both sides with realpathSync collapses
+// the symlink so the comparison holds. (Self-hosting missed this: the repo runs
+// its own un-symlinked bin, where the URLs already matched.)
+function isInvokedDirectly() {
+  if (process.argv[1] === undefined) return false;
+  try {
+    return realpathSync(fileURLToPath(import.meta.url)) === realpathSync(process.argv[1]);
+  } catch {
+    return false;
+  }
+}
+if (isInvokedDirectly()) {
   main().catch((error) => {
     console.error(error instanceof Error ? error.message : error);
     process.exit(2);
