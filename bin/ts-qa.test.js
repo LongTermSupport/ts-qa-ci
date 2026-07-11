@@ -90,3 +90,55 @@ test("runs through a symlinked bin path (realpath-based direct-invocation check)
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+// --llm output mode. options.llm is tri-state: undefined (neither flag, resolved
+// from env/config/auto-detect later), true (--llm), or false (--no-llm).
+test("--llm sets options.llm true", () => {
+  const { options } = parseArgs(["--llm"]);
+  assert.equal(options.llm, true);
+});
+
+test("--no-llm sets options.llm false", () => {
+  const { options } = parseArgs(["--no-llm"]);
+  assert.equal(options.llm, false);
+});
+
+test("a plain run leaves options.llm unset (undefined) for later resolution", () => {
+  const { options } = parseArgs([]);
+  assert.equal(options.llm, undefined);
+});
+
+test("--llm and --no-llm are mutually exclusive (both orders)", () => {
+  assert.throws(
+    () => parseArgs(["--llm", "--no-llm"]),
+    /--llm and --no-llm are mutually exclusive/,
+  );
+  assert.throws(
+    () => parseArgs(["--no-llm", "--llm"]),
+    /--llm and --no-llm are mutually exclusive/,
+  );
+});
+
+test("--llm and --json are mutually exclusive", () => {
+  assert.throws(
+    () => parseArgs(["--llm", "--json"]),
+    /--json and --llm are mutually exclusive/,
+  );
+  assert.throws(
+    () => parseArgs(["--json", "--llm"]),
+    /--json and --llm are mutually exclusive/,
+  );
+});
+
+test("--no-llm with --json is allowed (json output, summary explicitly off)", () => {
+  const { options } = parseArgs(["--no-llm", "--json"]);
+  assert.equal(options.llm, false);
+  assert.equal(options.json, true);
+});
+
+test("--llm --aggregate is allowed and forces read-only", () => {
+  const { options } = parseArgs(["--llm", "--aggregate"]);
+  assert.equal(options.llm, true);
+  assert.equal(options.aggregate, true);
+  assert.equal(options.forceReadOnly, true);
+});

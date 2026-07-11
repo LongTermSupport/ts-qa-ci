@@ -63,6 +63,8 @@ export interface PipelineOptions {
   forceReadOnly?: boolean;
   aggregate?: boolean;
   json?: boolean;
+  /** `--llm`: compact stdout summary + full result persisted to a cache file (bin/ts-qa.js). */
+  llm?: boolean;
   /** Tool names to skip this run (CLI `--skip`), merged with tsQaConfig/ts-qa.json `disabledTools`. */
   skipTools?: string[];
 }
@@ -91,8 +93,11 @@ export async function runPipeline(
   // (an unconditional log in detectCi prepended non-JSON text to stdout). The
   // condition mirrors detectCi: CI=true wins first, so this only fires when
   // CLAUDECODE alone enabled CI mode.
+  // `--llm` owns stdout too (a compact summary is emitted after the run), so it
+  // suppresses this passthrough for the same reason `--json` does.
   if (
     !options.json &&
+    !options.llm &&
     process.env.CI !== "true" &&
     process.env.CLAUDECODE === "1"
   ) {
@@ -130,6 +135,7 @@ export async function runPipeline(
     aggregate: options.aggregate ?? false,
     hasBeenRestarted: false,
     json: options.json ?? false,
+    llm: options.llm ?? false,
     packageRoot: options.packageRoot,
   };
 
@@ -184,7 +190,7 @@ export async function runPipeline(
     options.cwd,
     options.skipTools ?? [],
   );
-  if (!ctx.json && disabled.size > 0) {
+  if (!ctx.json && !ctx.llm && disabled.size > 0) {
     for (const name of disabled) {
       const via =
         sources.get(name) === "cli" ? "--skip" : "tsQaConfig/ts-qa.json";
@@ -222,7 +228,10 @@ export async function runPipeline(
     toolResults: Object.assign({}, ...results.map((r) => r.toolResults)),
   });
 
-  if (ctx.hasBeenRestarted) console.warn(`ts-qa: ${RESTART_WARNING}`);
+  // Under `--llm` the restart is surfaced in the compact summary instead, so the
+  // stdout/stderr stays deterministic.
+  if (ctx.hasBeenRestarted && !ctx.llm)
+    console.warn(`ts-qa: ${RESTART_WARNING}`);
 
   return {
     phases: results,

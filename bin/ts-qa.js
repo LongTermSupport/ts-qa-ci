@@ -33,6 +33,8 @@ export function parseArgs(argv) {
     packageRoot,
     aggregate: false,
     json: false,
+    // llm is intentionally tri-state: undefined = neither flag (resolve from
+    // env/config/auto-detect later), true = --llm, false = --no-llm.
   };
   let command;
 
@@ -74,6 +76,18 @@ export function parseArgs(argv) {
       case "--json":
         options.json = true;
         break;
+      case "--llm":
+        if (options.llm === false) {
+          throw new Error("ts-qa: --llm and --no-llm are mutually exclusive");
+        }
+        options.llm = true;
+        break;
+      case "--no-llm":
+        if (options.llm === true) {
+          throw new Error("ts-qa: --llm and --no-llm are mutually exclusive");
+        }
+        options.llm = false;
+        break;
       default:
         throw new Error(`ts-qa: unrecognized argument "${arg}"`);
     }
@@ -85,6 +99,15 @@ export function parseArgs(argv) {
   if (options.aggregate && options.forceWrite) {
     throw new Error(
       "ts-qa: --aggregate is only valid for read-only runs (it conflicts with --write)",
+    );
+  }
+  // --json and --llm both own stdout but with opposite contracts: --json dumps
+  // the whole PipelineResult, --llm prints a compact summary and writes the full
+  // result to a cache file. Combining them is contradictory, so reject it.
+  if (options.json && options.llm === true) {
+    throw new Error(
+      "ts-qa: --json and --llm are mutually exclusive — --json dumps the full result to stdout, " +
+        "--llm prints a compact summary and writes the full result to node_modules/.cache/ts-qa/llm/",
     );
   }
   if (options.tool && options.onlyPhase !== undefined) {
@@ -119,11 +142,27 @@ async function main() {
     return;
   }
 
+  // Resolve the tri-state CLI flag into a definite on/off decision, applying the
+  // env/config/auto-detect precedence ladder (docs/pipeline.md). Doing it here,
+  // before runPipeline, means both the pipeline (passthrough suppression) and the
+  // post-run emit below read the same resolved boolean.
+  const { resolveLlm, resolveLlmOutputMode } =
+    await import("../dist/orchestrator/resolveLlm.js");
+  options.llm = resolveLlm({
+    cli: options.llm,
+    json: options.json,
+    env: process.env,
+    mode: resolveLlmOutputMode(options.cwd),
+  });
+
   const { runPipeline } = await import("../dist/orchestrator/runPipeline.js");
   const result = await runPipeline(options);
 
   if (options.json) {
     console.log(JSON.stringify(result, null, 2));
+  } else if (options.llm) {
+    const { emitLlmOutput } = await import("../dist/orchestrator/llmOutput.js");
+    emitLlmOutput(result, options.cwd);
   }
 
   process.exit(result.success ? 0 : 1);

@@ -34,6 +34,7 @@ const ctx: RunContext = {
   aggregate: false,
   hasBeenRestarted: false,
   json: true,
+  llm: false,
   packageRoot: "/does-not-matter",
 };
 

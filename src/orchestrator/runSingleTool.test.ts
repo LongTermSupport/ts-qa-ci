@@ -40,6 +40,7 @@ describe("runSingleTool", () => {
     aggregate: false,
     hasBeenRestarted: false,
     json: true,
+    llm: false,
     packageRoot: "/does-not-matter",
     ...overrides,
   });

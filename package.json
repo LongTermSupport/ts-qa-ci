@@ -19,7 +19,9 @@
     "dist",
     "bin",
     "configDefaults",
-    "docs"
+    "docs",
+    "skills",
+    "agents"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",

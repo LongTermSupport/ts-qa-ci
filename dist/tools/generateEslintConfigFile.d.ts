@@ -13,6 +13,14 @@ import type { RunContext } from "../orchestrator/types.js";
  * Written under the consumer's own node_modules/.cache so the generated
  * file's `import '@longtermsupport/ts-qa-ci'` resolves via ordinary node_modules
  * lookup, the same way any other file in the consumer project would.
+ *
+ * SELF-HOSTING EXCEPTION: when ts-qa-ci runs on its OWN repo (cwd ===
+ * packageRoot), that bare specifier is unresolvable - a package is not a
+ * dependency of itself, so nothing installs it under node_modules and CI's
+ * `npm ci` leaves no self-link (this is why the self-hosted `qa` job crashed
+ * eslint with ERR_MODULE_NOT_FOUND). In that single case we import the
+ * package's own built entry by file URL instead. Ordinary consumers are
+ * unaffected - they keep the bare specifier.
  */
 export declare function generateEslintConfigFile(ctx: RunContext): string;
 //# sourceMappingURL=generateEslintConfigFile.d.ts.map

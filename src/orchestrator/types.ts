@@ -26,6 +26,8 @@ export interface RunContext {
   aggregate: boolean;
   hasBeenRestarted: boolean;
   json: boolean;
+  /** `--llm`: compact stdout summary + full result persisted to a cache file. */
+  llm: boolean;
   packageRoot: string;
 }
 

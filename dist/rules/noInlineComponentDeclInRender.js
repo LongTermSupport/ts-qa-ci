@@ -26,73 +26,79 @@
  */
 const ENFORCE_PATTERN = /\/src\//;
 const FUNCTION_NODE_TYPES = new Set([
-  "FunctionDeclaration",
-  "FunctionExpression",
-  "ArrowFunctionExpression",
+    "FunctionDeclaration",
+    "FunctionExpression",
+    "ArrowFunctionExpression",
 ]);
 function isPascalCase(name) {
-  if (name.length === 0) return false;
-  const first = name.charAt(0);
-  return first !== first.toLowerCase() && first === first.toUpperCase();
+    if (name.length === 0)
+        return false;
+    const first = name.charAt(0);
+    return first !== first.toLowerCase() && first === first.toUpperCase();
 }
 // Walks the parent chain (ESLint augments every visited node with `.parent`)
 // looking for any enclosing function scope. A module-level declaration reaches
 // `Program` without passing through a function and returns false.
 function isInsideFunction(node) {
-  let cur = node.parent;
-  while (cur !== null && cur !== undefined) {
-    if (FUNCTION_NODE_TYPES.has(cur.type)) return true;
-    cur = cur.parent;
-  }
-  return false;
+    let cur = node.parent;
+    while (cur !== null && cur !== undefined) {
+        if (FUNCTION_NODE_TYPES.has(cur.type))
+            return true;
+        cur = cur.parent;
+    }
+    return false;
 }
 const rule = {
-  meta: {
-    type: "problem",
-    docs: {
-      description:
-        "React components must be declared at module scope. Declaring a component inside another component body re-creates it on every render and remounts its subtree.",
+    meta: {
+        type: "problem",
+        docs: {
+            description: "React components must be declared at module scope. Declaring a component inside another component body re-creates it on every render and remounts its subtree.",
+        },
+        schema: [],
+        messages: {
+            inlineComponent: "Component `{{name}}` is declared inside another function body. Move it to module scope (and probably to its own file — see `dbf/one-component-per-file`). Inline component decls remount on every parent render, destroying internal state.",
+        },
     },
-    schema: [],
-    messages: {
-      inlineComponent:
-        "Component `{{name}}` is declared inside another function body. Move it to module scope (and probably to its own file — see `dbf/one-component-per-file`). Inline component decls remount on every parent render, destroying internal state.",
+    create(context) {
+        const filename = context.filename;
+        if (!ENFORCE_PATTERN.test(filename))
+            return {};
+        return {
+            VariableDeclarator(node) {
+                const id = node.id;
+                if (id.type !== "Identifier")
+                    return;
+                if (!isPascalCase(id.name))
+                    return;
+                const init = node.init;
+                if (init === null || init === undefined)
+                    return;
+                if (init.type !== "ArrowFunctionExpression" &&
+                    init.type !== "FunctionExpression")
+                    return;
+                if (!isInsideFunction(node))
+                    return;
+                context.report({
+                    node,
+                    messageId: "inlineComponent",
+                    data: { name: id.name },
+                });
+            },
+            FunctionDeclaration(node) {
+                if (node.id === null || node.id.type !== "Identifier")
+                    return;
+                if (!isPascalCase(node.id.name))
+                    return;
+                if (!isInsideFunction(node))
+                    return;
+                context.report({
+                    node,
+                    messageId: "inlineComponent",
+                    data: { name: node.id.name },
+                });
+            },
+        };
     },
-  },
-  create(context) {
-    const filename = context.filename;
-    if (!ENFORCE_PATTERN.test(filename)) return {};
-    return {
-      VariableDeclarator(node) {
-        const id = node.id;
-        if (id.type !== "Identifier") return;
-        if (!isPascalCase(id.name)) return;
-        const init = node.init;
-        if (init === null || init === undefined) return;
-        if (
-          init.type !== "ArrowFunctionExpression" &&
-          init.type !== "FunctionExpression"
-        )
-          return;
-        if (!isInsideFunction(node)) return;
-        context.report({
-          node,
-          messageId: "inlineComponent",
-          data: { name: id.name },
-        });
-      },
-      FunctionDeclaration(node) {
-        if (node.id === null || node.id.type !== "Identifier") return;
-        if (!isPascalCase(node.id.name)) return;
-        if (!isInsideFunction(node)) return;
-        context.report({
-          node,
-          messageId: "inlineComponent",
-          data: { name: node.id.name },
-        });
-      },
-    };
-  },
 };
 export default rule;
 //# sourceMappingURL=noInlineComponentDeclInRender.js.map

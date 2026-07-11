@@ -5,10 +5,6 @@ import type { RunContext, ToolModule, ToolResult } from "./types.js";
  * caller). Interactively, offers a retry loop and flags hasBeenRestarted so
  * the end-of-run warning fires ("re-run the whole pipeline to be sure").
  */
-export declare function retryGate(
-  tool: ToolModule,
-  ctx: RunContext,
-): Promise<ToolResult>;
-export declare const RESTART_WARNING =
-  "RAN WITH RETRIES \u2014 re-run the whole pipeline to be sure everything is fine (a retried tool does not re-validate phases that already passed before the fix).";
+export declare function retryGate(tool: ToolModule, ctx: RunContext): Promise<ToolResult>;
+export declare const RESTART_WARNING = "RAN WITH RETRIES \u2014 re-run the whole pipeline to be sure everything is fine (a retried tool does not re-validate phases that already passed before the fix).";
 //# sourceMappingURL=retryGate.d.ts.map

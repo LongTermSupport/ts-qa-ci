@@ -42,6 +42,41 @@ ts-qa --skip playwright # run everything EXCEPT the named tool(s); repeatable
 
 To disable a tool persistently (e.g. run browser tests in a separate CI job), use `disabledTools` in `tsQaConfig/ts-qa.json` — see [`configuration.md`](configuration.md#disabling-tools-tsqaconfigts-qajson).
 
+## Output modes (`--llm`, `--json`)
+
+By default `ts-qa` prints each tool's captured output inline as it runs. Two flags change what lands on stdout:
+
+```bash
+ts-qa --json   # dump the entire structured PipelineResult to stdout as JSON
+ts-qa --llm    # compact summary to stdout, full result persisted to a cache file
+```
+
+`--llm` is the mode for agent-driven QA. Instead of flooding an agent's context with the full result (which also gets truncated the moment it's piped to `head`), it prints a small deterministic summary — a per-phase PASS/FAIL table, the failing tool(s) and their exit class, and a one-line verdict — while writing the **full** `PipelineResult` (every phase, every tool's `exitClass`/`stdout`/`stderr`/`diffPending`) to a stable cache file:
+
+```
+node_modules/.cache/ts-qa/llm/last-run.json
+```
+
+The summary ends with `jq` hints for pulling detail out of that file, e.g. the failing tool's stderr:
+
+```bash
+jq -r '.phases[].toolResults | to_entries[] | select(.value.exitClass != "clean") | .value.stderr' \
+  node_modules/.cache/ts-qa/llm/last-run.json
+```
+
+`--llm` composes with `--aggregate` (which forces read-only and collects every failure in a phase). It is **mutually exclusive with `--json`**: both own stdout with opposite contracts (full dump vs. compact summary), so combining them is rejected.
+
+### When `--llm` turns on automatically
+
+You rarely need to pass `--llm` by hand — like CI mode, it auto-detects an agent environment (the same idea as the "Claude Code environment detected" line). Activation is resolved from four layers, **highest precedence first**:
+
+1. **CLI** — `--llm` forces it on, `--no-llm` forces it off (the two are mutually exclusive).
+2. **Env** — `TSQA_LLM=1` / `TSQA_LLM=0` (exact `1`/`0`, like `TSQA_READONLY`).
+3. **Config** — `"llmOutput"` in `tsQaConfig/ts-qa.json`: `"always"` | `"never"` | `"auto"` (default `"auto"`).
+4. **Auto-detect** (the `"auto"` case) — on when an agent marker is present: `CLAUDECODE=1`, or any of `CLAUDE_CODE`, `CLAUDE_CODE_ENTRYPOINT`, `AGENT`, `AI_AGENT` set.
+
+So an agent gets compact summary + cached detail automatically, a human in a terminal keeps the current rich output, and either can force the mode. Auto-detect is an explicit env allowlist only — it never infers from a non-TTY or a pipe, so piping a human run to a file does **not** silently switch it to summary mode. An explicit `--json` always wins over auto-detection (it is never silently overridden by an agent environment).
+
 ## Retry behaviour
 
 Outside CI, a failing tool prompts `(y/n)` to retry. If you retry and it passes, `ts-qa` warns at the end: re-run the whole pipeline, because a retried tool doesn't re-validate phases that already passed before the fix.

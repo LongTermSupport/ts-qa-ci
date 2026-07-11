@@ -1,7 +1,7 @@
 export interface ExecResult {
-  exitCode: number | null;
-  stdout: string;
-  stderr: string;
+    exitCode: number | null;
+    stdout: string;
+    stderr: string;
 }
 /**
  * Absolute path to one of this package's OWN bundled tool binaries
@@ -28,10 +28,5 @@ export declare function bundledBin(packageRoot: string, name: string): string;
  * `extraPath`, when given, is prepended to PATH in the child's environment so a
  * spawned bundled bin can resolve its own sibling executables (see bundledBin).
  */
-export declare function execTool(
-  command: string,
-  args: string[],
-  cwd: string,
-  extraPath?: string,
-): Promise<ExecResult>;
+export declare function execTool(command: string, args: string[], cwd: string, extraPath?: string): Promise<ExecResult>;
 //# sourceMappingURL=execTool.d.ts.map
