@@ -6,27 +6,14 @@ import { join } from "node:path";
  * this - see resolveEslintConfig.ts for why that one is a deliberate
  * exception with different (merge + rule-level guard) semantics.
  */
-export function resolveConfigPath(
-  projectRoot,
-  platform,
-  fileName,
-  packageRoot,
-) {
-  const projectOverride = join(projectRoot, "tsQaConfig", fileName);
-  if (existsSync(projectOverride)) return projectOverride;
-  const platformDefault = join(
-    packageRoot,
-    "configDefaults",
-    platform,
-    fileName,
-  );
-  if (existsSync(platformDefault)) return platformDefault;
-  const genericDefault = join(
-    packageRoot,
-    "configDefaults",
-    "generic",
-    fileName,
-  );
-  return genericDefault;
+export function resolveConfigPath(projectRoot, platform, fileName, packageRoot) {
+    const projectOverride = join(projectRoot, "tsQaConfig", fileName);
+    if (existsSync(projectOverride))
+        return projectOverride;
+    const platformDefault = join(packageRoot, "configDefaults", platform, fileName);
+    if (existsSync(platformDefault))
+        return platformDefault;
+    const genericDefault = join(packageRoot, "configDefaults", "generic", fileName);
+    return genericDefault;
 }
 //# sourceMappingURL=resolveConfigPath.js.map

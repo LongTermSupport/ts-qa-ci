@@ -1,4 +1,4 @@
-import { type PhaseResult } from './runPhase.js';
+import { type PhaseResult } from "./runPhase.js";
 export interface PipelineOptions {
     cwd: string;
     packageRoot: string;

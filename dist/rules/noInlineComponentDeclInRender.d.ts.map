@@ -1,1 +1,1 @@
-{"version":3,"file":"noInlineComponentDeclInRender.d.ts","sourceRoot":"","sources":["../../src/rules/noInlineComponentDeclInRender.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,IAAI,EAAE,MAAM,QAAQ,CAAC;AAuDnC,QAAA,MAAM,IAAI,EAAE,IAAI,CAAC,UA4ChB,CAAC;AAEF,eAAe,IAAI,CAAC"}
+{"version":3,"file":"noInlineComponentDeclInRender.d.ts","sourceRoot":"","sources":["../../src/rules/noInlineComponentDeclInRender.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,IAAI,EAAE,MAAM,QAAQ,CAAC;AAuDnC,QAAA,MAAM,IAAI,EAAE,IAAI,CAAC,UAgDhB,CAAC;AAEF,eAAe,IAAI,CAAC"}

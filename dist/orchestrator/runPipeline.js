@@ -1,10 +1,10 @@
-import { detectPlatform } from './detectPlatform.js';
-import { detectCi, detectReadOnly } from './detectReadOnly.js';
-import { runPostHook, runPreHook } from './hooks.js';
-import { resolveDisabledTools } from './resolveDisabledTools.js';
-import { RESTART_WARNING } from './retryGate.js';
-import { runPhase } from './runPhase.js';
-import { runSingleTool } from './runSingleTool.js';
+import { detectPlatform } from "./detectPlatform.js";
+import { detectCi, detectReadOnly } from "./detectReadOnly.js";
+import { runPostHook, runPreHook } from "./hooks.js";
+import { resolveDisabledTools } from "./resolveDisabledTools.js";
+import { RESTART_WARNING } from "./retryGate.js";
+import { runPhase } from "./runPhase.js";
+import { runSingleTool } from "./runSingleTool.js";
 const PHASES = [
     // Phase 0 runs unconditionally first, on every full pipeline run (never skipped by
     // --phase 1-4). oxlint is 50-100x faster than ESLint and catches a large class of
@@ -18,16 +18,36 @@ const PHASES = [
     // package-manager supply-chain config (bake window, blocked install scripts,
     // lockfile-drift failure, public registry, pinned pnpm). If the project isn't
     // protected, fail before doing anything else. See src/tools/supplyChain.ts.
-    { number: 0, name: 'Fast Fail', tools: ['supplyChain', 'oxlint'], mutates: true },
-    { number: 1, name: 'Code Modification', tools: ['prettier', 'eslintFix'], mutates: true },
+    {
+        number: 0,
+        name: "Fast Fail",
+        tools: ["supplyChain", "oxlint"],
+        mutates: true,
+    },
+    {
+        number: 1,
+        name: "Code Modification",
+        tools: ["prettier", "eslintFix"],
+        mutates: true,
+    },
     {
         number: 2,
-        name: 'Lint & Validation',
-        tools: ['eslintReport', 'remarkValidateLinks', 'knip'],
+        name: "Lint & Validation",
+        tools: ["eslintReport", "remarkValidateLinks", "knip"],
         mutates: false,
     },
-    { number: 3, name: 'Static Analysis', tools: ['tsc', 'dependencyCruiser'], mutates: false },
-    { number: 4, name: 'Testing', tools: ['vitest', 'playwright'], mutates: false },
+    {
+        number: 3,
+        name: "Static Analysis",
+        tools: ["tsc", "dependencyCruiser"],
+        mutates: false,
+    },
+    {
+        number: 4,
+        name: "Testing",
+        tools: ["vitest", "playwright"],
+        mutates: false,
+    },
 ];
 /**
  * Top-level phase-ladder driver (phase2-design.md §2.2/§2.3): mutate -> lint
@@ -44,16 +64,16 @@ export async function runPipeline(options) {
     // suppresses this passthrough for the same reason `--json` does.
     if (!options.json &&
         !options.llm &&
-        process.env.CI !== 'true' &&
-        process.env.CLAUDECODE === '1') {
-        console.log('Claude Code environment detected - enabling CI mode');
+        process.env.CI !== "true" &&
+        process.env.CLAUDECODE === "1") {
+        console.log("Claude Code environment detected - enabling CI mode");
     }
     // BUG A: the eslint tools re-enter resolveEslintConfig inside a spawned
     // subprocess (via the generated flat config), which inherits this process's
     // env but not `options.json`. Propagate the json flag through the environment
     // so the subprocess suppresses its Tier A exemption diagnostics too.
     if (options.json)
-        process.env.TSQA_JSON = '1';
+        process.env.TSQA_JSON = "1";
     // CLI --write/--read-only (forceWrite/forceReadOnly) override the env-derived value,
     // equivalent to QA_READONLY=0/1 in php-qa-ci. Both are only ever `true` or `undefined`
     // (set when the corresponding flag is passed, never explicitly `false`).
@@ -98,7 +118,11 @@ export async function runPipeline(options) {
     // hook contract mean two different things.
     if (options.tool !== undefined) {
         const result = await runSingleTool(options.tool, ctx, options.packageRoot, options.cwd);
-        return { phases: [result], success: !result.failed, hasBeenRestarted: ctx.hasBeenRestarted };
+        return {
+            phases: [result],
+            success: !result.failed,
+            hasBeenRestarted: ctx.hasBeenRestarted,
+        };
     }
     await runPreHook(options.cwd, {
         phases: PHASES.map((p) => p.number),
@@ -108,7 +132,9 @@ export async function runPipeline(options) {
         toolResults: {},
     });
     // Explicit undefined check, not truthiness — options.onlyPhase can legitimately be 0.
-    const selectedPhases = options.onlyPhase !== undefined ? PHASES.filter((p) => p.number === options.onlyPhase) : PHASES;
+    const selectedPhases = options.onlyPhase !== undefined
+        ? PHASES.filter((p) => p.number === options.onlyPhase)
+        : PHASES;
     // Tool opt-out (tsQaConfig/ts-qa.json `disabledTools` + CLI `--skip`). Filter each
     // phase's tool list; a phase whose every tool is disabled is dropped entirely. The
     // canonical case is Playwright, which needs a served instance and is often run as a
@@ -117,7 +143,7 @@ export async function runPipeline(options) {
     const { disabled, sources } = resolveDisabledTools(options.cwd, options.skipTools ?? []);
     if (!ctx.json && !ctx.llm && disabled.size > 0) {
         for (const name of disabled) {
-            const via = sources.get(name) === 'cli' ? '--skip' : 'tsQaConfig/ts-qa.json';
+            const via = sources.get(name) === "cli" ? "--skip" : "tsQaConfig/ts-qa.json";
             console.log(`ts-qa: ${name}: disabled (${via})`);
         }
     }
@@ -129,7 +155,11 @@ export async function runPipeline(options) {
         const result = await runPhase(phaseDef, ctx, options.packageRoot, options.cwd);
         results.push(result);
         if (result.failed) {
-            return { phases: results, success: false, hasBeenRestarted: ctx.hasBeenRestarted };
+            return {
+                phases: results,
+                success: false,
+                hasBeenRestarted: ctx.hasBeenRestarted,
+            };
         }
     }
     await runPostHook(options.cwd, {
@@ -143,6 +173,10 @@ export async function runPipeline(options) {
     // stdout/stderr stays deterministic.
     if (ctx.hasBeenRestarted && !ctx.llm)
         console.warn(`ts-qa: ${RESTART_WARNING}`);
-    return { phases: results, success: true, hasBeenRestarted: ctx.hasBeenRestarted };
+    return {
+        phases: results,
+        success: true,
+        hasBeenRestarted: ctx.hasBeenRestarted,
+    };
 }
 //# sourceMappingURL=runPipeline.js.map

@@ -19,34 +19,31 @@
  * type-checking rather than suppressing it; the ban-ts-comment strict-baseline
  * config governs that directive instead.
  */
-const SUPPRESSION_PATTERN =
-  /^(eslint-disable(-next-line|-line)?|eslint-enable|@ts-(ignore|expect-error|nocheck))\b/;
+const SUPPRESSION_PATTERN = /^(eslint-disable(-next-line|-line)?|eslint-enable|@ts-(ignore|expect-error|nocheck))\b/;
 const rule = {
-  meta: {
-    type: "problem",
-    docs: {
-      description:
-        "Disallow eslint-disable*, eslint-enable, and @ts-ignore/@ts-expect-error/@ts-nocheck suppression comments",
+    meta: {
+        type: "problem",
+        docs: {
+            description: "Disallow eslint-disable*, eslint-enable, and @ts-ignore/@ts-expect-error/@ts-nocheck suppression comments",
+        },
+        schema: [],
+        messages: {
+            noSuppression: "Suppression comments are banned. Fix the underlying issue, or add a justified entry to tsQaConfig/tier-a-exemptions.json.",
+        },
     },
-    schema: [],
-    messages: {
-      noSuppression:
-        "Suppression comments are banned. Fix the underlying issue, or add a justified entry to tsQaConfig/tier-a-exemptions.json.",
+    create(context) {
+        return {
+            Program() {
+                const sourceCode = context.sourceCode;
+                for (const comment of sourceCode.getAllComments()) {
+                    const text = comment.value.trim();
+                    if (SUPPRESSION_PATTERN.test(text)) {
+                        context.report({ loc: comment.loc, messageId: "noSuppression" });
+                    }
+                }
+            },
+        };
     },
-  },
-  create(context) {
-    return {
-      Program() {
-        const sourceCode = context.sourceCode;
-        for (const comment of sourceCode.getAllComments()) {
-          const text = comment.value.trim();
-          if (SUPPRESSION_PATTERN.test(text)) {
-            context.report({ loc: comment.loc, messageId: "noSuppression" });
-          }
-        }
-      },
-    };
-  },
 };
 export default rule;
 //# sourceMappingURL=noEslintDisable.js.map

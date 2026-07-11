@@ -230,7 +230,8 @@ export async function runPipeline(
 
   // Under `--llm` the restart is surfaced in the compact summary instead, so the
   // stdout/stderr stays deterministic.
-  if (ctx.hasBeenRestarted && !ctx.llm) console.warn(`ts-qa: ${RESTART_WARNING}`);
+  if (ctx.hasBeenRestarted && !ctx.llm)
+    console.warn(`ts-qa: ${RESTART_WARNING}`);
 
   return {
     phases: results,

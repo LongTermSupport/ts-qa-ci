@@ -76,15 +76,15 @@ export function parseArgs(argv) {
       case "--json":
         options.json = true;
         break;
-      case '--llm':
+      case "--llm":
         if (options.llm === false) {
-          throw new Error('ts-qa: --llm and --no-llm are mutually exclusive');
+          throw new Error("ts-qa: --llm and --no-llm are mutually exclusive");
         }
         options.llm = true;
         break;
-      case '--no-llm':
+      case "--no-llm":
         if (options.llm === true) {
-          throw new Error('ts-qa: --llm and --no-llm are mutually exclusive');
+          throw new Error("ts-qa: --llm and --no-llm are mutually exclusive");
         }
         options.llm = false;
         break;
@@ -106,8 +106,8 @@ export function parseArgs(argv) {
   // result to a cache file. Combining them is contradictory, so reject it.
   if (options.json && options.llm === true) {
     throw new Error(
-      'ts-qa: --json and --llm are mutually exclusive — --json dumps the full result to stdout, ' +
-        '--llm prints a compact summary and writes the full result to node_modules/.cache/ts-qa/llm/'
+      "ts-qa: --json and --llm are mutually exclusive — --json dumps the full result to stdout, " +
+        "--llm prints a compact summary and writes the full result to node_modules/.cache/ts-qa/llm/",
     );
   }
   if (options.tool && options.onlyPhase !== undefined) {
@@ -146,9 +146,8 @@ async function main() {
   // env/config/auto-detect precedence ladder (docs/pipeline.md). Doing it here,
   // before runPipeline, means both the pipeline (passthrough suppression) and the
   // post-run emit below read the same resolved boolean.
-  const { resolveLlm, resolveLlmOutputMode } = await import(
-    "../dist/orchestrator/resolveLlm.js"
-  );
+  const { resolveLlm, resolveLlmOutputMode } =
+    await import("../dist/orchestrator/resolveLlm.js");
   options.llm = resolveLlm({
     cli: options.llm,
     json: options.json,
@@ -162,7 +161,7 @@ async function main() {
   if (options.json) {
     console.log(JSON.stringify(result, null, 2));
   } else if (options.llm) {
-    const { emitLlmOutput } = await import('../dist/orchestrator/llmOutput.js');
+    const { emitLlmOutput } = await import("../dist/orchestrator/llmOutput.js");
     emitLlmOutput(result, options.cwd);
   }
 

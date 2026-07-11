@@ -28,7 +28,7 @@ export function detectReadOnly(env: NodeJS.ProcessEnv): boolean {
 
 /** An env var counts as "set" only when present and non-empty (an empty string is treated as unset). */
 function isSet(value: string | undefined): boolean {
-  return value !== undefined && value !== '';
+  return value !== undefined && value !== "";
 }
 
 /**
@@ -43,9 +43,9 @@ function isSet(value: string | undefined): boolean {
  * run to a file must keep the rich output, not silently switch to summary mode.
  */
 export function detectLlm(env: NodeJS.ProcessEnv): boolean {
-  if (env.TSQA_LLM === '1') return true;
-  if (env.TSQA_LLM === '0') return false;
-  if (env.CLAUDECODE === '1') return true;
+  if (env.TSQA_LLM === "1") return true;
+  if (env.TSQA_LLM === "0") return false;
+  if (env.CLAUDECODE === "1") return true;
   if (isSet(env.CLAUDE_CODE)) return true;
   if (isSet(env.CLAUDE_CODE_ENTRYPOINT)) return true;
   if (isSet(env.AGENT)) return true;

@@ -1,5 +1,5 @@
-import { resolveToolModule } from './resolveToolModule.js';
-import { runTool } from './runTool.js';
+import { resolveToolModule } from "./resolveToolModule.js";
+import { runTool } from "./runTool.js";
 /**
  * Runs one phase's tool list in order (phase2-design.md §2.2/§2.3).
  * Fail-fast by default: stops at the first non-clean tool unless
@@ -19,7 +19,7 @@ import { runTool } from './runTool.js';
 export function logToolResult(toolName, result, json) {
     if (json)
         return;
-    if (result.exitClass === 'clean') {
+    if (result.exitClass === "clean") {
         console.log(`ts-qa: ${toolName}: clean`);
         return;
     }
@@ -39,12 +39,12 @@ export async function runPhase(phaseDef, ctx, packageRoot, projectRoot) {
         // `--llm` captures every tool's stdout/stderr into the persisted cache and
         // prints only a compact summary, so it suppresses this passthrough like `--json`.
         logToolResult(toolName, result, ctx.json || ctx.llm);
-        if (result.exitClass !== 'clean') {
+        if (result.exitClass !== "clean") {
             failed = true;
             // BUG B: a crash (e.g. a missing binary) is never retried and must abort
             // the phase even under --aggregate — retryGate's contract is "caller
             // aborts on crash". Only a plain failure is allowed to aggregate.
-            if (result.exitClass === 'crash')
+            if (result.exitClass === "crash")
                 break;
             if (!ctx.aggregate)
                 break;

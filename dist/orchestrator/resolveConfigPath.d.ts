@@ -5,10 +5,5 @@ import type { Platform } from "./types.js";
  * this - see resolveEslintConfig.ts for why that one is a deliberate
  * exception with different (merge + rule-level guard) semantics.
  */
-export declare function resolveConfigPath(
-  projectRoot: string,
-  platform: Platform,
-  fileName: string,
-  packageRoot: string,
-): string;
+export declare function resolveConfigPath(projectRoot: string, platform: Platform, fileName: string, packageRoot: string): string;
 //# sourceMappingURL=resolveConfigPath.d.ts.map

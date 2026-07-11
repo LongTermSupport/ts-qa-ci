@@ -1,1 +1,1 @@
-{"version":3,"file":"noDomClassnameMutation.d.ts","sourceRoot":"","sources":["../../src/rules/noDomClassnameMutation.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,IAAI,EAAE,MAAM,QAAQ,CAAC;AA8BnC,QAAA,MAAM,IAAI,EAAE,IAAI,CAAC,UA0DhB,CAAC;AAEF,eAAe,IAAI,CAAC"}
+{"version":3,"file":"noDomClassnameMutation.d.ts","sourceRoot":"","sources":["../../src/rules/noDomClassnameMutation.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,IAAI,EAAE,MAAM,QAAQ,CAAC;AA8BnC,QAAA,MAAM,IAAI,EAAE,IAAI,CAAC,UAiEhB,CAAC;AAEF,eAAe,IAAI,CAAC"}
