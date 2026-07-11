@@ -32,109 +32,116 @@
  * a real finding.
  */
 const BROWSER_GLOBALS = new Set([
-    "window",
-    "document",
-    "localStorage",
-    "sessionStorage",
-    "navigator",
+  "window",
+  "document",
+  "localStorage",
+  "sessionStorage",
+  "navigator",
 ]);
 const SYNC_RENDER_CALLBACK_HOOKS = new Set([
-    "useMemo",
-    "useState",
-    "useReducer",
+  "useMemo",
+  "useState",
+  "useReducer",
 ]);
 function isSyncRenderCallback(fn) {
-    const parent = fn.parent;
-    if (!parent || parent.type !== "CallExpression" || !parent.callee)
-        return false;
-    return (parent.callee.type === "Identifier" &&
-        Boolean(parent.callee.name) &&
-        SYNC_RENDER_CALLBACK_HOOKS.has(parent.callee.name));
+  const parent = fn.parent;
+  if (!parent || parent.type !== "CallExpression" || !parent.callee)
+    return false;
+  return (
+    parent.callee.type === "Identifier" &&
+    Boolean(parent.callee.name) &&
+    SYNC_RENDER_CALLBACK_HOOKS.has(parent.callee.name)
+  );
 }
 function isDeferred(node) {
-    let current = node
-        .parent;
-    let functionBoundariesCrossed = 0;
-    while (current) {
-        if (current.type === "FunctionDeclaration" ||
-            current.type === "FunctionExpression" ||
-            current.type === "ArrowFunctionExpression") {
-            if (isSyncRenderCallback(current))
-                return false;
-            functionBoundariesCrossed++;
-            if (functionBoundariesCrossed >= 2)
-                return true;
-        }
-        current = current.parent;
+  let current = node.parent;
+  let functionBoundariesCrossed = 0;
+  while (current) {
+    if (
+      current.type === "FunctionDeclaration" ||
+      current.type === "FunctionExpression" ||
+      current.type === "ArrowFunctionExpression"
+    ) {
+      if (isSyncRenderCallback(current)) return false;
+      functionBoundariesCrossed++;
+      if (functionBoundariesCrossed >= 2) return true;
     }
-    return false;
+    current = current.parent;
+  }
+  return false;
 }
 const rule = {
-    meta: {
-        type: "problem",
-        docs: {
-            description: "Disallow SSR-hydration-unsafe browser-global reads and non-deterministic values during render",
-        },
-        schema: [],
-        messages: {
-            browserGlobal: '"{{name}}" is a browser global read during render — unsafe under SSR/SSG. Read it inside useEffect/useSyncExternalStore instead.',
-            nonDeterministic: '"{{name}}" produces a different value on server vs client render — causes hydration mismatches.',
-        },
+  meta: {
+    type: "problem",
+    docs: {
+      description:
+        "Disallow SSR-hydration-unsafe browser-global reads and non-deterministic values during render",
     },
-    create(context) {
-        return {
-            Identifier(node) {
-                if (!BROWSER_GLOBALS.has(node.name))
-                    return;
-                const parent = node.parent;
-                if (parent?.type === "MemberExpression" &&
-                    parent.object !== node)
-                    return;
-                // A non-computed object-literal / class member key named after a browser
-                // global (e.g. `{ document: 1 }`) is just an identifier key, not a read.
-                if ((parent?.type === "Property" ||
-                    parent?.type === "MethodDefinition") &&
-                    parent.key === node &&
-                    !parent.computed)
-                    return;
-                if (isDeferred(node))
-                    return;
-                context.report({
-                    node: node,
-                    messageId: "browserGlobal",
-                    data: { name: node.name },
-                });
-            },
-            NewExpression(node) {
-                if (node.callee.type === "Identifier" &&
-                    node.callee.name === "Date" &&
-                    node.arguments.length === 0) {
-                    if (!isDeferred(node)) {
-                        context.report({
-                            node: node,
-                            messageId: "nonDeterministic",
-                            data: { name: "new Date()" },
-                        });
-                    }
-                }
-            },
-            CallExpression(node) {
-                if (node.callee.type === "MemberExpression" &&
-                    node.callee.object.type === "Identifier" &&
-                    node.callee.object.name === "Math" &&
-                    node.callee.property.type === "Identifier" &&
-                    node.callee.property.name === "random") {
-                    if (!isDeferred(node)) {
-                        context.report({
-                            node: node,
-                            messageId: "nonDeterministic",
-                            data: { name: "Math.random()" },
-                        });
-                    }
-                }
-            },
-        };
+    schema: [],
+    messages: {
+      browserGlobal:
+        '"{{name}}" is a browser global read during render — unsafe under SSR/SSG. Read it inside useEffect/useSyncExternalStore instead.',
+      nonDeterministic:
+        '"{{name}}" produces a different value on server vs client render — causes hydration mismatches.',
     },
+  },
+  create(context) {
+    return {
+      Identifier(node) {
+        if (!BROWSER_GLOBALS.has(node.name)) return;
+        const parent = node.parent;
+        if (parent?.type === "MemberExpression" && parent.object !== node)
+          return;
+        // A non-computed object-literal / class member key named after a browser
+        // global (e.g. `{ document: 1 }`) is just an identifier key, not a read.
+        if (
+          (parent?.type === "Property" ||
+            parent?.type === "MethodDefinition") &&
+          parent.key === node &&
+          !parent.computed
+        )
+          return;
+        if (isDeferred(node)) return;
+        context.report({
+          node: node,
+          messageId: "browserGlobal",
+          data: { name: node.name },
+        });
+      },
+      NewExpression(node) {
+        if (
+          node.callee.type === "Identifier" &&
+          node.callee.name === "Date" &&
+          node.arguments.length === 0
+        ) {
+          if (!isDeferred(node)) {
+            context.report({
+              node: node,
+              messageId: "nonDeterministic",
+              data: { name: "new Date()" },
+            });
+          }
+        }
+      },
+      CallExpression(node) {
+        if (
+          node.callee.type === "MemberExpression" &&
+          node.callee.object.type === "Identifier" &&
+          node.callee.object.name === "Math" &&
+          node.callee.property.type === "Identifier" &&
+          node.callee.property.name === "random"
+        ) {
+          if (!isDeferred(node)) {
+            context.report({
+              node: node,
+              messageId: "nonDeterministic",
+              data: { name: "Math.random()" },
+            });
+          }
+        }
+      },
+    };
+  },
 };
 export default rule;
 //# sourceMappingURL=ssrSafeHooks.js.map

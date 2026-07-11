@@ -31,171 +31,165 @@ import { basename, extname } from "node:path";
  * gap in this rule.
  */
 const DEFAULT_BANNED_ELEMENTS = [
-    "div",
-    "span",
-    "button",
-    "a",
-    "p",
-    "h1",
-    "h2",
-    "h3",
-    "h4",
-    "h5",
-    "h6",
-    "ul",
-    "ol",
-    "li",
-    "section",
-    "article",
-    "header",
-    "footer",
-    "nav",
-    "aside",
-    "form",
-    "input",
-    "select",
-    "textarea",
-    "label",
-    "table",
-    "tr",
-    "td",
-    "th",
-    "img",
-    "video",
-    "audio",
-    "iframe",
+  "div",
+  "span",
+  "button",
+  "a",
+  "p",
+  "h1",
+  "h2",
+  "h3",
+  "h4",
+  "h5",
+  "h6",
+  "ul",
+  "ol",
+  "li",
+  "section",
+  "article",
+  "header",
+  "footer",
+  "nav",
+  "aside",
+  "form",
+  "input",
+  "select",
+  "textarea",
+  "label",
+  "table",
+  "tr",
+  "td",
+  "th",
+  "img",
+  "video",
+  "audio",
+  "iframe",
 ];
 // Sentinel in `bannedElements` meaning "ban every lowercase JSX identifier"
 // (rather than only the fixed DEFAULT_BANNED_ELEMENTS list).
 const BAN_ALL = "*";
 function getExportedNames(program) {
-    const names = [];
-    for (const stmt of program.body) {
-        if (stmt.type === "ExportDefaultDeclaration") {
-            const decl = stmt.declaration;
-            if (decl.type === "FunctionDeclaration" &&
-                decl.id) {
-                names.push(decl.id.name);
-            }
-            else if (decl.type === "Identifier") {
-                names.push(decl.name);
-            }
+  const names = [];
+  for (const stmt of program.body) {
+    if (stmt.type === "ExportDefaultDeclaration") {
+      const decl = stmt.declaration;
+      if (decl.type === "FunctionDeclaration" && decl.id) {
+        names.push(decl.id.name);
+      } else if (decl.type === "Identifier") {
+        names.push(decl.name);
+      }
+    } else if (stmt.type === "ExportNamedDeclaration") {
+      const namedStmt = stmt;
+      const decl = namedStmt.declaration;
+      if (decl) {
+        if (decl.type === "FunctionDeclaration" && decl.id) {
+          names.push(decl.id.name);
+        } else if (decl.type === "VariableDeclaration") {
+          for (const declarator of decl.declarations) {
+            if (declarator.id.type === "Identifier")
+              names.push(declarator.id.name);
+          }
         }
-        else if (stmt.type === "ExportNamedDeclaration") {
-            const namedStmt = stmt;
-            const decl = namedStmt.declaration;
-            if (decl) {
-                if (decl.type === "FunctionDeclaration" &&
-                    decl.id) {
-                    names.push(decl.id.name);
-                }
-                else if (decl.type === "VariableDeclaration") {
-                    for (const declarator of decl
-                        .declarations) {
-                        if (declarator.id.type === "Identifier")
-                            names.push(declarator.id.name);
-                    }
-                }
-            }
-            // Grouped re-export form (e.g. `export { Carousel, CarouselContent };` at the
-            // bottom of a file) has no `.declaration` at all - the names live in
-            // `.specifiers` instead. Found missing while dogfooding on lts-commerce-site
-            // (Plan 011 Task 4.2/4.3): Carousel.tsx uses exactly this shape and was still
-            // being flagged for its own internal JSX despite exporting `Carousel`.
-            for (const specifier of namedStmt.specifiers ?? []) {
-                if (specifier.exported.type === "Identifier")
-                    names.push(specifier.exported.name);
-            }
-        }
+      }
+      // Grouped re-export form (e.g. `export { Carousel, CarouselContent };` at the
+      // bottom of a file) has no `.declaration` at all - the names live in
+      // `.specifiers` instead. Found missing while dogfooding on lts-commerce-site
+      // (Plan 011 Task 4.2/4.3): Carousel.tsx uses exactly this shape and was still
+      // being flagged for its own internal JSX despite exporting `Carousel`.
+      for (const specifier of namedStmt.specifiers ?? []) {
+        if (specifier.exported.type === "Identifier")
+          names.push(specifier.exported.name);
+      }
     }
-    return names;
+  }
+  return names;
 }
 function isComponentDefinitionFile(filename, exportedNames, exemptSuffixes) {
-    if (exemptSuffixes.some((suffix) => filename.endsWith(suffix)))
-        return true;
-    const basenameNoExt = basename(filename, extname(filename));
-    return exportedNames.includes(basenameNoExt);
+  if (exemptSuffixes.some((suffix) => filename.endsWith(suffix))) return true;
+  const basenameNoExt = basename(filename, extname(filename));
+  return exportedNames.includes(basenameNoExt);
 }
 function pathIncludesAny(filename, globs) {
-    // Segment-anchored: prefix a leading slash to both the filename and each glob
-    // so `src/ui/` matches `/proj/src/ui/…` but NOT `…/adsrc/ui/…` (substring-only).
-    // An unanchored `includes` would wrongly scope/exempt any dir ending in the
-    // glob's leading segment.
-    const anchored = `/${filename.replace(/^\/+/, "")}`;
-    return globs.some((glob) => anchored.includes(`/${glob.replace(/^\/+/, "").replace(/\*+$/, "")}`));
+  // Segment-anchored: prefix a leading slash to both the filename and each glob
+  // so `src/ui/` matches `/proj/src/ui/…` but NOT `…/adsrc/ui/…` (substring-only).
+  // An unanchored `includes` would wrongly scope/exempt any dir ending in the
+  // glob's leading segment.
+  const anchored = `/${filename.replace(/^\/+/, "")}`;
+  return globs.some((glob) =>
+    anchored.includes(`/${glob.replace(/^\/+/, "").replace(/\*+$/, "")}`),
+  );
 }
 const rule = {
-    meta: {
-        type: "problem",
-        docs: {
-            description: "Disallow raw HTML elements in JSX outside designated component-definition files or UI dirs — the CDD flagship rule",
-        },
-        schema: [
-            {
-                type: "object",
-                properties: {
-                    scopeGlobs: { type: "array", items: { type: "string" } },
-                    allowedElements: { type: "array", items: { type: "string" } },
-                    exemptFileSuffixes: { type: "array", items: { type: "string" } },
-                    uiDirs: { type: "array", items: { type: "string" } },
-                    bannedElements: { type: "array", items: { type: "string" } },
-                },
-                additionalProperties: false,
-            },
-        ],
-        messages: {
-            adHocHtml: "Raw <{{tag}}> is banned outside component-definition files (Component-Driven Development). Use or create a typed, variant-driven component instead.",
-        },
+  meta: {
+    type: "problem",
+    docs: {
+      description:
+        "Disallow raw HTML elements in JSX outside designated component-definition files or UI dirs — the CDD flagship rule",
     },
-    create(context) {
-        const options = (context.options[0] ?? {});
-        const scopeGlobs = options.scopeGlobs ?? ["src/pages/", "src/components/"];
-        const allowedElements = new Set(options.allowedElements ?? []);
-        const exemptFileSuffixes = options.exemptFileSuffixes ?? [];
-        const uiDirs = options.uiDirs ?? [];
-        const bannedElements = options.bannedElements ?? DEFAULT_BANNED_ELEMENTS;
-        const banAll = bannedElements.includes(BAN_ALL);
-        const bannedSet = new Set(bannedElements);
-        // Allowlist-dir model: a file under any uiDir is fully exempt (raw HTML is
-        // legal there); the per-file component-definition exemption is disabled for
-        // every other in-scope file.
-        const allowlistMode = uiDirs.length > 0;
-        if (!pathIncludesAny(context.filename, scopeGlobs))
-            return {};
-        if (allowlistMode && pathIncludesAny(context.filename, uiDirs))
-            return {};
-        // Computed once the Program node is visited (always the first node ESLint
-        // visits, before any JSX inside it) - a file's own component-defining exports
-        // aren't knowable from its filename alone, only from its AST. Only consulted
-        // in the default (component-definition) model.
-        let exempt = false;
-        return {
-            Program(node) {
-                exempt = allowlistMode
-                    ? false
-                    : isComponentDefinitionFile(context.filename, getExportedNames(node), exemptFileSuffixes);
-            },
-            JSXOpeningElement(node) {
-                if (exempt)
-                    return;
-                if (node.name.type !== "JSXIdentifier")
-                    return;
-                const tag = node.name.name;
-                // PascalCase = custom component (always allowed); lowercase = raw HTML element.
-                if (/^[A-Z]/.test(tag))
-                    return;
-                if (allowedElements.has(tag))
-                    return;
-                if (!banAll && !bannedSet.has(tag))
-                    return;
-                context.report({
-                    node: node,
-                    messageId: "adHocHtml",
-                    data: { tag },
-                });
-            },
-        };
+    schema: [
+      {
+        type: "object",
+        properties: {
+          scopeGlobs: { type: "array", items: { type: "string" } },
+          allowedElements: { type: "array", items: { type: "string" } },
+          exemptFileSuffixes: { type: "array", items: { type: "string" } },
+          uiDirs: { type: "array", items: { type: "string" } },
+          bannedElements: { type: "array", items: { type: "string" } },
+        },
+        additionalProperties: false,
+      },
+    ],
+    messages: {
+      adHocHtml:
+        "Raw <{{tag}}> is banned outside component-definition files (Component-Driven Development). Use or create a typed, variant-driven component instead.",
     },
+  },
+  create(context) {
+    const options = context.options[0] ?? {};
+    const scopeGlobs = options.scopeGlobs ?? ["src/pages/", "src/components/"];
+    const allowedElements = new Set(options.allowedElements ?? []);
+    const exemptFileSuffixes = options.exemptFileSuffixes ?? [];
+    const uiDirs = options.uiDirs ?? [];
+    const bannedElements = options.bannedElements ?? DEFAULT_BANNED_ELEMENTS;
+    const banAll = bannedElements.includes(BAN_ALL);
+    const bannedSet = new Set(bannedElements);
+    // Allowlist-dir model: a file under any uiDir is fully exempt (raw HTML is
+    // legal there); the per-file component-definition exemption is disabled for
+    // every other in-scope file.
+    const allowlistMode = uiDirs.length > 0;
+    if (!pathIncludesAny(context.filename, scopeGlobs)) return {};
+    if (allowlistMode && pathIncludesAny(context.filename, uiDirs)) return {};
+    // Computed once the Program node is visited (always the first node ESLint
+    // visits, before any JSX inside it) - a file's own component-defining exports
+    // aren't knowable from its filename alone, only from its AST. Only consulted
+    // in the default (component-definition) model.
+    let exempt = false;
+    return {
+      Program(node) {
+        exempt = allowlistMode
+          ? false
+          : isComponentDefinitionFile(
+              context.filename,
+              getExportedNames(node),
+              exemptFileSuffixes,
+            );
+      },
+      JSXOpeningElement(node) {
+        if (exempt) return;
+        if (node.name.type !== "JSXIdentifier") return;
+        const tag = node.name.name;
+        // PascalCase = custom component (always allowed); lowercase = raw HTML element.
+        if (/^[A-Z]/.test(tag)) return;
+        if (allowedElements.has(tag)) return;
+        if (!banAll && !bannedSet.has(tag)) return;
+        context.report({
+          node: node,
+          messageId: "adHocHtml",
+          data: { tag },
+        });
+      },
+    };
+  },
 };
 export default rule;
 //# sourceMappingURL=noAdHocHtml.js.map

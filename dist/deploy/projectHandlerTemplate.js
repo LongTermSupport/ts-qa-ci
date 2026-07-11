@@ -22,7 +22,7 @@
  * behaviour exists here worth exercising).
  */
 export function generateProjectHandlerSource() {
-    return `"""
+  return `"""
 ts-qa-ci project handler, deployed by \`ts-qa deploy-skills\`.
 Regenerate via that command rather than hand-editing - manual edits will
 be overwritten on the next deploy.

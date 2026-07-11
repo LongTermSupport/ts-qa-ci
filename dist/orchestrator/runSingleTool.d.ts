@@ -14,5 +14,10 @@ import type { RunContext } from "./types.js";
  * invoked this way). Silently no-op'ing it because of an unrelated
  * `disabledTools` entry would be far more surprising than honouring it.
  */
-export declare function runSingleTool(toolName: string, ctx: RunContext, packageRoot: string, projectRoot: string): Promise<PhaseResult>;
+export declare function runSingleTool(
+  toolName: string,
+  ctx: RunContext,
+  packageRoot: string,
+  projectRoot: string,
+): Promise<PhaseResult>;
 //# sourceMappingURL=runSingleTool.d.ts.map
