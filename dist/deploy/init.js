@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 const HOOK_PRE_STUB = `import type { HookContext } from '@longtermsupport/ts-qa-ci';
 
@@ -20,7 +20,25 @@ const ESLINT_CONFIG_STUB = `// Project-specific ESLint additions. This file is m
 // tier-a-exemptions.json (see resolveEslintConfig.ts).
 export default [];
 `;
-/** ts-qa init (phase2-design.md §2.1): scaffold tsQaConfig/ in the consumer project. */
+/** Relative location of the shipped consumer CI archetype within the package. */
+const CI_ARCHETYPE_REL = join('configDefaults', 'github-workflows', 'ci.yml');
+/** Where the archetype is scaffolded in the consumer project. */
+const CI_DEST_REL = join('.github', 'workflows', 'ts-qa.yml');
+/**
+ * Scaffold a single file if it is missing; never overwrite. init is a scaffold
+ * command, so re-running it after an upgrade must not clobber a file the user
+ * has already customised.
+ */
+function scaffoldFile(path, content) {
+    if (existsSync(path)) {
+        console.log(`ts-qa init: ${path} already present, left untouched.`);
+        return;
+    }
+    mkdirSync(dirname(path), { recursive: true });
+    writeFileSync(path, content);
+    console.log(`ts-qa init: ${path} written.`);
+}
+/** ts-qa init (phase2-design.md §2.1): scaffold tsQaConfig/ + the CI archetype in the consumer project. */
 export async function init(options) {
     const configDir = join(options.cwd, 'tsQaConfig');
     const files = [
@@ -29,18 +47,24 @@ export async function init(options) {
         [join(configDir, 'tier-a-exemptions.json'), EXEMPTIONS_STUB],
         [join(configDir, 'eslint.config.js'), ESLINT_CONFIG_STUB],
     ];
-    // init is a scaffold command: create only missing files. It must NEVER
-    // overwrite a file the user has already customised - re-running init after an
-    // upgrade would otherwise silently clobber their config with the empty stub.
     for (const [path, content] of files) {
-        if (existsSync(path)) {
-            console.log(`ts-qa init: ${path} already present, left untouched.`);
-            continue;
-        }
-        mkdirSync(dirname(path), { recursive: true });
-        writeFileSync(path, content);
-        console.log(`ts-qa init: ${path} written.`);
+        scaffoldFile(path, content);
     }
-    console.log('ts-qa init: complete. Edit tsQaConfig/ to customize — see docs/configuration.md.');
+    // Scaffold the shipped GitHub Actions archetype (the auto-fix-and-commit
+    // workflow). Needs packageRoot to locate the shipped file; skipped when it is
+    // absent or the archetype file is missing - never silently, always logged.
+    if (options.packageRoot === undefined) {
+        console.log('ts-qa init: no packageRoot given — skipping CI workflow scaffold.');
+    }
+    else {
+        const archetype = join(options.packageRoot, CI_ARCHETYPE_REL);
+        if (existsSync(archetype)) {
+            scaffoldFile(join(options.cwd, CI_DEST_REL), readFileSync(archetype, 'utf-8'));
+        }
+        else {
+            console.log(`ts-qa init: CI archetype not found at ${archetype} — skipping CI workflow scaffold.`);
+        }
+    }
+    console.log('ts-qa init: complete. See docs/configuration.md and docs/github-actions.md.');
 }
 //# sourceMappingURL=init.js.map

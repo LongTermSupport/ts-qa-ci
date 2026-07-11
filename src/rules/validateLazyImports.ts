@@ -1,7 +1,7 @@
-import { existsSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
 import type { Rule } from 'eslint';
 import type { CallExpression } from 'estree';
+import { existsSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
 
 /**
  * Tier A core rule: validates React.lazy(() => import('...')) paths
@@ -10,9 +10,13 @@ import type { CallExpression } from 'estree';
  * Completely generic; only `@/` alias resolution needs to match the
  * consumer's real tsconfig paths (configurable via ruleOptions).
  */
-const EXTENSIONS = ['.tsx', '.ts', '.jsx', '.js'];
+const EXTENSIONS: string[] = ['.tsx', '.ts', '.jsx', '.js'];
 
-function resolveImportPath(fromFile: string, importPath: string, aliasRoot: string | undefined): string | undefined {
+function resolveImportPath(
+  fromFile: string,
+  importPath: string,
+  aliasRoot: string | undefined
+): string | undefined {
   let basePath: string;
   if (importPath.startsWith('@/') && aliasRoot) {
     basePath = join(aliasRoot, importPath.slice(2));
@@ -64,14 +68,20 @@ const rule: Rule.RuleModule = {
           callee.property.name === 'lazy'
         );
       }
-      return callee.type === 'Identifier' && lazyLocalName !== undefined && callee.name === lazyLocalName;
+      return (
+        callee.type === 'Identifier' && lazyLocalName !== undefined && callee.name === lazyLocalName
+      );
     }
 
     return {
       ImportDeclaration(node) {
         if (node.source.value !== 'react') return;
         for (const spec of node.specifiers) {
-          if (spec.type === 'ImportSpecifier' && spec.imported.type === 'Identifier' && spec.imported.name === 'lazy') {
+          if (
+            spec.type === 'ImportSpecifier' &&
+            spec.imported.type === 'Identifier' &&
+            spec.imported.name === 'lazy'
+          ) {
             lazyLocalName = spec.local.name;
           }
         }
@@ -80,7 +90,8 @@ const rule: Rule.RuleModule = {
         if (!isLazyCallee(node.callee)) return;
 
         const arg = node.arguments[0];
-        if (!arg || (arg.type !== 'ArrowFunctionExpression' && arg.type !== 'FunctionExpression')) return;
+        if (!arg || (arg.type !== 'ArrowFunctionExpression' && arg.type !== 'FunctionExpression'))
+          return;
         // Dynamic import() is its own ESTree node type (ImportExpression), not a
         // CallExpression with callee.type 'Import' - that was an older/non-standard
         // representation some parsers used.
@@ -92,7 +103,11 @@ const rule: Rule.RuleModule = {
 
         const resolved = resolveImportPath(context.filename, pathArg.value, aliasRoot);
         if (!resolved) {
-          context.report({ node: node as unknown as Rule.Node, messageId: 'unresolvedImport', data: { path: pathArg.value } });
+          context.report({
+            node: node as unknown as Rule.Node,
+            messageId: 'unresolvedImport',
+            data: { path: pathArg.value },
+          });
         }
       },
     };

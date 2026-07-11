@@ -1,5 +1,5 @@
-import rule from './noDomClassnameMutation.js';
 import { makeRuleTester } from '../testSupport/ruleTester.js';
+import rule from './noDomClassnameMutation.js';
 
 const ruleTester = makeRuleTester();
 

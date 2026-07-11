@@ -34,7 +34,13 @@ import type { MemberExpression } from 'estree';
  * — it never runs during render at all, so that was a false positive, not
  * a real finding.
  */
-const BROWSER_GLOBALS = new Set(['window', 'document', 'localStorage', 'sessionStorage', 'navigator']);
+const BROWSER_GLOBALS = new Set([
+  'window',
+  'document',
+  'localStorage',
+  'sessionStorage',
+  'navigator',
+]);
 const SYNC_RENDER_CALLBACK_HOOKS = new Set(['useMemo', 'useState', 'useReducer']);
 
 // Deliberately loose/structural rather than the full Rule.Node discriminated union -
@@ -49,7 +55,11 @@ interface MinimalNode {
 function isSyncRenderCallback(fn: MinimalNode): boolean {
   const parent = fn.parent;
   if (!parent || parent.type !== 'CallExpression' || !parent.callee) return false;
-  return parent.callee.type === 'Identifier' && Boolean(parent.callee.name) && SYNC_RENDER_CALLBACK_HOOKS.has(parent.callee.name as string);
+  return (
+    parent.callee.type === 'Identifier' &&
+    Boolean(parent.callee.name) &&
+    SYNC_RENDER_CALLBACK_HOOKS.has(parent.callee.name as string)
+  );
 }
 
 function isDeferred(node: Rule.Node): boolean {
@@ -57,7 +67,11 @@ function isDeferred(node: Rule.Node): boolean {
   let functionBoundariesCrossed = 0;
 
   while (current) {
-    if (current.type === 'FunctionDeclaration' || current.type === 'FunctionExpression' || current.type === 'ArrowFunctionExpression') {
+    if (
+      current.type === 'FunctionDeclaration' ||
+      current.type === 'FunctionExpression' ||
+      current.type === 'ArrowFunctionExpression'
+    ) {
       if (isSyncRenderCallback(current)) return false;
       functionBoundariesCrossed++;
       if (functionBoundariesCrossed >= 2) return true;
@@ -71,12 +85,16 @@ function isDeferred(node: Rule.Node): boolean {
 const rule: Rule.RuleModule = {
   meta: {
     type: 'problem',
-    docs: { description: 'Disallow SSR-hydration-unsafe browser-global reads and non-deterministic values during render' },
+    docs: {
+      description:
+        'Disallow SSR-hydration-unsafe browser-global reads and non-deterministic values during render',
+    },
     schema: [],
     messages: {
       browserGlobal:
         '"{{name}}" is a browser global read during render — unsafe under SSR/SSG. Read it inside useEffect/useSyncExternalStore instead.',
-      nonDeterministic: '"{{name}}" produces a different value on server vs client render — causes hydration mismatches.',
+      nonDeterministic:
+        '"{{name}}" produces a different value on server vs client render — causes hydration mismatches.',
     },
   },
   create(context) {
@@ -84,7 +102,11 @@ const rule: Rule.RuleModule = {
       Identifier(node) {
         if (!BROWSER_GLOBALS.has(node.name)) return;
         const parent = (node as unknown as { parent?: Rule.Node }).parent;
-        if (parent?.type === 'MemberExpression' && (parent as unknown as MemberExpression).object !== node) return;
+        if (
+          parent?.type === 'MemberExpression' &&
+          (parent as unknown as MemberExpression).object !== node
+        )
+          return;
         // A non-computed object-literal / class member key named after a browser
         // global (e.g. `{ document: 1 }`) is just an identifier key, not a read.
         if (
@@ -94,12 +116,24 @@ const rule: Rule.RuleModule = {
         )
           return;
         if (isDeferred(node as unknown as Rule.Node)) return;
-        context.report({ node: node as unknown as Rule.Node, messageId: 'browserGlobal', data: { name: node.name } });
+        context.report({
+          node: node as unknown as Rule.Node,
+          messageId: 'browserGlobal',
+          data: { name: node.name },
+        });
       },
       NewExpression(node) {
-        if (node.callee.type === 'Identifier' && node.callee.name === 'Date' && node.arguments.length === 0) {
+        if (
+          node.callee.type === 'Identifier' &&
+          node.callee.name === 'Date' &&
+          node.arguments.length === 0
+        ) {
           if (!isDeferred(node as unknown as Rule.Node)) {
-            context.report({ node: node as unknown as Rule.Node, messageId: 'nonDeterministic', data: { name: 'new Date()' } });
+            context.report({
+              node: node as unknown as Rule.Node,
+              messageId: 'nonDeterministic',
+              data: { name: 'new Date()' },
+            });
           }
         }
       },
@@ -112,7 +146,11 @@ const rule: Rule.RuleModule = {
           node.callee.property.name === 'random'
         ) {
           if (!isDeferred(node as unknown as Rule.Node)) {
-            context.report({ node: node as unknown as Rule.Node, messageId: 'nonDeterministic', data: { name: 'Math.random()' } });
+            context.report({
+              node: node as unknown as Rule.Node,
+              messageId: 'nonDeterministic',
+              data: { name: 'Math.random()' },
+            });
           }
         }
       },

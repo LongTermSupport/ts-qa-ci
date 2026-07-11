@@ -60,7 +60,7 @@ const rule = {
                 // `cause` property.
                 const newExpr = arg;
                 const callee = newExpr.callee;
-                if (callee.type !== 'Identifier' || !/Error$/.test(callee.name))
+                if (callee.type !== 'Identifier' || !callee.name.endsWith('Error'))
                     return;
                 const hasCauseArg = newExpr.arguments.some((a) => a.type === 'ObjectExpression' &&
                     a.properties.some((p) => p.type === 'Property' && p.key.type === 'Identifier' && p.key.name === 'cause'));

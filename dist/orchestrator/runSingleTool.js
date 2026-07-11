@@ -1,7 +1,7 @@
-import { resolveToolModule } from './resolveToolModule.js';
-import { runTool } from './runTool.js';
-import { logToolResult } from './runPhase.js';
 import { KNOWN_TOOLS } from './resolveDisabledTools.js';
+import { resolveToolModule } from './resolveToolModule.js';
+import { logToolResult } from './runPhase.js';
+import { runTool } from './runTool.js';
 /**
  * Runs exactly one named tool, bypassing phase grouping entirely
  * (`ts-qa -t <tool>` — docs/pipeline.md "Running a single phase or tool").
@@ -26,6 +26,10 @@ export async function runSingleTool(toolName, ctx, packageRoot, projectRoot) {
     // Report the tool module's own `phase`, not a phase from the PHASES
     // ladder — an opt-in tool like stryker has no ladder slot at all, and for
     // ladder tools this is equivalent to the phase runPhase.ts would report.
-    return { phase: tool.phase, toolResults: { [toolName]: result }, failed: result.exitClass !== 'clean' };
+    return {
+        phase: tool.phase,
+        toolResults: { [toolName]: result },
+        failed: result.exitClass !== 'clean',
+    };
 }
 //# sourceMappingURL=runSingleTool.js.map

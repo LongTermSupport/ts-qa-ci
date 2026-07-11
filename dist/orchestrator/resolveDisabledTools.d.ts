@@ -6,7 +6,6 @@
  * runPipeline.ts and the opt-in tools.
  */
 export declare const KNOWN_TOOLS: readonly ["oxlint", "prettier", "eslintFix", "eslintReport", "remarkValidateLinks", "knip", "tsc", "dependencyCruiser", "vitest", "playwright", "stryker"];
-export type KnownTool = (typeof KNOWN_TOOLS)[number];
 export interface DisabledToolsResult {
     /** Tool names to skip. */
     disabled: Set<string>;

@@ -1,8 +1,9 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
+
 import {
+  AS_ENUM_BAN_SELECTORS,
   STRICT_TYPESCRIPT_RULES,
   STRICT_TYPESCRIPT_STYLISTIC_RULES,
-  AS_ENUM_BAN_SELECTORS,
 } from './strictTypescript.js';
 
 /**
@@ -39,7 +40,10 @@ describe('STRICT_TYPESCRIPT_RULES (load-bearing strict-TS baseline)', () => {
 
   it('forbids object-literal type assertions (assertionStyle as, objectLiteral never)', () => {
     const entry = STRICT_TYPESCRIPT_RULES['@typescript-eslint/consistent-type-assertions'];
-    const [severity, options] = entry as [string, { assertionStyle: string; objectLiteralTypeAssertions: string }];
+    const [severity, options] = entry as [
+      string,
+      { assertionStyle: string; objectLiteralTypeAssertions: string },
+    ];
     expect(severity).toBe('error');
     expect(options.assertionStyle).toBe('as');
     expect(options.objectLiteralTypeAssertions).toBe('never');
@@ -87,24 +91,33 @@ describe('STRICT_TYPESCRIPT_RULES (load-bearing strict-TS baseline)', () => {
 
 describe('STRICT_TYPESCRIPT_STYLISTIC_RULES (opt-in stylistic layer)', () => {
   it('carries the opinionated elevations at error', () => {
-    expect(STRICT_TYPESCRIPT_STYLISTIC_RULES['@typescript-eslint/explicit-module-boundary-types']).toBe('error');
+    expect(
+      STRICT_TYPESCRIPT_STYLISTIC_RULES['@typescript-eslint/explicit-module-boundary-types']
+    ).toBe('error');
     expect(STRICT_TYPESCRIPT_STYLISTIC_RULES['@typescript-eslint/prefer-readonly']).toBe('error');
-    expect(STRICT_TYPESCRIPT_STYLISTIC_RULES['@typescript-eslint/no-import-type-side-effects']).toBe('error');
-    expect(STRICT_TYPESCRIPT_STYLISTIC_RULES['@typescript-eslint/no-useless-empty-export']).toBe('error');
-    expect(STRICT_TYPESCRIPT_STYLISTIC_RULES['@typescript-eslint/default-param-last']).toBe('error');
+    expect(
+      STRICT_TYPESCRIPT_STYLISTIC_RULES['@typescript-eslint/no-import-type-side-effects']
+    ).toBe('error');
+    expect(STRICT_TYPESCRIPT_STYLISTIC_RULES['@typescript-eslint/no-useless-empty-export']).toBe(
+      'error'
+    );
+    expect(STRICT_TYPESCRIPT_STYLISTIC_RULES['@typescript-eslint/default-param-last']).toBe(
+      'error'
+    );
     expect(STRICT_TYPESCRIPT_STYLISTIC_RULES['@typescript-eslint/method-signature-style']).toEqual([
       'error',
       'property',
     ]);
-    expect(STRICT_TYPESCRIPT_STYLISTIC_RULES['@typescript-eslint/consistent-type-exports']).toEqual([
-      'error',
-      { fixMixedExportsWithInlineTypeSpecifier: true },
-    ]);
+    expect(STRICT_TYPESCRIPT_STYLISTIC_RULES['@typescript-eslint/consistent-type-exports']).toEqual(
+      ['error', { fixMixedExportsWithInlineTypeSpecifier: true }]
+    );
   });
 
   it('does not overlap the load-bearing set (no rule declared in both)', () => {
     const loadBearing = new Set(Object.keys(STRICT_TYPESCRIPT_RULES));
-    const overlap = Object.keys(STRICT_TYPESCRIPT_STYLISTIC_RULES).filter((k) => loadBearing.has(k));
+    const overlap = Object.keys(STRICT_TYPESCRIPT_STYLISTIC_RULES).filter((k) =>
+      loadBearing.has(k)
+    );
     expect(overlap).toEqual([]);
   });
 });

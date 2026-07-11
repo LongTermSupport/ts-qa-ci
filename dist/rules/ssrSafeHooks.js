@@ -31,19 +31,29 @@
  * — it never runs during render at all, so that was a false positive, not
  * a real finding.
  */
-const BROWSER_GLOBALS = new Set(['window', 'document', 'localStorage', 'sessionStorage', 'navigator']);
+const BROWSER_GLOBALS = new Set([
+    'window',
+    'document',
+    'localStorage',
+    'sessionStorage',
+    'navigator',
+]);
 const SYNC_RENDER_CALLBACK_HOOKS = new Set(['useMemo', 'useState', 'useReducer']);
 function isSyncRenderCallback(fn) {
     const parent = fn.parent;
     if (!parent || parent.type !== 'CallExpression' || !parent.callee)
         return false;
-    return parent.callee.type === 'Identifier' && Boolean(parent.callee.name) && SYNC_RENDER_CALLBACK_HOOKS.has(parent.callee.name);
+    return (parent.callee.type === 'Identifier' &&
+        Boolean(parent.callee.name) &&
+        SYNC_RENDER_CALLBACK_HOOKS.has(parent.callee.name));
 }
 function isDeferred(node) {
     let current = node.parent;
     let functionBoundariesCrossed = 0;
     while (current) {
-        if (current.type === 'FunctionDeclaration' || current.type === 'FunctionExpression' || current.type === 'ArrowFunctionExpression') {
+        if (current.type === 'FunctionDeclaration' ||
+            current.type === 'FunctionExpression' ||
+            current.type === 'ArrowFunctionExpression') {
             if (isSyncRenderCallback(current))
                 return false;
             functionBoundariesCrossed++;
@@ -57,7 +67,9 @@ function isDeferred(node) {
 const rule = {
     meta: {
         type: 'problem',
-        docs: { description: 'Disallow SSR-hydration-unsafe browser-global reads and non-deterministic values during render' },
+        docs: {
+            description: 'Disallow SSR-hydration-unsafe browser-global reads and non-deterministic values during render',
+        },
         schema: [],
         messages: {
             browserGlobal: '"{{name}}" is a browser global read during render — unsafe under SSR/SSG. Read it inside useEffect/useSyncExternalStore instead.',
@@ -70,7 +82,8 @@ const rule = {
                 if (!BROWSER_GLOBALS.has(node.name))
                     return;
                 const parent = node.parent;
-                if (parent?.type === 'MemberExpression' && parent.object !== node)
+                if (parent?.type === 'MemberExpression' &&
+                    parent.object !== node)
                     return;
                 // A non-computed object-literal / class member key named after a browser
                 // global (e.g. `{ document: 1 }`) is just an identifier key, not a read.
@@ -80,12 +93,22 @@ const rule = {
                     return;
                 if (isDeferred(node))
                     return;
-                context.report({ node: node, messageId: 'browserGlobal', data: { name: node.name } });
+                context.report({
+                    node: node,
+                    messageId: 'browserGlobal',
+                    data: { name: node.name },
+                });
             },
             NewExpression(node) {
-                if (node.callee.type === 'Identifier' && node.callee.name === 'Date' && node.arguments.length === 0) {
+                if (node.callee.type === 'Identifier' &&
+                    node.callee.name === 'Date' &&
+                    node.arguments.length === 0) {
                     if (!isDeferred(node)) {
-                        context.report({ node: node, messageId: 'nonDeterministic', data: { name: 'new Date()' } });
+                        context.report({
+                            node: node,
+                            messageId: 'nonDeterministic',
+                            data: { name: 'new Date()' },
+                        });
                     }
                 }
             },
@@ -96,7 +119,11 @@ const rule = {
                     node.callee.property.type === 'Identifier' &&
                     node.callee.property.name === 'random') {
                     if (!isDeferred(node)) {
-                        context.report({ node: node, messageId: 'nonDeterministic', data: { name: 'Math.random()' } });
+                        context.report({
+                            node: node,
+                            messageId: 'nonDeterministic',
+                            data: { name: 'Math.random()' },
+                        });
                     }
                 }
             },

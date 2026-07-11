@@ -39,7 +39,7 @@ const rule = {
                 }
             },
             'TSInterfaceDeclaration, TSTypeAliasDeclaration'(node) {
-                if (!/Props$/.test(node.id.name))
+                if (!node.id.name.endsWith('Props'))
                     return;
                 if (node.parent.type === 'ExportNamedDeclaration')
                     return;

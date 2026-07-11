@@ -5,7 +5,11 @@
  * TSQA_READONLY, only TSQA_CI, so a Claude Code session stays writable.
  */
 
-export function detectCi(env: NodeJS.ProcessEnv, stdinIsTTY: boolean, stdoutIsTTY: boolean): boolean {
+export function detectCi(
+  env: NodeJS.ProcessEnv,
+  stdinIsTTY: boolean,
+  stdoutIsTTY: boolean
+): boolean {
   if (env.CI === 'true') return true;
   // BUG A: this used to console.log unconditionally, corrupting `--json` output.
   // detectCi is now pure; the CLAUDECODE diagnostic lives in runPipeline, where

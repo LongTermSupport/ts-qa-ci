@@ -1,5 +1,5 @@
-import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import { test } from 'node:test';
 
 import { parseArgs } from './ts-qa.js';
 
@@ -49,7 +49,10 @@ test('--aggregate --read-only stays read-only', () => {
 });
 
 test('--aggregate --write is still rejected', () => {
-  assert.throws(() => parseArgs(['--aggregate', '--write']), /--aggregate is only valid for read-only/);
+  assert.throws(
+    () => parseArgs(['--aggregate', '--write']),
+    /--aggregate is only valid for read-only/
+  );
 });
 
 test('a plain run is NOT forced read-only', () => {

@@ -46,7 +46,11 @@ const rule = {
                     if (insideUi)
                         return; // third-party compound passthrough carve-out
                     const src = context.sourceCode.getText(name);
-                    context.report({ node: node, messageId: 'classNameOnComponent', data: { component: src } });
+                    context.report({
+                        node: node,
+                        messageId: 'classNameOnComponent',
+                        data: { component: src },
+                    });
                     return;
                 }
                 if (name.type !== 'JSXIdentifier')
@@ -60,7 +64,11 @@ const rule = {
                 // test — ratchet-legal, and no real HTML/JSX tag starts non-ASCII.
                 if (/^[a-z]/.test(tag))
                     return;
-                context.report({ node: node, messageId: 'classNameOnComponent', data: { component: tag } });
+                context.report({
+                    node: node,
+                    messageId: 'classNameOnComponent',
+                    data: { component: tag },
+                });
             },
         };
     },

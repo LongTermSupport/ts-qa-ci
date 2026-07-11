@@ -41,8 +41,8 @@ import type { Expression, LogicalExpression, PrivateIdentifier, Super } from 'es
  * Future rule extensions could narrow to TanStack-Query shapes specifically;
  * current breadth is intentional to make the policy unambiguous.
  */
-const SCOPE_INCLUDES = ['/src/widgets/', '/src/core/', '/src/api-client/hooks/'];
-const SCOPE_EXCLUDES = ['/src/api-client/generated/'];
+const SCOPE_INCLUDES: string[] = ['/src/widgets/', '/src/core/', '/src/api-client/hooks/'];
+const SCOPE_EXCLUDES: string[] = ['/src/api-client/generated/'];
 const TEST_FILE_PATTERN = /\.test\.[cm]?[jt]sx?$/;
 
 function isEmptyLiteralFallback(node: Expression | PrivateIdentifier | Super): boolean {

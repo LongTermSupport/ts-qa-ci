@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
+
 import type { RunContext, ToolResult } from './types.js';
 
 /**
@@ -20,7 +21,10 @@ export interface HookContext {
 
 type HookFn = (ctx: HookContext) => Promise<void> | void;
 
-async function loadHook(projectRoot: string, fileName: 'hookPre.ts' | 'hookPost.ts'): Promise<HookFn | undefined> {
+async function loadHook(
+  projectRoot: string,
+  fileName: 'hookPre.ts' | 'hookPost.ts'
+): Promise<HookFn | undefined> {
   const hookPath = join(projectRoot, 'tsQaConfig', fileName);
   if (!existsSync(hookPath)) return undefined;
   const mod = (await import(pathToFileURL(hookPath).href)) as { default: HookFn };

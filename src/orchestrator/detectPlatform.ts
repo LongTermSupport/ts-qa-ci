@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+
 import type { Platform } from './types.js';
 
 interface ConsumerPackageJson {
@@ -14,7 +15,9 @@ function readConsumerPackageJson(pkgPath: string): ConsumerPackageJson | undefin
   } catch (error) {
     // Malformed consumer package.json is a real, expected-at-this-boundary failure mode -
     // fall back to generic platform detection but surface it, don't hide it.
-    console.warn(`ts-qa: could not parse ${pkgPath} as JSON (${(error as Error).message}); assuming generic platform`);
+    console.warn(
+      `ts-qa: could not parse ${pkgPath} as JSON (${(error as Error).message}); assuming generic platform`
+    );
     return undefined;
   }
 }

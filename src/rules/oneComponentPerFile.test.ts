@@ -1,5 +1,5 @@
-import rule from './oneComponentPerFile.js';
 import { makeRuleTester } from '../testSupport/ruleTester.js';
+import rule from './oneComponentPerFile.js';
 
 const ruleTester = makeRuleTester();
 

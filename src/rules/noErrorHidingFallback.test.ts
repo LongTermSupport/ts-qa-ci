@@ -1,5 +1,5 @@
-import rule from './noErrorHidingFallback.js';
 import { makeRuleTester } from '../testSupport/ruleTester.js';
+import rule from './noErrorHidingFallback.js';
 
 const ruleTester = makeRuleTester();
 

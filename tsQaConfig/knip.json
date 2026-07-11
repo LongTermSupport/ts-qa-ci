@@ -1,0 +1,10 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "src/tools/*.ts",
+    "configDefaults/generic/eslint.config.js",
+    "configDefaults/generic/dependency-cruiser.config.cjs"
+  ],
+  "project": ["src/**/*.{ts,tsx}"],
+  "ignoreDependencies": ["oxlint"]
+}

@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
+
 import type { Platform, ToolModule } from './types.js';
 
 /**
@@ -10,7 +11,12 @@ import type { Platform, ToolModule } from './types.js';
  * a consumer replacing an entire tool module is a legitimate, no-guarantee-
  * bypassing choice (they own the consequences of a bad replacement).
  */
-export async function resolveToolModule(projectRoot: string, platform: Platform, packageRoot: string, toolName: string): Promise<ToolModule> {
+export async function resolveToolModule(
+  projectRoot: string,
+  platform: Platform,
+  packageRoot: string,
+  toolName: string
+): Promise<ToolModule> {
   const projectOverride = join(projectRoot, 'tsQaConfig', 'tools', `${toolName}.ts`);
   if (existsSync(projectOverride)) {
     const mod = (await import(pathToFileURL(projectOverride).href)) as { default: ToolModule };

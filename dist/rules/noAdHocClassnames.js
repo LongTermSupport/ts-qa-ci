@@ -25,16 +25,27 @@ const rule = {
                 if (!node.value)
                     return;
                 if (node.value.type === 'Literal' && typeof node.value.value === 'string') {
-                    context.report({ node: node, messageId: 'adHocClassname', data: { resolvers: resolvers.join('/') } });
+                    context.report({
+                        node: node,
+                        messageId: 'adHocClassname',
+                        data: { resolvers: resolvers.join('/') },
+                    });
                     return;
                 }
                 if (node.value.type === 'JSXExpressionContainer') {
                     const expr = node.value.expression;
-                    if (expr.type === 'TemplateLiteral' || (expr.type === 'Literal' && typeof expr.value === 'string')) {
-                        context.report({ node: node, messageId: 'adHocClassname', data: { resolvers: resolvers.join('/') } });
+                    if (expr.type === 'TemplateLiteral' ||
+                        (expr.type === 'Literal' && typeof expr.value === 'string')) {
+                        context.report({
+                            node: node,
+                            messageId: 'adHocClassname',
+                            data: { resolvers: resolvers.join('/') },
+                        });
                         return;
                     }
-                    if (expr.type === 'CallExpression' && expr.callee.type === 'Identifier' && resolvers.includes(expr.callee.name)) {
+                    if (expr.type === 'CallExpression' &&
+                        expr.callee.type === 'Identifier' &&
+                        resolvers.includes(expr.callee.name)) {
                         return; // sanctioned variant-resolver call
                     }
                 }

@@ -62,15 +62,14 @@ const rule: Rule.RuleModule = {
         // `cause` property.
         const newExpr = arg as NewExpression;
         const callee = newExpr.callee;
-        if (callee.type !== 'Identifier' || !/Error$/.test(callee.name)) return;
+        if (callee.type !== 'Identifier' || !callee.name.endsWith('Error')) return;
 
         const hasCauseArg = newExpr.arguments.some(
           (a) =>
             a.type === 'ObjectExpression' &&
             a.properties.some(
-              (p) =>
-                p.type === 'Property' && p.key.type === 'Identifier' && p.key.name === 'cause',
-            ),
+              (p) => p.type === 'Property' && p.key.type === 'Identifier' && p.key.name === 'cause'
+            )
         );
         if (!hasCauseArg) {
           context.report({ node: arg as Rule.Node, messageId: 'missing' });

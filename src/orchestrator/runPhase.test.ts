@@ -1,7 +1,7 @@
-import { describe, it, expect, afterEach } from 'vitest';
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import { runPhase } from './runPhase.js';
 import type { PhaseDefinition, RunContext } from './types.js';
@@ -62,9 +62,19 @@ describe('runPhase', () => {
       tsc: toolSource('tsc', 3, 'crash'),
       dependencyCruiser: toolSource('dependencyCruiser', 3, 'clean'),
     });
-    const phaseDef: PhaseDefinition = { number: 3, name: 'Static Analysis', tools: ['tsc', 'dependencyCruiser'], mutates: false };
+    const phaseDef: PhaseDefinition = {
+      number: 3,
+      name: 'Static Analysis',
+      tools: ['tsc', 'dependencyCruiser'],
+      mutates: false,
+    };
 
-    const result = await runPhase(phaseDef, baseCtx({ aggregate: true }), '/package-root-unused', projectRoot);
+    const result = await runPhase(
+      phaseDef,
+      baseCtx({ aggregate: true }),
+      '/package-root-unused',
+      projectRoot
+    );
 
     expect(result.failed).toBe(true);
     expect(result.toolResults.tsc?.exitClass).toBe('crash');
@@ -77,9 +87,19 @@ describe('runPhase', () => {
       eslintReport: toolSource('eslintReport', 2, 'failure'),
       knip: toolSource('knip', 2, 'clean'),
     });
-    const phaseDef: PhaseDefinition = { number: 2, name: 'Lint & Validation', tools: ['eslintReport', 'knip'], mutates: false };
+    const phaseDef: PhaseDefinition = {
+      number: 2,
+      name: 'Lint & Validation',
+      tools: ['eslintReport', 'knip'],
+      mutates: false,
+    };
 
-    const result = await runPhase(phaseDef, baseCtx({ aggregate: true }), '/package-root-unused', projectRoot);
+    const result = await runPhase(
+      phaseDef,
+      baseCtx({ aggregate: true }),
+      '/package-root-unused',
+      projectRoot
+    );
 
     expect(result.failed).toBe(true);
     expect(result.toolResults.eslintReport?.exitClass).toBe('failure');
@@ -92,9 +112,19 @@ describe('runPhase', () => {
       eslintReport: toolSource('eslintReport', 2, 'failure'),
       knip: toolSource('knip', 2, 'clean'),
     });
-    const phaseDef: PhaseDefinition = { number: 2, name: 'Lint & Validation', tools: ['eslintReport', 'knip'], mutates: false };
+    const phaseDef: PhaseDefinition = {
+      number: 2,
+      name: 'Lint & Validation',
+      tools: ['eslintReport', 'knip'],
+      mutates: false,
+    };
 
-    const result = await runPhase(phaseDef, baseCtx({ aggregate: false }), '/package-root-unused', projectRoot);
+    const result = await runPhase(
+      phaseDef,
+      baseCtx({ aggregate: false }),
+      '/package-root-unused',
+      projectRoot
+    );
 
     expect(result.failed).toBe(true);
     expect(result.toolResults.knip).toBeUndefined();

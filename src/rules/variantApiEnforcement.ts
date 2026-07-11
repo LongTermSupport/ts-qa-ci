@@ -26,7 +26,8 @@ const rule: Rule.RuleModule = {
     },
     schema: [],
     messages: {
-      notYetImplemented: 'variant-api-enforcement is a scaffold — real logic lands after Task 4.6 builds the variant-prop catalogue.',
+      notYetImplemented:
+        'variant-api-enforcement is a scaffold — real logic lands after Task 4.6 builds the variant-prop catalogue.',
     },
   },
   create() {

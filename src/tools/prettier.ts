@@ -24,7 +24,8 @@ const tool: ToolModule = {
       return { exitClass: 'clean', stdout: result.stdout, stderr: result.stderr };
     }
 
-    const isParseError = result.stderr.includes('SyntaxError') || result.stdout.includes('due to errors');
+    const isParseError =
+      result.stderr.includes('SyntaxError') || result.stdout.includes('due to errors');
     return {
       exitClass: isParseError ? 'crash' : 'failure',
       stdout: result.stdout,

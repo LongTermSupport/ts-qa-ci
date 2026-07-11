@@ -45,7 +45,8 @@ const tool: ToolModule = {
 
     // oxlint: exit 0 = clean, exit 1 = lint problems found (with --deny-warnings, this
     // includes warnings), anything else = crash/config error.
-    if (result.exitCode === 0) return { exitClass: 'clean', stdout: result.stdout, stderr: result.stderr };
+    if (result.exitCode === 0)
+      return { exitClass: 'clean', stdout: result.stdout, stderr: result.stderr };
     if (result.exitCode === 1) {
       // A fatal --config parse error ALSO exits 1, indistinguishable by exit code
       // from "lint problems found" (GitHub issue #2, BUG B). Left as a `failure`
@@ -58,7 +59,12 @@ const tool: ToolModule = {
       if (/Failed to parse oxlint config/i.test(combined)) {
         return { exitClass: 'crash', stdout: result.stdout, stderr: result.stderr };
       }
-      return { exitClass: 'failure', stdout: result.stdout, stderr: result.stderr, diffPending: ctx.readOnly };
+      return {
+        exitClass: 'failure',
+        stdout: result.stdout,
+        stderr: result.stderr,
+        diffPending: ctx.readOnly,
+      };
     }
     return { exitClass: 'crash', stdout: result.stdout, stderr: result.stderr };
   },

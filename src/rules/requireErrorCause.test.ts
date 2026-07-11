@@ -1,5 +1,5 @@
-import rule from './requireErrorCause.js';
 import { makeRuleTester } from '../testSupport/ruleTester.js';
+import rule from './requireErrorCause.js';
 
 const ruleTester = makeRuleTester();
 

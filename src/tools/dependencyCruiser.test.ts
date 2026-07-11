@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { RunContext } from '../orchestrator/types.js';
 
@@ -51,7 +51,8 @@ describe('dependencyCruiser tool', () => {
   it('maps an unwrapped non-zero exit (small violation count) to failure', async () => {
     execToolMock.mockResolvedValue({
       exitCode: 3,
-      stdout: 'x 3 dependency violations (3 errors, 0 warnings). 120 modules, 340 dependencies cruised.',
+      stdout:
+        'x 3 dependency violations (3 errors, 0 warnings). 120 modules, 340 dependencies cruised.',
       stderr: '',
     });
 
@@ -63,7 +64,8 @@ describe('dependencyCruiser tool', () => {
   it('classifies 256 error-level violations as failure even though the OS wraps the exit code to 0', async () => {
     execToolMock.mockResolvedValue({
       exitCode: 0,
-      stdout: 'x 256 dependency violations (256 errors, 0 warnings). 120 modules, 340 dependencies cruised.',
+      stdout:
+        'x 256 dependency violations (256 errors, 0 warnings). 120 modules, 340 dependencies cruised.',
       stderr: '',
     });
 
@@ -75,7 +77,8 @@ describe('dependencyCruiser tool', () => {
   it('keeps a warnings-only run (exit 0, 0 errors) clean', async () => {
     execToolMock.mockResolvedValue({
       exitCode: 0,
-      stdout: 'x 4 dependency violations (0 errors, 4 warnings). 120 modules, 340 dependencies cruised.',
+      stdout:
+        'x 4 dependency violations (0 errors, 4 warnings). 120 modules, 340 dependencies cruised.',
       stderr: '',
     });
 

@@ -55,7 +55,12 @@ const tool = {
             if (/Failed to parse oxlint config/i.test(combined)) {
                 return { exitClass: 'crash', stdout: result.stdout, stderr: result.stderr };
             }
-            return { exitClass: 'failure', stdout: result.stdout, stderr: result.stderr, diffPending: ctx.readOnly };
+            return {
+                exitClass: 'failure',
+                stdout: result.stdout,
+                stderr: result.stderr,
+                diffPending: ctx.readOnly,
+            };
         }
         return { exitClass: 'crash', stdout: result.stdout, stderr: result.stderr };
     },

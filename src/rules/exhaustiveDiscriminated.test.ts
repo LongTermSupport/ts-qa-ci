@@ -1,5 +1,5 @@
-import rule from './exhaustiveDiscriminated.js';
 import { makeRuleTester } from '../testSupport/ruleTester.js';
+import rule from './exhaustiveDiscriminated.js';
 
 const ruleTester = makeRuleTester();
 

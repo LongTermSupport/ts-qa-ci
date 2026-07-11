@@ -1,7 +1,7 @@
-import { describe, it, expect, afterEach } from 'vitest';
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { afterEach, describe, expect, it } from 'vitest';
 
 import { init } from './init.js';
 
@@ -38,7 +38,8 @@ describe('init', () => {
     const configDir = join(cwd, 'tsQaConfig');
     mkdirSync(configDir, { recursive: true });
     const eslintPath = join(configDir, 'eslint.config.js');
-    const custom = '// my carefully hand-crafted config\nexport default [{ rules: { foo: "error" } }];\n';
+    const custom =
+      '// my carefully hand-crafted config\nexport default [{ rules: { foo: "error" } }];\n';
     writeFileSync(eslintPath, custom);
 
     await init({ cwd });
@@ -57,5 +58,40 @@ describe('init', () => {
     expect(existsSync(join(configDir, 'hookPre.ts'))).toBe(true);
     expect(existsSync(join(configDir, 'hookPost.ts'))).toBe(true);
     expect(existsSync(join(configDir, 'tier-a-exemptions.json'))).toBe(true);
+  });
+
+  // packageRoot points at ts-qa-ci itself, where the shipped archetype lives.
+  const packageRoot = process.cwd();
+  const archetypeSource = readFileSync(
+    join(packageRoot, 'configDefaults', 'github-workflows', 'ci.yml'),
+    'utf-8'
+  );
+
+  it('scaffolds the CI archetype into .github/workflows/ts-qa.yml when packageRoot is given', async () => {
+    const cwd = freshProject();
+    await init({ cwd, packageRoot });
+
+    const workflow = join(cwd, '.github', 'workflows', 'ts-qa.yml');
+    expect(existsSync(workflow)).toBe(true);
+    expect(readFileSync(workflow, 'utf-8')).toBe(archetypeSource);
+  });
+
+  it('leaves a pre-existing .github/workflows/ts-qa.yml untouched', async () => {
+    const cwd = freshProject();
+    const workflow = join(cwd, '.github', 'workflows', 'ts-qa.yml');
+    mkdirSync(join(cwd, '.github', 'workflows'), { recursive: true });
+    const custom = 'name: my custom pipeline\n';
+    writeFileSync(workflow, custom);
+
+    await init({ cwd, packageRoot });
+
+    expect(readFileSync(workflow, 'utf-8')).toBe(custom);
+  });
+
+  it('does not scaffold the CI workflow when packageRoot is omitted', async () => {
+    const cwd = freshProject();
+    await init({ cwd });
+
+    expect(existsSync(join(cwd, '.github', 'workflows', 'ts-qa.yml'))).toBe(false);
   });
 });

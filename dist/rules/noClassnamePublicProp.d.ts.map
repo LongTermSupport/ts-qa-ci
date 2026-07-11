@@ -1,1 +1,1 @@
-{"version":3,"file":"noClassnamePublicProp.d.ts","sourceRoot":"","sources":["../../src/rules/noClassnamePublicProp.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,IAAI,EAAE,MAAM,QAAQ,CAAC;AA2CnC,QAAA,MAAM,IAAI,EAAE,IAAI,CAAC,UAwChB,CAAC;AAEF,eAAe,IAAI,CAAC"}
+{"version":3,"file":"noClassnamePublicProp.d.ts","sourceRoot":"","sources":["../../src/rules/noClassnamePublicProp.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,IAAI,EAAE,MAAM,QAAQ,CAAC;AA6CnC,QAAA,MAAM,IAAI,EAAE,IAAI,CAAC,UAwChB,CAAC;AAEF,eAAe,IAAI,CAAC"}

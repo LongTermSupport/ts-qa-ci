@@ -20,7 +20,12 @@ const tool: ToolModule = {
     // package never ships) and bypassed the config cascade entirely - depcruise
     // silently fell back to its own zero-config defaults on every real run (found
     // while dogfooding on lts-commerce-site, Plan 011 Task 4.2/4.3).
-    const configPath = resolveConfigPath(ctx.cwd, ctx.platform, 'dependency-cruiser.config.cjs', ctx.packageRoot);
+    const configPath = resolveConfigPath(
+      ctx.cwd,
+      ctx.platform,
+      'dependency-cruiser.config.cjs',
+      ctx.packageRoot
+    );
     const result = await execTool('npx', ['depcruise', '--config', configPath, 'src'], ctx.cwd);
 
     // depcruise is the only count-based tool here: it sets its exit code to the

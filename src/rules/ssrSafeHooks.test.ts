@@ -1,5 +1,5 @@
-import rule from './ssrSafeHooks.js';
 import { makeRuleTester } from '../testSupport/ruleTester.js';
+import rule from './ssrSafeHooks.js';
 
 const ruleTester = makeRuleTester();
 

@@ -31,10 +31,39 @@ import { basename, extname } from 'node:path';
  * gap in this rule.
  */
 const DEFAULT_BANNED_ELEMENTS = [
-    'div', 'span', 'button', 'a', 'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-    'ul', 'ol', 'li', 'section', 'article', 'header', 'footer', 'nav', 'aside',
-    'form', 'input', 'select', 'textarea', 'label', 'table', 'tr', 'td', 'th',
-    'img', 'video', 'audio', 'iframe',
+    'div',
+    'span',
+    'button',
+    'a',
+    'p',
+    'h1',
+    'h2',
+    'h3',
+    'h4',
+    'h5',
+    'h6',
+    'ul',
+    'ol',
+    'li',
+    'section',
+    'article',
+    'header',
+    'footer',
+    'nav',
+    'aside',
+    'form',
+    'input',
+    'select',
+    'textarea',
+    'label',
+    'table',
+    'tr',
+    'td',
+    'th',
+    'img',
+    'video',
+    'audio',
+    'iframe',
 ];
 // Sentinel in `bannedElements` meaning "ban every lowercase JSX identifier"
 // (rather than only the fixed DEFAULT_BANNED_ELEMENTS list).
@@ -156,7 +185,11 @@ const rule = {
                     return;
                 if (!banAll && !bannedSet.has(tag))
                     return;
-                context.report({ node: node, messageId: 'adHocHtml', data: { tag } });
+                context.report({
+                    node: node,
+                    messageId: 'adHocHtml',
+                    data: { tag },
+                });
             },
         };
     },

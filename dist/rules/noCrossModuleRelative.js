@@ -20,7 +20,14 @@
  * This is a purely syntactic rule: it inspects `ImportDeclaration` source
  * string literals and `context.filename`, so it needs no type information.
  */
-const DEFAULT_TOP_LEVEL_MODULES = ['core', 'api-client', 'ui', 'auth', 'domain', 'widgets'];
+const DEFAULT_TOP_LEVEL_MODULES = [
+    'core',
+    'api-client',
+    'ui',
+    'auth',
+    'domain',
+    'widgets',
+];
 const DEFAULT_ALIAS = '~';
 const DEFAULT_SRC_MARKER = '/src/';
 const rule = {

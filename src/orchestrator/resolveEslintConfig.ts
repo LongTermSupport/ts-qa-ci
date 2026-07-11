@@ -1,8 +1,9 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { TIER_A_RULE_IDS } from './tierARules.js';
+
 import { globIntersects } from './glob.js';
+import { TIER_A_RULE_IDS } from './tierARules.js';
 import type { Platform } from './types.js';
 
 /**
@@ -26,7 +27,7 @@ interface FlatConfigEntry {
   [key: string]: unknown;
 }
 
-export interface TierAExemption {
+interface TierAExemption {
   ruleId: string;
   files: string[];
   justification: string;
@@ -39,7 +40,7 @@ function loadExemptions(projectRoot: string): TierAExemption[] {
   for (const entry of raw) {
     if (!entry.ruleId || !entry.justification || !entry.files?.length) {
       throw new Error(
-        `ts-qa: tsQaConfig/tier-a-exemptions.json has an entry missing ruleId, files, or justification: ${JSON.stringify(entry)}`,
+        `ts-qa: tsQaConfig/tier-a-exemptions.json has an entry missing ruleId, files, or justification: ${JSON.stringify(entry)}`
       );
     }
   }
@@ -98,7 +99,7 @@ export async function resolveEslintConfig(
   projectRoot: string,
   platform: Platform,
   packageRoot: string,
-  quiet: boolean = process.env.TSQA_JSON === '1',
+  quiet: boolean = process.env.TSQA_JSON === '1'
 ): Promise<FlatConfigEntry[]> {
   const platformBasePath = join(packageRoot, 'configDefaults', platform, 'eslint.config.js');
   const genericBasePath = join(packageRoot, 'configDefaults', 'generic', 'eslint.config.js');
@@ -113,20 +114,26 @@ export async function resolveEslintConfig(
   const touchedTierARules = findTierARuleOverrides(projectAdditions);
 
   const unsanctioned = touchedTierARules.filter(
-    (touched) => !exemptions.some((exemption) => exemption.ruleId === touched.ruleId && globIntersects(exemption.files, touched.files)),
+    (touched) =>
+      !exemptions.some(
+        (exemption) =>
+          exemption.ruleId === touched.ruleId && globIntersects(exemption.files, touched.files)
+      )
   );
 
   if (unsanctioned.length > 0) {
     const ruleList = unsanctioned.map((t) => t.ruleId).join(', ');
     throw new Error(
       `ts-qa: tsQaConfig/eslint.config.js attempts to override Tier A rule(s) ${ruleList} ` +
-        `with no matching tsQaConfig/tier-a-exemptions.json entry. Add a justified exemption or remove the override.`,
+        `with no matching tsQaConfig/tier-a-exemptions.json entry. Add a justified exemption or remove the override.`
     );
   }
 
   if (exemptions.length > 0 && !quiet) {
     for (const exemption of exemptions) {
-      console.log(`ts-qa: Tier A exemption active — ${exemption.ruleId} on ${exemption.files.join(',')} — "${exemption.justification}"`);
+      console.log(
+        `ts-qa: Tier A exemption active — ${exemption.ruleId} on ${exemption.files.join(',')} — "${exemption.justification}"`
+      );
     }
   }
 

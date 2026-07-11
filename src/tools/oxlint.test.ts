@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { RunContext } from '../orchestrator/types.js';
 
@@ -38,7 +38,11 @@ describe('oxlint tool', () => {
   beforeEach(() => execToolMock.mockReset());
 
   it('maps exit 0 to clean', async () => {
-    execToolMock.mockResolvedValue({ exitCode: 0, stdout: 'Found 0 warnings and 0 errors.', stderr: '' });
+    execToolMock.mockResolvedValue({
+      exitCode: 0,
+      stdout: 'Found 0 warnings and 0 errors.',
+      stderr: '',
+    });
 
     const result = await tool.run(ctx());
 

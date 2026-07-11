@@ -1,0 +1,77 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Archetype CI workflow shipped by @longtermsupport/ts-qa-ci.
+#
+# Drop this into your project as .github/workflows/ts-qa.yml — or run
+# `npx ts-qa init`, which scaffolds it for you (and never overwrites an existing
+# one).
+#
+# It runs ts-qa in WRITE mode so auto-fixable issues (Prettier, ESLint --fix) are
+# fixed and committed straight back to the branch — the php-qa-ci "auto fix and
+# commit" pattern — and fails the build only on what CANNOT be auto-fixed (type
+# errors, test failures, ESLint errors with no fixer, unresolved links, etc.).
+#
+# Auto-fixes are pushed to the SAME branch using the default GITHUB_TOKEN, which
+# works for branches and pull requests from the same repository. Pull requests
+# from forks cannot be pushed to with GITHUB_TOKEN (a GitHub security boundary):
+# ts-qa still runs and reports failures there, but the auto-fix commit is skipped.
+# Pushes made with GITHUB_TOKEN do not themselves trigger a new workflow run, so
+# there is no fix→commit→fix loop.
+# ─────────────────────────────────────────────────────────────────────────────
+name: CI
+on: [push, pull_request]
+
+# Required so the auto-fix commit can be pushed back to the branch.
+permissions:
+  contents: write
+
+concurrency:
+  group: ts-qa-${{ github.workflow }}-${{ github.event.pull_request.head.ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Check out the branch head (not the PR merge ref) so fixes can be pushed back.
+          ref: ${{ github.head_ref || github.ref_name }}
+          # Default token pushes to same-repo branches; swap for a PAT if you need
+          # fork-PR pushes or your branch protection requires it.
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # WRITE mode: Phase 1 (Prettier + ESLint --fix) applies fixes in place.
+      # continue-on-error so we still commit whatever got fixed even when a later,
+      # non-auto-fixable phase (tsc, tests) fails — the fix commit makes the diff
+      # visible on the PR. The final step re-asserts the real pass/fail.
+      - name: Run ts-qa (auto-fix)
+        id: tsqa
+        run: npx ts-qa --write
+        continue-on-error: true
+
+      - name: Commit and push auto-fixes
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add -A
+            git commit -m "ci: ts-qa auto-fix"
+            git push
+            echo "ts-qa applied and pushed auto-fixes."
+          else
+            echo "No auto-fixable changes to commit."
+          fi
+
+      # Fail the build on anything ts-qa could not auto-fix.
+      - name: Enforce QA result
+        if: steps.tsqa.outcome == 'failure'
+        run: |
+          echo "::error::ts-qa failed on issues that cannot be auto-fixed — see the 'Run ts-qa' step log above."
+          exit 1

@@ -35,7 +35,12 @@ export function logToolResult(toolName: string, result: ToolResult, json: boolea
   if (result.stderr.trim()) process.stderr.write(result.stderr);
 }
 
-export async function runPhase(phaseDef: PhaseDefinition, ctx: RunContext, packageRoot: string, projectRoot: string): Promise<PhaseResult> {
+export async function runPhase(
+  phaseDef: PhaseDefinition,
+  ctx: RunContext,
+  packageRoot: string,
+  projectRoot: string
+): Promise<PhaseResult> {
   const toolResults: Record<string, ToolResult> = {};
   let failed = false;
 

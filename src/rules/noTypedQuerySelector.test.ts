@@ -1,5 +1,5 @@
-import rule from './noTypedQuerySelector.js';
 import { makeRuleTester } from '../testSupport/ruleTester.js';
+import rule from './noTypedQuerySelector.js';
 
 const ruleTester = makeRuleTester();
 

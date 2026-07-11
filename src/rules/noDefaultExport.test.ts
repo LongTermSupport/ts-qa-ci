@@ -1,5 +1,5 @@
-import rule from './noDefaultExport.js';
 import { makeRuleTester } from '../testSupport/ruleTester.js';
+import rule from './noDefaultExport.js';
 
 const ruleTester = makeRuleTester();
 

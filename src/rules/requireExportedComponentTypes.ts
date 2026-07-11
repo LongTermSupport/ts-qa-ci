@@ -39,8 +39,10 @@ const rule: Rule.RuleModule = {
           if (spec.local.type === 'Identifier') separatelyExported.add(spec.local.name);
         }
       },
-      'TSInterfaceDeclaration, TSTypeAliasDeclaration'(node: Rule.Node & { id: { name: string }; parent: { type: string } }) {
-        if (!/Props$/.test(node.id.name)) return;
+      'TSInterfaceDeclaration, TSTypeAliasDeclaration'(
+        node: Rule.Node & { id: { name: string }; parent: { type: string } }
+      ) {
+        if (!node.id.name.endsWith('Props')) return;
         if (node.parent.type === 'ExportNamedDeclaration') return;
         candidates.push(node);
       },

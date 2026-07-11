@@ -1,7 +1,8 @@
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import rule from './validateLazyImports.js';
+
 import { makeRuleTester } from '../testSupport/ruleTester.js';
+import rule from './validateLazyImports.js';
 
 const ruleTester = makeRuleTester();
 

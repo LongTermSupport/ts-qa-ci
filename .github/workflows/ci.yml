@@ -1,0 +1,71 @@
+# CI for ts-qa-ci itself — it dogfoods its OWN pipeline (`npx ts-qa`), the same
+# gate it ships to consumers. Playwright is disabled for this repo via
+# tsQaConfig/ts-qa.json (no served site).
+#
+# This uses the same php-qa-ci-style auto-fix-and-commit pattern as the consumer
+# archetype (configDefaults/github-workflows/ci.yml): run ts-qa in WRITE mode so
+# Prettier/ESLint fixes are applied, rebuild the committed dist/ (dist is
+# committed on purpose for clone-and-go installs), commit any resulting changes
+# back to the branch, and fail only on issues ts-qa cannot auto-fix. Pushes made
+# with GITHUB_TOKEN do not trigger a new run, so there is no commit loop.
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: ci-${{ github.event.pull_request.head.ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  qa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # Build first so the committed dist/ matches source before anything runs it
+      # (the base ESLint config imports from dist/).
+      - name: Build
+        run: npm run build
+
+      # Dogfood: run ts-qa on ts-qa-ci itself, in WRITE mode so auto-fixable
+      # issues are applied. continue-on-error so we still commit the fixes (and any
+      # rebuilt dist) even when a non-auto-fixable phase fails.
+      - name: Run ts-qa (self-hosted, auto-fix)
+        id: tsqa
+        run: npx ts-qa --write
+        continue-on-error: true
+
+      - name: Commit and push auto-fixes + rebuilt dist
+        run: |
+          if [ -n "$(git status --porcelain)" ]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add -A
+            git commit -m "ci: ts-qa auto-fix + rebuilt dist"
+            git push
+            echo "Committed auto-fixes / rebuilt dist."
+          else
+            echo "Nothing to fix; dist up to date."
+          fi
+
+      - name: Enforce QA result
+        if: steps.tsqa.outcome == 'failure'
+        run: |
+          echo "::error::ts-qa failed on issues that cannot be auto-fixed — see the 'Run ts-qa' step log above."
+          exit 1
