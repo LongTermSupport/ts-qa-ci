@@ -9,31 +9,21 @@ import { bundledBin, execTool } from "./execTool.js";
  * first dogfood run will surface false-positive noise.
  */
 const tool = {
-  name: "knip",
-  phase: 2,
-  mutates: false,
-  pathSupporting: false,
-  async run(ctx) {
-    const configPath = resolveConfigPath(
-      ctx.cwd,
-      ctx.platform,
-      "knip.json",
-      ctx.packageRoot,
-    );
-    // Bundled dependency (not a peer): spawn ts-qa-ci's own copy directly. See bundledBin.
-    const bin = bundledBin(ctx.packageRoot, "knip");
-    const result = await execTool(
-      bin,
-      ["--config", configPath],
-      ctx.cwd,
-      dirname(bin),
-    );
-    return {
-      exitClass: result.exitCode === 0 ? "clean" : "failure",
-      stdout: result.stdout,
-      stderr: result.stderr,
-    };
-  },
+    name: "knip",
+    phase: 2,
+    mutates: false,
+    pathSupporting: false,
+    async run(ctx) {
+        const configPath = resolveConfigPath(ctx.cwd, ctx.platform, "knip.json", ctx.packageRoot);
+        // Bundled dependency (not a peer): spawn ts-qa-ci's own copy directly. See bundledBin.
+        const bin = bundledBin(ctx.packageRoot, "knip");
+        const result = await execTool(bin, ["--config", configPath], ctx.cwd, dirname(bin));
+        return {
+            exitClass: result.exitCode === 0 ? "clean" : "failure",
+            stdout: result.stdout,
+            stderr: result.stderr,
+        };
+    },
 };
 export default tool;
 //# sourceMappingURL=knip.js.map

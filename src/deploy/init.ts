@@ -32,8 +32,25 @@ const EXEMPTIONS_STUB = `[]
 const ESLINT_CONFIG_STUB = `// Project-specific ESLint additions. This file is merged AFTER ts-qa-ci's
 // Tier A core config, never replaces it - any attempt to override a Tier A
 // rule's severity here is rejected unless a matching entry exists in
-// tier-a-exemptions.json (see resolveEslintConfig.ts).
+// tier-a-exemptions.json (see resolveEslintConfig.ts). This is the SINGLE home
+// for ALL project lint opinion (local plugins, strict-TS preset, per-dir
+// overrides) - it is composed for BOTH \`npx eslint\` and \`npx ts-qa\`.
 export default [];
+`;
+
+const ROOT_ESLINT_DELEGATOR_STUB = `// Project-root ESLint config — the SSoT delegator.
+//
+// It exists ONLY so \`npx eslint\` and your editor run the EXACT same rule set as
+// \`npx ts-qa\`. Keep it a thin delegator: ALL project-specific lint opinion (local
+// plugins, strict-TS, per-dir overrides) belongs in tsQaConfig/eslint.config.js,
+// which ts-qa composes for BOTH entrypoints. The eslintConfigParity phase-0 check
+// fails the pipeline if this file ever stops delegating.
+//
+// A root config is optional — delete this file to lint solely through ts-qa — but
+// if it exists it MUST delegate.
+import { projectEslintConfig } from "@longtermsupport/ts-qa-ci";
+
+export default await projectEslintConfig(import.meta.url);
 `;
 
 /** Relative location of the shipped consumer CI archetype within the package. */
@@ -80,6 +97,10 @@ export async function init(options: InitOptions): Promise<void> {
     [join(configDir, "hookPost.ts"), HOOK_POST_STUB],
     [join(configDir, "tier-a-exemptions.json"), EXEMPTIONS_STUB],
     [join(configDir, "eslint.config.js"), ESLINT_CONFIG_STUB],
+    // The optional root-level SSoT delegator. scaffoldFile never overwrites, so an
+    // existing hand-rolled root config is left in place for the eslintConfigParity
+    // check to flag with migration guidance rather than being clobbered here.
+    [join(options.cwd, "eslint.config.js"), ROOT_ESLINT_DELEGATOR_STUB],
   ];
 
   for (const [path, content] of files) {

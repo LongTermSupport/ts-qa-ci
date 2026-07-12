@@ -2,6 +2,10 @@
 
 One page for all the tools `ts-qa` orchestrates, rather than a file each — jump to the one you need.
 
+## eslintConfigParity (Phase 0)
+
+Near-instant SSoT guard, runs first. If your project has a root `eslint.config.js`, it dynamic-imports it and proves it delegates to ts-qa's resolved config (via `projectEslintConfig`), so `npx eslint`/your editor and `npx ts-qa` run identical rules. No root config → clean (qaConfig-only is valid). Root config present but hand-rolled (divergent) → fails with migration guidance. Self-hosting (ts-qa-ci linting itself) is exempt. Full detail: [configuration.md](configuration.md#eslint-one-config-two-entrypoints-ssot).
+
 ## supplyChain (Phase 0)
 
 Read-only audit of your package-manager supply-chain config (bake window, blocked install scripts, lockfile-drift failure, public registry, pinned pnpm). Fails the pipeline if a mandatory protection is missing. Requires pnpm. First-party SHA-pinned git deps are never flagged. Full detail: [supply-chain.md](supply-chain.md).

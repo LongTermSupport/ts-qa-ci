@@ -5,23 +5,29 @@
  * TSQA_READONLY, only TSQA_CI, so a Claude Code session stays writable.
  */
 export function detectCi(env, stdinIsTTY, stdoutIsTTY) {
-  if (env.CI === "true") return true;
-  // BUG A: this used to console.log unconditionally, corrupting `--json` output.
-  // detectCi is now pure; the CLAUDECODE diagnostic lives in runPipeline, where
-  // the json flag is known and the message can be gated on non-json runs.
-  if (env.CLAUDECODE === "1") return true;
-  if (!stdinIsTTY || !stdoutIsTTY) return true;
-  return false;
+    if (env.CI === "true")
+        return true;
+    // BUG A: this used to console.log unconditionally, corrupting `--json` output.
+    // detectCi is now pure; the CLAUDECODE diagnostic lives in runPipeline, where
+    // the json flag is known and the message can be gated on non-json runs.
+    if (env.CLAUDECODE === "1")
+        return true;
+    if (!stdinIsTTY || !stdoutIsTTY)
+        return true;
+    return false;
 }
 export function detectReadOnly(env) {
-  if (env.TSQA_READONLY === "1") return true;
-  if (env.TSQA_READONLY === "0") return false;
-  if (env.GITHUB_ACTIONS === "true") return true;
-  return false;
+    if (env.TSQA_READONLY === "1")
+        return true;
+    if (env.TSQA_READONLY === "0")
+        return false;
+    if (env.GITHUB_ACTIONS === "true")
+        return true;
+    return false;
 }
 /** An env var counts as "set" only when present and non-empty (an empty string is treated as unset). */
 function isSet(value) {
-  return value !== undefined && value !== "";
+    return value !== undefined && value !== "";
 }
 /**
  * Auto-detect an agent/LLM environment, so `--llm` output can turn on without an
@@ -35,13 +41,20 @@ function isSet(value) {
  * run to a file must keep the rich output, not silently switch to summary mode.
  */
 export function detectLlm(env) {
-  if (env.TSQA_LLM === "1") return true;
-  if (env.TSQA_LLM === "0") return false;
-  if (env.CLAUDECODE === "1") return true;
-  if (isSet(env.CLAUDE_CODE)) return true;
-  if (isSet(env.CLAUDE_CODE_ENTRYPOINT)) return true;
-  if (isSet(env.AGENT)) return true;
-  if (isSet(env.AI_AGENT)) return true;
-  return false;
+    if (env.TSQA_LLM === "1")
+        return true;
+    if (env.TSQA_LLM === "0")
+        return false;
+    if (env.CLAUDECODE === "1")
+        return true;
+    if (isSet(env.CLAUDE_CODE))
+        return true;
+    if (isSet(env.CLAUDE_CODE_ENTRYPOINT))
+        return true;
+    if (isSet(env.AGENT))
+        return true;
+    if (isSet(env.AI_AGENT))
+        return true;
+    return false;
 }
 //# sourceMappingURL=detectReadOnly.js.map

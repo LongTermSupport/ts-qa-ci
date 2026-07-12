@@ -15,29 +15,28 @@
  */
 const WIDGET_MOUNT_ENTRY = /\/src\/widgets\/[^/]+\/index\.[cm]?tsx?$/;
 const rule = {
-  meta: {
-    type: "problem",
-    docs: {
-      description: "Disallow `export default` except in widget mount entries.",
+    meta: {
+        type: "problem",
+        docs: {
+            description: "Disallow `export default` except in widget mount entries.",
+        },
+        schema: [],
+        messages: {
+            default: "Avoid `export default`. Use a named export so renames propagate cleanly.",
+        },
     },
-    schema: [],
-    messages: {
-      default:
-        "Avoid `export default`. Use a named export so renames propagate cleanly.",
+    create(context) {
+        const filename = context.filename;
+        // Widget mount points are the one allowed shape.
+        if (WIDGET_MOUNT_ENTRY.test(filename)) {
+            return {};
+        }
+        return {
+            ExportDefaultDeclaration(node) {
+                context.report({ node, messageId: "default" });
+            },
+        };
     },
-  },
-  create(context) {
-    const filename = context.filename;
-    // Widget mount points are the one allowed shape.
-    if (WIDGET_MOUNT_ENTRY.test(filename)) {
-      return {};
-    }
-    return {
-      ExportDefaultDeclaration(node) {
-        context.report({ node, messageId: "default" });
-      },
-    };
-  },
 };
 export default rule;
 //# sourceMappingURL=noDefaultExport.js.map

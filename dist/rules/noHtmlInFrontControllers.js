@@ -32,77 +32,77 @@
  *   - `exemptFileSuffixes` (default ['.stories.tsx', '.test.tsx']) — files exempt
  *     by suffix; a colocated story/test harness may render a raw wrapper.
  */
-const DOCTRINE_URL =
-  "https://github.com/LongTermSupport/ts-qa-ci/blob/main/docs/closed-styling-doctrine.md#no-html-in-front-controllers";
+const DOCTRINE_URL = "https://github.com/LongTermSupport/ts-qa-ci/blob/main/docs/closed-styling-doctrine.md#no-html-in-front-controllers";
 // Sentinel in `bannedElements` meaning "ban every lowercase JSX identifier".
 const BAN_ALL = "*";
 function pathIncludesAny(filename, globs) {
-  // Segment-anchored (shared shape with no-ad-hoc-html): prefix a leading slash
-  // so `src/screens/` matches `/proj/src/screens/…` but NOT `…/adsrc/screens/…`.
-  const anchored = `/${filename.replace(/^\/+/, "")}`;
-  return globs.some((glob) =>
-    anchored.includes(`/${glob.replace(/^\/+/, "").replace(/\*+$/, "")}`),
-  );
+    // Segment-anchored (shared shape with no-ad-hoc-html): prefix a leading slash
+    // so `src/screens/` matches `/proj/src/screens/…` but NOT `…/adsrc/screens/…`.
+    const anchored = `/${filename.replace(/^\/+/, "")}`;
+    return globs.some((glob) => anchored.includes(`/${glob.replace(/^\/+/, "").replace(/\*+$/, "")}`));
 }
 const rule = {
-  meta: {
-    type: "problem",
-    docs: {
-      description:
-        "Forbid all raw HTML in declared front-controller dirs (screens/pages) — composition roots must be pure component composition.",
-      url: DOCTRINE_URL,
-    },
-    schema: [
-      {
-        type: "object",
-        properties: {
-          frontControllerDirs: { type: "array", items: { type: "string" } },
-          bannedElements: { type: "array", items: { type: "string" } },
-          allowedElements: { type: "array", items: { type: "string" } },
-          exemptFileSuffixes: { type: "array", items: { type: "string" } },
+    meta: {
+        type: "problem",
+        docs: {
+            description: "Forbid all raw HTML in declared front-controller dirs (screens/pages) — composition roots must be pure component composition.",
+            url: DOCTRINE_URL,
         },
-        additionalProperties: false,
-      },
-    ],
-    messages: {
-      htmlInFrontController:
-        "Raw <{{tag}}> is banned in front-controller files ({{dirs}}) — a composition root must be built ENTIRELY from typed components so its every state is enumerable and testable. Move this markup into a primitive (a variant-driven component that owns its raw HTML) and compose it here. Doctrine: " +
-        DOCTRINE_URL,
+        schema: [
+            {
+                type: "object",
+                properties: {
+                    frontControllerDirs: { type: "array", items: { type: "string" } },
+                    bannedElements: { type: "array", items: { type: "string" } },
+                    allowedElements: { type: "array", items: { type: "string" } },
+                    exemptFileSuffixes: { type: "array", items: { type: "string" } },
+                },
+                additionalProperties: false,
+            },
+        ],
+        messages: {
+            htmlInFrontController: "Raw <{{tag}}> is banned in front-controller files ({{dirs}}) — a composition root must be built ENTIRELY from typed components so its every state is enumerable and testable. Move this markup into a primitive (a variant-driven component that owns its raw HTML) and compose it here. Doctrine: " +
+                DOCTRINE_URL,
+        },
     },
-  },
-  create(context) {
-    const options = context.options[0] ?? {};
-    const frontControllerDirs = options.frontControllerDirs ?? [
-      "src/screens/",
-      "src/pages/",
-    ];
-    const bannedElements = options.bannedElements ?? [BAN_ALL];
-    const allowedElements = new Set(options.allowedElements ?? []);
-    const exemptFileSuffixes = options.exemptFileSuffixes ?? [
-      ".stories.tsx",
-      ".test.tsx",
-    ];
-    const banAll = bannedElements.includes(BAN_ALL);
-    const bannedSet = new Set(bannedElements);
-    if (!pathIncludesAny(context.filename, frontControllerDirs)) return {};
-    if (exemptFileSuffixes.some((suffix) => context.filename.endsWith(suffix)))
-      return {};
-    return {
-      JSXOpeningElement(node) {
-        if (node.name.type !== "JSXIdentifier") return;
-        const tag = node.name.name;
-        // PascalCase = custom component (always allowed); lowercase = raw HTML.
-        if (/^[A-Z]/.test(tag)) return;
-        if (allowedElements.has(tag)) return;
-        if (!banAll && !bannedSet.has(tag)) return;
-        context.report({
-          node: node,
-          messageId: "htmlInFrontController",
-          data: { tag, dirs: frontControllerDirs.join(", ") },
-        });
-      },
-    };
-  },
+    create(context) {
+        const options = (context.options[0] ?? {});
+        const frontControllerDirs = options.frontControllerDirs ?? [
+            "src/screens/",
+            "src/pages/",
+        ];
+        const bannedElements = options.bannedElements ?? [BAN_ALL];
+        const allowedElements = new Set(options.allowedElements ?? []);
+        const exemptFileSuffixes = options.exemptFileSuffixes ?? [
+            ".stories.tsx",
+            ".test.tsx",
+        ];
+        const banAll = bannedElements.includes(BAN_ALL);
+        const bannedSet = new Set(bannedElements);
+        if (!pathIncludesAny(context.filename, frontControllerDirs))
+            return {};
+        if (exemptFileSuffixes.some((suffix) => context.filename.endsWith(suffix)))
+            return {};
+        return {
+            JSXOpeningElement(node) {
+                if (node.name.type !== "JSXIdentifier")
+                    return;
+                const tag = node.name.name;
+                // PascalCase = custom component (always allowed); lowercase = raw HTML.
+                if (/^[A-Z]/.test(tag))
+                    return;
+                if (allowedElements.has(tag))
+                    return;
+                if (!banAll && !bannedSet.has(tag))
+                    return;
+                context.report({
+                    node: node,
+                    messageId: "htmlInFrontController",
+                    data: { tag, dirs: frontControllerDirs.join(", ") },
+                });
+            },
+        };
+    },
 };
 export default rule;
 //# sourceMappingURL=noHtmlInFrontControllers.js.map
