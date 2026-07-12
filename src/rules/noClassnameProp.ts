@@ -2,8 +2,9 @@ import type { Rule } from "eslint";
 import type { JSXAttribute, JSXOpeningElement } from "estree-jsx";
 
 /**
- * Tier B (opt-in CDD) — companion to variant-api-enforcement, axis 2 of the
- * className doctrine (rule-classification.md §2b). Ported from admin-ts's
+ * Tier A always-on — the closed-styling BOUNDARY, call-site half (with
+ * no-classname-public-prop = declaration-site half, and no-ad-hoc-html = element
+ * half). See docs/closed-styling-doctrine.md. Ported from admin-ts's
  * dbf/no-className-prop (Plan 00004).
  *
  * WHY: a styleable component owns its presentation via typed variant props

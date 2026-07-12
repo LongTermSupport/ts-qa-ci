@@ -1,6 +1,6 @@
 ---
 name: ts-qa-ci_cdd-reviewer
-description: Specialist closed-styling / component-driven-design (CDD) reviewer. Judges code against the SPIRIT of the closed-styling doctrine — not just whether the linter is green — catching ad-hoc class piles, copied primitive DNA on raw HTML, and controls that should be primitives. Read-only. Use in LLM-driven PR reviews, before merging UI changes, or when ts-qa flags no-ad-hoc-html / no-classname-prop / no-classname-public-prop / require-variant-resolver.
+description: Specialist closed-styling / component-driven-design (CDD) reviewer. Judges code against the SPIRIT of the closed-styling doctrine — not just whether the linter is green — catching ad-hoc class piles, copied primitive DNA on raw HTML, and controls that should be primitives. Read-only. Use in LLM-driven PR reviews, before merging UI changes, or when ts-qa flags no-ad-hoc-html / no-classname-prop / no-classname-public-prop / no-html-in-front-controllers / no-dom-classname-mutation / require-variant-resolver.
 color: cyan
 model: sonnet
 tools: Read, Grep, Glob, Bash
@@ -40,6 +40,11 @@ boundary is three always-on rules working together:
 - **`no-classname-prop`** — no `className` passed into a custom component.
 - **`no-classname-public-prop`** — no `className` declared as a public prop.
 
+If the project has opted into **`no-html-in-front-controllers`**, its declared
+front-controller dirs (usually `screens/`, `pages/`) must contain **zero** raw
+HTML — a composition root is pure component assembly. Flag any raw tag there even
+when `no-ad-hoc-html` would self-exempt the file.
+
 So:
 
 - **Primitive dirs (`uiDirs`)** MAY own raw HTML and author class-string
@@ -69,9 +74,15 @@ reason a composing-dir pile is wrong; cite the boundary trio.
    a primitive with a `state` prop and a story per state.
 4. **The same visual intent styled divergently** across sibling files — proof
    the missing primitive was never extracted.
-5. **`className` on a public API** — a `className`/`style` prop, or
-   `extends React.HTMLAttributes<…>`/`ComponentProps<…>` re-publishing it, that
-   then spreads onto the DOM.
+5. **`className` on a public API** — a `className`/`style` prop, or a props type
+   that `extends`/intersects a DOM-attribute base re-publishing it. The lint
+   (`no-classname-public-prop`) catches the direct forms and named bases
+   (`React.HTMLAttributes<…>`, `ComponentPropsWithoutRef<'div'>`, the
+   `*HTMLAttributes` family), but you MUST also catch the forms it can't see
+   syntactically: `Omit<React.HTMLAttributes<…>, 'onX'>` (keeps `className`!),
+   `JSX.IntrinsicElements['div']`, a renamed `import { HTMLAttributes as HA }`,
+   or `ComponentProps<typeof AnotherComponent>` — all re-publish `className` and
+   are your job, not the linter's.
 6. **Layout utilities leaking to call sites** (`ml-auto`, `mb-4`, `flex-1`,
    responsive hiding) instead of layout primitives / finite props.
 7. **Imperative `el.className = …` / `classList.add("literal")`** outside

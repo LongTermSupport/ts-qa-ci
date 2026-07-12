@@ -34,6 +34,7 @@ export declare const TIER_A_ESLINT_RULES: {
 /** Tier B rule IDs — opt-in, NOT spread by default (consumer must enable explicitly). */
 export declare const TIER_B_ESLINT_RULES: {
   readonly "ts-qa/require-variant-resolver": "warn";
+  readonly "ts-qa/no-html-in-front-controllers": "off";
   readonly "ts-qa/variant-api-enforcement": "off";
   readonly "ts-qa/one-component-per-file": "warn";
   readonly "ts-qa/explicit-component-displayname": "warn";

@@ -10,6 +10,7 @@ import noDomClassnameMutation from "./noDomClassnameMutation.js";
 import noDuplicateSectionIds from "./noDuplicateSectionIds.js";
 import noErrorHidingFallback from "./noErrorHidingFallback.js";
 import noEslintDisable from "./noEslintDisable.js";
+import noHtmlInFrontControllers from "./noHtmlInFrontControllers.js";
 import noInlineComponentDeclInRender from "./noInlineComponentDeclInRender.js";
 import noPlaceholder from "./noPlaceholder.js";
 import noTypedQuerySelector from "./noTypedQuerySelector.js";
@@ -37,6 +38,7 @@ export const tsQaPlugin = {
     "ssr-safe-hooks": ssrSafeHooks,
     "validate-lazy-imports": validateLazyImports,
     "no-ad-hoc-html": noAdHocHtml,
+    "no-html-in-front-controllers": noHtmlInFrontControllers,
     "require-variant-resolver": requireVariantResolver,
     "variant-api-enforcement": variantApiEnforcement,
     // Ported from admin-ts's eslint-plugin-dbf (Plan 00004).
@@ -94,6 +96,11 @@ export const TIER_B_ESLINT_RULES = {
   // opt-in so a project using plain static Tailwind strings internally is not
   // forced into meaningless cn('static') wrappers.
   "ts-qa/require-variant-resolver": "warn",
+  // Pins composition ROOTS (screens/pages) to zero raw HTML — stricter than
+  // no-ad-hoc-html, which self-exempts a screen whose export matches its
+  // filename. OFF by default because "which dirs are front controllers" is a
+  // per-project convention: enable as ["error", { frontControllerDirs: [...] }].
+  "ts-qa/no-html-in-front-controllers": "off",
   "ts-qa/variant-api-enforcement": "off", // scaffold only, see variantApiEnforcement.ts
   // Ported CDD / hygiene rules (Plan 00004) — opinionated, opt-in.
   "ts-qa/one-component-per-file": "warn",

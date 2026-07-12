@@ -1,37 +1,25 @@
-/**
- * WHY: the wedge's JSX-side CSS discipline is airtight — `className` is not a
- * prop (dbf/no-className-prop), raw HTML lives only in `~/ui` (dbf/no-raw-html-
- * outside-ui), and utility strings are composed via `cn()` inside `~/ui`. But
- * an imperative `el.className = 'p-4'` or `el.classList.add('p-4')` smuggles
- * ad-hoc CSS straight past every JSX-attribute rule. The one sanctioned site is
- * the shadow-mount node in `src/core/loader.ts` (`inner.className = 'mount'` —
- * structural, not styling); everything else is a bypass.
- *
- * Detects (outside `src/ui/**`):
- *   - `<expr>.className = …`            (AssignmentExpression)
- *   - `<expr>.classList.<m>('literal')` (CallExpression with a string literal
- *     arg — add/remove/toggle/replace)
- *
- * The single sanctioned site is allow-listed via the rule's `allow` option in
- * `eslint.config.mjs` (`{ allow: ['src/core/loader.ts'] }`) — reviewable in the
- * config diff, unlike an inline comment the author grants themselves.
- *
- * Not auto-fixable.
- */
-const SRC_PATTERN = /\/src\//;
-const UI_PATTERN = /\/src\/ui\//;
+function pathIncludesAny(filename, globs) {
+  // Segment-anchored (shared shape with the other closed-styling rules): prefix a
+  // leading slash so `src/ui/` matches `/proj/src/ui/…` but NOT `…/adsrc/ui/…`.
+  const anchored = `/${filename.replace(/^\/+/, "")}`;
+  return globs.some((glob) =>
+    anchored.includes(`/${glob.replace(/^\/+/, "").replace(/\*+$/, "")}`),
+  );
+}
 const rule = {
   meta: {
     type: "problem",
     docs: {
       description:
-        "Disallow imperative className / classList mutation outside ~/ui.",
+        "Disallow imperative className / classList mutation outside the primitive dirs.",
       url: "https://github.com/LongTermSupport/ts-qa-ci/blob/main/docs/closed-styling-doctrine.md#no-dom-classname-mutation",
     },
     schema: [
       {
         type: "object",
         properties: {
+          scopeGlobs: { type: "array", items: { type: "string" } },
+          uiDirs: { type: "array", items: { type: "string" } },
           allow: { type: "array", items: { type: "string" } },
         },
         additionalProperties: false,
@@ -39,13 +27,19 @@ const rule = {
     ],
     messages: {
       mutation:
-        "Imperative className/classList mutation is ad-hoc CSS outside ~/ui — it smuggles arbitrary CSS past every JSX rule, the same infinite-state problem with worse visibility. Render through a ~/ui component's variant prop; if this is loader-level structure, it must be on the rule allowlist in eslint.config.mjs (reviewed). Doctrine: https://github.com/LongTermSupport/ts-qa-ci/blob/main/docs/closed-styling-doctrine.md",
+        "Imperative className/classList mutation is ad-hoc CSS outside the primitive dirs — it smuggles arbitrary CSS past every JSX rule, the same infinite-state problem with worse visibility. Render through a primitive component's variant prop; if this is genuinely loader-level structure, it must be on the rule's reviewed `allow` list in the ESLint config. Doctrine: https://github.com/LongTermSupport/ts-qa-ci/blob/main/docs/closed-styling-doctrine.md",
     },
   },
   create(context) {
     const filename = context.filename;
-    if (!SRC_PATTERN.test(filename) || UI_PATTERN.test(filename)) return {};
     const options = context.options[0] ?? {};
+    const scopeGlobs = options.scopeGlobs ?? ["src/"];
+    const uiDirs = options.uiDirs ?? ["src/ui/"];
+    if (
+      !pathIncludesAny(filename, scopeGlobs) ||
+      pathIncludesAny(filename, uiDirs)
+    )
+      return {};
     const allow = options.allow ?? [];
     if (allow.some((entry) => filename.includes(entry))) return {};
     return {

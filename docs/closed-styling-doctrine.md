@@ -144,6 +144,19 @@ or extract the markup into a primitive with a closed variant API. Adopt the
 **allowlist-dir mode** (`uiDirs` + `bannedElements: ['*']`) to make the boundary
 airtight — raw HTML legal only in primitive dirs, everything else policed.
 
+### no-html-in-front-controllers
+
+**Opt-in (Tier B) — the composition-root axis.** Designates certain dirs as
+**front controllers** (typically `screens/`, `pages/`) and forbids **all** raw
+HTML there: a composition root's only job is to assemble typed components, so its
+every state stays enumerable. This is distinct from — and composes with —
+`no-ad-hoc-html`: that rule's default model _self-exempts_ a screen whose export
+matches its filename (so its raw HTML slips through), while its allowlist-dir mode
+bans raw HTML everywhere outside `uiDirs` (often too aggressive — feature/composite
+primitives may legitimately own raw HTML). This rule instead pins **only** the
+declared roots to zero raw HTML, leaving the primitive boundary to `no-ad-hoc-html`.
+Enable as `["error", { frontControllerDirs: ["src/screens/", "src/pages/"] }]`.
+
 ### no-classname-prop
 
 Forbids passing `className` to a custom component. A class passed from outside
@@ -154,11 +167,24 @@ the component owning its own markup).
 
 ### no-classname-public-prop
 
-Forbids declaring `className` (or re-publishing it via
-`extends React.HTMLAttributes<…>` / `ComponentProps<…>`) as a public prop outside
-primitive dirs. Declaring it opens the component to arbitrary CSS from every
-caller, so no test or story can enumerate its states. Delete the prop and model
-the needed looks as named variant/size/tone/state props.
+Bans publishing `className` as a public prop, **everywhere in scope — primitive
+dirs included** (even a primitive exposes variants, never a raw `className`;
+config is `scopeGlobs` only, no primitive carve-out). Two ways it fires:
+
+1. **Direct** — a `className` member on any interface or inline object type.
+2. **Inherited** — a props interface/type that `extends` (or intersects) a
+   className-bearing DOM base: `React.HTMLAttributes<T>`, the per-element family
+   (`ButtonHTMLAttributes`, `InputHTMLAttributes`, …), `ComponentPropsWithoutRef<'div'>`,
+   `HTMLProps`, `DetailedHTMLProps`, `SVGProps`, etc. Inheriting one re-publishes
+   `className` (and every other DOM attribute) transitively — the same breach
+   hidden behind an `extends`. Configurable via `classNameBearingTypes` /
+   `classNameBearingSuffixes`.
+
+Delete the member / drop the DOM-base inheritance and model the needed looks as
+named variant/size/tone/state props; pass only the specific DOM attributes you
+need internally. (A transitive re-publish through **another component's** props
+type needs type resolution and is the `ts-qa-ci_cdd-reviewer` agent's job, not
+this syntactic lint's.)
 
 ### require-variant-resolver
 
@@ -201,6 +227,8 @@ directories and policed scope). Wire the strict, airtight boundary like this:
     "ts-qa/no-classname-public-prop": "error",
     // Opt-in "how": build internal classes through a resolver.
     "ts-qa/require-variant-resolver": ["warn", { variantResolverNames: ["cva", "cn", "clsx", "twMerge"] }],
+    // Opt-in composition-root axis: screens/pages must be pure component composition.
+    "ts-qa/no-html-in-front-controllers": ["error", { frontControllerDirs: ["src/screens/", "src/pages/"] }],
   },
 }
 ```

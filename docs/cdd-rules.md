@@ -118,6 +118,8 @@ function HomePage() {
 
 **Allowlist-dir mode** (opt-in, stricter): set `uiDirs` (e.g. `['src/ui/']`) to make raw HTML legal _only_ under those dirs and policed everywhere else in scope with **no** per-file component-definition exemption. Combine with `bannedElements: ['*']` to ban **every** lowercase JSX identifier (closing the fixed-list hole for `svg`, `path`, `main`, custom hyphenated elements). This is the stricter "base primitives live in one place, everything else composes them" doctrine.
 
+**Composition roots**: if you want the strictness of "zero raw HTML" _only_ in your top-level composition roots (screens/pages) while leaving the primitive boundary to the default model here, use the opt-in [`no-html-in-front-controllers`](#no-html-in-front-controllers) — it closes the default-model self-exemption hole (a screen whose export matches its filename) without forcing allowlist-mode's blanket ban.
+
 ### `require-error-cause`
 
 Flags `throw new SomeError(...)` inside a `catch` block when no argument carries a `{ cause }` property — losing the original error's stack and context.
@@ -183,13 +185,17 @@ Three always-on rules enforce it together, and none of them touch a component's 
 
 ### `no-classname-public-prop` (closed styling — declaration-site)
 
-Companion to `no-classname-prop`: bans a `className` member on any interface or inline object type (`TSPropertySignature`), so the prop is never _published_ as a public surface even if unused. Config: `scopeGlobs`.
+Companion to `no-classname-prop`: bans _publishing_ `className` as a public prop, two ways — (1) **direct**: a `className` member on any interface or inline object type (`TSPropertySignature`); (2) **inherited**: a props type that `extends`/intersects a className-bearing DOM base (`React.HTMLAttributes<T>`, the per-element `*HTMLAttributes` family, `ComponentPropsWithoutRef<'div'>`, `HTMLProps`, `DetailedHTMLProps`, `SVGProps`), which re-publishes `className` transitively. Detection is syntactic (rightmost base-type name); a transitive re-publish through another component's props type is the `cdd-reviewer` agent's job. Config: `scopeGlobs`, `classNameBearingTypes`, `classNameBearingSuffixes`.
 
 ## Tier B rules (opt-in CDD)
 
 ### `require-variant-resolver`
 
 _Formerly `no-ad-hoc-classnames`._ Requires a component's **own internal** `className` strings to be built through an allowlisted variant-resolver call (`cva`, `cn`, `clsx`, `twMerge` by default — configurable via `variantResolverNames`) rather than a bare string/template literal. This is a _how-you-build-internal-classes_ opinion for projects that have adopted a CVA + tailwind-merge catalogue — **not** the closed-styling boundary (that is the Tier A trio above). Kept opt-in so a project using plain static Tailwind strings internally is not forced into meaningless `cn('static')` wrappers.
+
+### `no-html-in-front-controllers`
+
+Designates certain dirs as **front controllers** (composition roots — typically `screens/`, `pages/`) and bans **all** raw HTML there: a front controller must be assembled entirely from typed components. Distinct from `no-ad-hoc-html` (which self-exempts a screen whose export matches its filename in its default model, and bans raw HTML everywhere outside `uiDirs` in its allowlist model) — this rule pins only the declared roots to zero raw HTML, composing with the primitive-boundary rule rather than replacing it. Opt-in because the "which dirs are front controllers" convention is per-project. Config: `frontControllerDirs` (default `['src/screens/', 'src/pages/']`), `bannedElements` (default `['*']`), `allowedElements`, `exemptFileSuffixes` (default `['.stories.tsx', '.test.tsx']`). Enable as `["error", { frontControllerDirs: [...] }]`. See [`closed-styling-doctrine.md`](./closed-styling-doctrine.md#no-html-in-front-controllers).
 
 ### `variant-api-enforcement`
 
@@ -209,7 +215,7 @@ Bans silent empty-value fallbacks (`?? []`, `|| ''`, `?? 0`, …) that collapse 
 
 ### `no-dom-classname-mutation`
 
-Bans imperative `el.className = …` and `classList.add('literal')` — an end-run around the JSX-level className rules. `allow` option accepts path fragments to exempt (e.g. a low-level DOM loader).
+Bans imperative `el.className = …` and `classList.add('literal')` — an end-run around the JSX-level className rules. Config: `scopeGlobs` (default `['src/']`), `uiDirs` (primitive dirs where mutation is allowed, default `['src/ui/']`), and `allow` (path fragments to exempt, e.g. a low-level DOM loader). The `allow` list is a reviewable config carve-out, not an inline comment.
 
 ## Tier C rules (opt-in, architecture/convention)
 

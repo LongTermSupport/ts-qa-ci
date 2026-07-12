@@ -46,8 +46,8 @@ export default [
     },
   },
   {
-    // Tier A always-on (Plan 00004 Task 1.4, per rule-classification.md §3/§4):
-    // the total `as`/enum ban. Purely SYNTACTIC (core no-restricted-syntax over the
+    // Tier A always-on (Plan 00004 Task 1.4; see docs/cdd-rules.md
+    // "no-restricted-syntax as/enum ban"): the total `as`/enum ban. Purely SYNTACTIC (core no-restricted-syntax over the
     // TS AST the consumer's parser already emits) — no type info, no plugin, never
     // crashes — so unlike the type-aware strict severities it is safe to force on.
     // Consumers needing extra patterns compose AS_ENUM_BAN_SELECTORS rather than
