@@ -1,5 +1,6 @@
 import { dirname } from "node:path";
 import { resolveConfigPath } from "../orchestrator/resolveConfigPath.js";
+import { resolveDependencyCruiserRoots } from "../orchestrator/resolveDependencyCruiserRoots.js";
 import { bundledBin, execTool } from "./execTool.js";
 /**
  * dependency-cruiser, run as its own standalone phase-3 step (phase2-design.md
@@ -24,11 +25,17 @@ const tool = {
       "dependency-cruiser.config.cjs",
       ctx.packageRoot,
     );
+    // depcruise needs at least one positional scan target. `src` was hardcoded,
+    // which fails `Can't open 'src'` on any repo not rooted at a single ./src
+    // (e.g. a pnpm monorepo with apps/<pkg>/src, packages/<pkg>/src). The targets
+    // are configurable via tsQaConfig/ts-qa.json `dependencyCruiserScanRoots`,
+    // defaulting to ["src"] so single-package repos are unaffected.
+    const scanRoots = resolveDependencyCruiserRoots(ctx.cwd);
     // Bundled dependency (not a peer): spawn ts-qa-ci's own copy directly. See bundledBin.
     const bin = bundledBin(ctx.packageRoot, "depcruise");
     const result = await execTool(
       bin,
-      ["--config", configPath, "src"],
+      ["--config", configPath, ...scanRoots],
       ctx.cwd,
       dirname(bin),
     );

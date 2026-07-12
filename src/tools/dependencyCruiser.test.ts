@@ -23,6 +23,15 @@ vi.mock("./execTool.js", () => ({
 vi.mock("../orchestrator/resolveConfigPath.js", () => ({
   resolveConfigPath: () => "/fake/dependency-cruiser.config.cjs",
 }));
+// Scan roots come from tsQaConfig/ts-qa.json (resolveDependencyCruiserRoots).
+// Mock it to a monorepo-style multi-root value so the pass-through assertion
+// below proves the tool no longer hardcodes `src` and forwards every target.
+vi.mock("../orchestrator/resolveDependencyCruiserRoots.js", () => ({
+  resolveDependencyCruiserRoots: () => [
+    "apps/web/src",
+    "packages/ts/api-client/src",
+  ],
+}));
 
 const { default: tool } = await import("./dependencyCruiser.js");
 
@@ -76,6 +85,34 @@ describe("dependencyCruiser tool", () => {
     expect(command).toBe("/pkg/node_modules/.bin/depcruise");
     expect(command).not.toBe("npx");
     expect(extraPath).toBe("/pkg/node_modules/.bin");
+  });
+
+  it("forwards the resolved scan roots as depcruise positional targets (not a hardcoded 'src')", async () => {
+    // Defence Before Fix: the tool used to pass a hardcoded `"src"`, so any repo
+    // whose sources are not under a single top-level ./src failed with
+    // `Can't open 'src'`. The roots now come from resolveDependencyCruiserRoots
+    // (mocked above) and must reach depcruise verbatim, after `--config`.
+    execToolMock.mockResolvedValue({
+      exitCode: 0,
+      stdout:
+        "✔ no dependency violations found (1 modules, 0 dependencies cruised)",
+      stderr: "",
+    });
+
+    await tool.run(ctx);
+
+    const [, args] = execToolMock.mock.calls[0] as [
+      string,
+      string[],
+      string,
+      string,
+    ];
+    expect(args).toEqual([
+      "--config",
+      "/fake/dependency-cruiser.config.cjs",
+      "apps/web/src",
+      "packages/ts/api-client/src",
+    ]);
   });
 
   it("maps an unwrapped non-zero exit (small violation count) to failure", async () => {
