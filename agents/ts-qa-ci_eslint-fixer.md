@@ -41,9 +41,9 @@ Every `ts-qa/*` rule ID maps to a file in `src/rules/<camelCaseName>.ts` inside 
 
 ## Common Non-Auto-Fixable Patterns
 
-### `no-ad-hoc-html` / `no-ad-hoc-classnames`
+### `no-ad-hoc-html` / `no-html-in-front-controllers`
 
-`--fix` cannot invent a component. Either use an existing typed component from the project's catalogue, or (if none exists) flag it for the human — do not invent ad-hoc styling to silence the rule.
+`--fix` cannot invent a component. Either use an existing typed component from the project's catalogue, or (if none exists) flag it for the human — do not invent ad-hoc styling to silence the rule. (`require-variant-resolver` is the opt-in Tier B "how internal classes are built" rule — NOT the closed-styling boundary; the boundary is `no-ad-hoc-html` + `no-classname-prop` + `no-classname-public-prop`.) For genuine closed-styling extract/extend work, delegate to `ts-qa-ci_cdd-fixer`.
 
 ### `require-error-cause`
 
@@ -80,7 +80,7 @@ Fix the underlying issue the rule is protecting against — never widen types to
 
 **MUST escalate to the caller / human rather than guessing when**:
 
-- A `no-ad-hoc-html`/`no-ad-hoc-classnames` fix would require inventing a new component from scratch (a design decision, not a mechanical fix)
+- A `no-ad-hoc-html`/`no-html-in-front-controllers`/closed-styling fix would require inventing a new component from scratch (a design decision, not a mechanical fix — delegate to `ts-qa-ci_cdd-fixer` or escalate)
 - The same violation persists after 2 fix attempts
 - A Tier A rule fires somewhere that looks like a false positive (rule bug, not code bug) — `docs/configuration.md`'s Troubleshooting section names this exact failure mode; spot-check before mass-fixing
 - A fix would require a `tsQaConfig/tier-a-exemptions.json` entry rather than a code change (that's a project-owner decision — propose it, don't add it yourself)

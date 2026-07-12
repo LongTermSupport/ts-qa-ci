@@ -118,6 +118,8 @@ function HomePage() {
 
 **Allowlist-dir mode** (opt-in, stricter): set `uiDirs` (e.g. `['src/ui/']`) to make raw HTML legal _only_ under those dirs and policed everywhere else in scope with **no** per-file component-definition exemption. Combine with `bannedElements: ['*']` to ban **every** lowercase JSX identifier (closing the fixed-list hole for `svg`, `path`, `main`, custom hyphenated elements). This is the stricter "base primitives live in one place, everything else composes them" doctrine.
 
+**Composition roots**: if you want the strictness of "zero raw HTML" _only_ in your top-level composition roots (screens/pages) while leaving the primitive boundary to the default model here, use the opt-in [`no-html-in-front-controllers`](#no-html-in-front-controllers) — it closes the default-model self-exemption hole (a screen whose export matches its filename) without forcing allowlist-mode's blanket ban.
+
 ### `require-error-cause`
 
 Flags `throw new SomeError(...)` inside a `catch` block when no argument carries a `{ cause }` property — losing the original error's stack and context.
@@ -183,7 +185,7 @@ Three always-on rules enforce it together, and none of them touch a component's 
 
 ### `no-classname-public-prop` (closed styling — declaration-site)
 
-Companion to `no-classname-prop`: bans a `className` member on any interface or inline object type (`TSPropertySignature`), so the prop is never _published_ as a public surface even if unused. Config: `scopeGlobs`.
+Companion to `no-classname-prop`: bans _publishing_ `className` as a public prop, two ways — (1) **direct**: a `className` member on any interface or inline object type (`TSPropertySignature`); (2) **inherited**: a props type that `extends`/intersects a className-bearing DOM base (`React.HTMLAttributes<T>`, the per-element `*HTMLAttributes` family, `ComponentPropsWithoutRef<'div'>`, `HTMLProps`, `DetailedHTMLProps`, `SVGProps`), which re-publishes `className` transitively. Detection is syntactic (rightmost base-type name); a transitive re-publish through another component's props type is the `cdd-reviewer` agent's job. Config: `scopeGlobs`, `classNameBearingTypes`, `classNameBearingSuffixes`.
 
 ## Tier B rules (opt-in CDD)
 
@@ -213,7 +215,7 @@ Bans silent empty-value fallbacks (`?? []`, `|| ''`, `?? 0`, …) that collapse 
 
 ### `no-dom-classname-mutation`
 
-Bans imperative `el.className = …` and `classList.add('literal')` — an end-run around the JSX-level className rules. `allow` option accepts path fragments to exempt (e.g. a low-level DOM loader).
+Bans imperative `el.className = …` and `classList.add('literal')` — an end-run around the JSX-level className rules. Config: `scopeGlobs` (default `['src/']`), `uiDirs` (primitive dirs where mutation is allowed, default `['src/ui/']`), and `allow` (path fragments to exempt, e.g. a low-level DOM loader). The `allow` list is a reviewable config carve-out, not an inline comment.
 
 ## Tier C rules (opt-in, architecture/convention)
 

@@ -40,7 +40,7 @@ Most ESLint issues are auto-fixed by Phase 1 already — you should never need t
 
 Report to the user rather than looping when the fixer agent reports:
 
-- A fix requires inventing a new component (`no-ad-hoc-html`/`no-ad-hoc-classnames`)
+- A fix requires inventing a new component (`no-ad-hoc-html`/`no-html-in-front-controllers`/closed-styling — delegate to `ts-qa-ci_cdd-fixer`)
 - The same violation persists after 2 attempts
 - A suspected rule false-positive (see `docs/configuration.md` Troubleshooting)
 

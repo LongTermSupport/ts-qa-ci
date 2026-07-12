@@ -32,7 +32,8 @@ import type { JSXOpeningElement } from "estree-jsx";
  *   - `bannedElements` (default ['*'] — ban EVERY lowercase JSX identifier).
  *     Provide a fixed list to ban only those tags.
  *   - `allowedElements` (default []) — a narrow escape hatch for specific tags.
- *   - `exemptFileSuffixes` (default ['.stories.tsx']) — files exempt by suffix.
+ *   - `exemptFileSuffixes` (default ['.stories.tsx', '.test.tsx']) — files exempt
+ *     by suffix; a colocated story/test harness may render a raw wrapper.
  */
 const DOCTRINE_URL =
   "https://github.com/LongTermSupport/ts-qa-ci/blob/main/docs/closed-styling-doctrine.md#no-html-in-front-controllers";
@@ -90,7 +91,10 @@ const rule: Rule.RuleModule = {
     ];
     const bannedElements = options.bannedElements ?? [BAN_ALL];
     const allowedElements = new Set(options.allowedElements ?? []);
-    const exemptFileSuffixes = options.exemptFileSuffixes ?? [".stories.tsx"];
+    const exemptFileSuffixes = options.exemptFileSuffixes ?? [
+      ".stories.tsx",
+      ".test.tsx",
+    ];
     const banAll = bannedElements.includes(BAN_ALL);
     const bannedSet = new Set(bannedElements);
 

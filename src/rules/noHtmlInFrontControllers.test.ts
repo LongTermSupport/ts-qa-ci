@@ -30,6 +30,11 @@ ruleTester.run("no-html-in-front-controllers", rule, {
       code: "export const Default = () => <div>demo</div>;\n",
       filename: "/proj/src/screens/LoginScreen.stories.tsx",
     },
+    // Colocated tests are exempt by default suffix (raw harness wrappers).
+    {
+      code: "it('renders', () => render(<div><LoginScreen /></div>));\n",
+      filename: "/proj/src/screens/LoginScreen.test.tsx",
+    },
     // Narrow allowedElements escape hatch.
     {
       code: "export function HomePage() { return <main><Hero /></main>; }\n",

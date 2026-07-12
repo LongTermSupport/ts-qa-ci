@@ -167,11 +167,24 @@ the component owning its own markup).
 
 ### no-classname-public-prop
 
-Forbids declaring `className` (or re-publishing it via
-`extends React.HTMLAttributes<…>` / `ComponentProps<…>`) as a public prop outside
-primitive dirs. Declaring it opens the component to arbitrary CSS from every
-caller, so no test or story can enumerate its states. Delete the prop and model
-the needed looks as named variant/size/tone/state props.
+Bans publishing `className` as a public prop, **everywhere in scope — primitive
+dirs included** (even a primitive exposes variants, never a raw `className`;
+config is `scopeGlobs` only, no primitive carve-out). Two ways it fires:
+
+1. **Direct** — a `className` member on any interface or inline object type.
+2. **Inherited** — a props interface/type that `extends` (or intersects) a
+   className-bearing DOM base: `React.HTMLAttributes<T>`, the per-element family
+   (`ButtonHTMLAttributes`, `InputHTMLAttributes`, …), `ComponentPropsWithoutRef<'div'>`,
+   `HTMLProps`, `DetailedHTMLProps`, `SVGProps`, etc. Inheriting one re-publishes
+   `className` (and every other DOM attribute) transitively — the same breach
+   hidden behind an `extends`. Configurable via `classNameBearingTypes` /
+   `classNameBearingSuffixes`.
+
+Delete the member / drop the DOM-base inheritance and model the needed looks as
+named variant/size/tone/state props; pass only the specific DOM attributes you
+need internally. (A transitive re-publish through **another component's** props
+type needs type resolution and is the `ts-qa-ci_cdd-reviewer` agent's job, not
+this syntactic lint's.)
 
 ### require-variant-resolver
 

@@ -1,6 +1,6 @@
 ---
 name: ts-qa-ci_cdd-fixer
-description: Specialist closed-styling / component-driven-design (CDD) fixer. Resolves no-ad-hoc-html / no-classname-prop / no-classname-public-prop / no-html-in-front-controllers / require-variant-resolver violations by extending an existing primitive or extracting a new one — NEVER by adding a className prop, wrapping styling in cn(), or moving a class pile onto raw HTML. Use when the cdd-reviewer or ts-qa flags closed-styling violations that need real primitive work.
+description: Specialist closed-styling / component-driven-design (CDD) fixer. Resolves no-ad-hoc-html / no-classname-prop / no-classname-public-prop / no-html-in-front-controllers / no-dom-classname-mutation / require-variant-resolver violations by extending an existing primitive or extracting a new one — NEVER by adding a className prop, wrapping styling in cn(), or moving a class pile onto raw HTML. Use when the cdd-reviewer or ts-qa flags closed-styling violations that need real primitive work.
 color: purple
 model: sonnet
 tools: Read, Edit, Glob, Grep, Bash
@@ -56,6 +56,11 @@ anti-pattern the rules exist to kill.
    `hideBelow` props — never in a class pile.
 4. **Adornments become slots.** Overlaying a control on an input is the input's
    geometry to own: add a `trailing`/`leading` slot to the Input primitive.
+5. **Imperative mutation → a variant.** `no-dom-classname-mutation` fires on
+   `el.className = …` / `el.classList.add("literal")` outside primitive dirs.
+   Render the state through a primitive's variant prop instead of poking the DOM;
+   only genuinely structural loader-level cases belong on the rule's reviewed
+   `allow` list (propose the entry, never add it silently).
 
 ## Method
 

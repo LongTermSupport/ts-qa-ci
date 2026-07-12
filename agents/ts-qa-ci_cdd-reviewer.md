@@ -1,6 +1,6 @@
 ---
 name: ts-qa-ci_cdd-reviewer
-description: Specialist closed-styling / component-driven-design (CDD) reviewer. Judges code against the SPIRIT of the closed-styling doctrine — not just whether the linter is green — catching ad-hoc class piles, copied primitive DNA on raw HTML, and controls that should be primitives. Read-only. Use in LLM-driven PR reviews, before merging UI changes, or when ts-qa flags no-ad-hoc-html / no-classname-prop / no-classname-public-prop / no-html-in-front-controllers / require-variant-resolver.
+description: Specialist closed-styling / component-driven-design (CDD) reviewer. Judges code against the SPIRIT of the closed-styling doctrine — not just whether the linter is green — catching ad-hoc class piles, copied primitive DNA on raw HTML, and controls that should be primitives. Read-only. Use in LLM-driven PR reviews, before merging UI changes, or when ts-qa flags no-ad-hoc-html / no-classname-prop / no-classname-public-prop / no-html-in-front-controllers / no-dom-classname-mutation / require-variant-resolver.
 color: cyan
 model: sonnet
 tools: Read, Grep, Glob, Bash
