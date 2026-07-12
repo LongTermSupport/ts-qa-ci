@@ -5,12 +5,26 @@
  * author only *thought* was still on). Keep in sync with the PHASES table in
  * runPipeline.ts and the opt-in tools.
  */
-export declare const KNOWN_TOOLS: readonly ["eslintConfigParity", "supplyChain", "oxlint", "prettier", "eslintFix", "eslintReport", "remarkValidateLinks", "knip", "tsc", "dependencyCruiser", "vitest", "playwright", "stryker"];
+export declare const KNOWN_TOOLS: readonly [
+  "eslintConfigParity",
+  "supplyChain",
+  "oxlint",
+  "prettier",
+  "eslintFix",
+  "eslintReport",
+  "remarkValidateLinks",
+  "knip",
+  "tsc",
+  "dependencyCruiser",
+  "vitest",
+  "playwright",
+  "stryker",
+];
 export interface DisabledToolsResult {
-    /** Tool names to skip. */
-    disabled: Set<string>;
-    /** Where each disabled tool came from, for transparency logging. */
-    sources: Map<string, "config" | "cli">;
+  /** Tool names to skip. */
+  disabled: Set<string>;
+  /** Where each disabled tool came from, for transparency logging. */
+  sources: Map<string, "config" | "cli">;
 }
 /**
  * Resolves the set of tools to skip for this run, from
@@ -25,5 +39,8 @@ export interface DisabledToolsResult {
  * (a typo must not silently disable nothing). A missing config file is fine;
  * a present-but-malformed one throws rather than being silently ignored.
  */
-export declare function resolveDisabledTools(projectRoot: string, cliSkip?: string[]): DisabledToolsResult;
+export declare function resolveDisabledTools(
+  projectRoot: string,
+  cliSkip?: string[],
+): DisabledToolsResult;
 //# sourceMappingURL=resolveDisabledTools.d.ts.map

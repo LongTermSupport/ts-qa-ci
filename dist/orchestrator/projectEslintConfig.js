@@ -1,7 +1,7 @@
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { detectPlatform } from "./detectPlatform.js";
-import { resolveEslintConfig, } from "./resolveEslintConfig.js";
+import { resolveEslintConfig } from "./resolveEslintConfig.js";
 /**
  * The ONE thing a consumer's (optional) project-root `eslint.config.js` needs.
  *
@@ -26,13 +26,13 @@ import { resolveEslintConfig, } from "./resolveEslintConfig.js";
  *   project root (where `tsQaConfig/` and the target source live).
  */
 export async function projectEslintConfig(metaUrl) {
-    const projectRoot = dirname(fileURLToPath(metaUrl));
-    // packageRoot is derived from THIS compiled module's own location, not from the
-    // consumer's tree: dist/orchestrator/projectEslintConfig.js → dist → packageRoot.
-    // That is exactly the install ts-qa itself resolves configDefaults/ from, so the
-    // root delegator and ts-qa's generated config compose the identical base.
-    const packageRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
-    const platform = detectPlatform(projectRoot);
-    return resolveEslintConfig(projectRoot, platform, packageRoot);
+  const projectRoot = dirname(fileURLToPath(metaUrl));
+  // packageRoot is derived from THIS compiled module's own location, not from the
+  // consumer's tree: dist/orchestrator/projectEslintConfig.js → dist → packageRoot.
+  // That is exactly the install ts-qa itself resolves configDefaults/ from, so the
+  // root delegator and ts-qa's generated config compose the identical base.
+  const packageRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
+  const platform = detectPlatform(projectRoot);
+  return resolveEslintConfig(projectRoot, platform, packageRoot);
 }
 //# sourceMappingURL=projectEslintConfig.js.map

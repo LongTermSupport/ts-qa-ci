@@ -15,20 +15,22 @@
  * the root-config module instance and the checker — a plain module-local
  * `Symbol()` would not survive that boundary.
  */
-export const RESOLVED_ESLINT_CONFIG_MARK = Symbol.for("@longtermsupport/ts-qa-ci:resolved-eslint-config");
+export const RESOLVED_ESLINT_CONFIG_MARK = Symbol.for(
+  "@longtermsupport/ts-qa-ci:resolved-eslint-config",
+);
 /**
  * Stamp the resolved-config marker onto a flat-config array (arrays are objects,
  * so `defineProperty` is valid). Non-enumerable so it never leaks into ESLint's
  * own iteration of the config entries.
  */
 export function markResolvedEslintConfig(config) {
-    Object.defineProperty(config, RESOLVED_ESLINT_CONFIG_MARK, {
-        value: true,
-        enumerable: false,
-        configurable: false,
-        writable: false,
-    });
-    return config;
+  Object.defineProperty(config, RESOLVED_ESLINT_CONFIG_MARK, {
+    value: true,
+    enumerable: false,
+    configurable: false,
+    writable: false,
+  });
+  return config;
 }
 /**
  * True iff `value` carries the resolved-config marker — i.e. it came out of
@@ -36,9 +38,11 @@ export function markResolvedEslintConfig(config) {
  * being a hand-rolled config that would diverge from the ts-qa run.
  */
 export function isResolvedEslintConfig(value) {
-    if (value === null ||
-        (typeof value !== "object" && typeof value !== "function"))
-        return false;
-    return (value[RESOLVED_ESLINT_CONFIG_MARK] === true);
+  if (
+    value === null ||
+    (typeof value !== "object" && typeof value !== "function")
+  )
+    return false;
+  return value[RESOLVED_ESLINT_CONFIG_MARK] === true;
 }
 //# sourceMappingURL=resolvedConfigMarker.js.map

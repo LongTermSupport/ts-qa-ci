@@ -17,7 +17,7 @@ import { delimiter, join } from "node:path";
  * PATH / node_modules/.bin.
  */
 export function bundledBin(packageRoot, name) {
-    return join(packageRoot, "node_modules", ".bin", name);
+  return join(packageRoot, "node_modules", ".bin", name);
 }
 /**
  * Shared subprocess runner every src/tools/*.ts module uses. Never uses a
@@ -28,20 +28,25 @@ export function bundledBin(packageRoot, name) {
  * spawned bundled bin can resolve its own sibling executables (see bundledBin).
  */
 export function execTool(command, args, cwd, extraPath) {
-    const env = extraPath === undefined
-        ? process.env
-        : {
-            ...process.env,
-            PATH: `${extraPath}${delimiter}${process.env.PATH ?? ""}`,
+  const env =
+    extraPath === undefined
+      ? process.env
+      : {
+          ...process.env,
+          PATH: `${extraPath}${delimiter}${process.env.PATH ?? ""}`,
         };
-    return new Promise((resolve, reject) => {
-        const child = spawn(command, args, { cwd, shell: false, env });
-        let stdout = "";
-        let stderr = "";
-        child.stdout.on("data", (chunk) => (stdout += chunk.toString()));
-        child.stderr.on("data", (chunk) => (stderr += chunk.toString()));
-        child.on("error", (error) => reject(new Error(`ts-qa: failed to spawn "${command}": ${error.message}`)));
-        child.on("close", (exitCode) => resolve({ exitCode, stdout, stderr }));
-    });
+  return new Promise((resolve, reject) => {
+    const child = spawn(command, args, { cwd, shell: false, env });
+    let stdout = "";
+    let stderr = "";
+    child.stdout.on("data", (chunk) => (stdout += chunk.toString()));
+    child.stderr.on("data", (chunk) => (stderr += chunk.toString()));
+    child.on("error", (error) =>
+      reject(
+        new Error(`ts-qa: failed to spawn "${command}": ${error.message}`),
+      ),
+    );
+    child.on("close", (exitCode) => resolve({ exitCode, stdout, stderr }));
+  });
 }
 //# sourceMappingURL=execTool.js.map

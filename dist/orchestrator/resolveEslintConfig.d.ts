@@ -14,21 +14,28 @@ import type { Platform } from "./types.js";
  * "simplify" this back down to a plain array spread.
  */
 export interface FlatConfigEntry {
-    files?: string[];
-    rules?: Record<string, unknown>;
-    [key: string]: unknown;
+  files?: string[];
+  rules?: Record<string, unknown>;
+  [key: string]: unknown;
 }
 interface TierAOverride {
-    ruleId: string;
-    files: string[];
+  ruleId: string;
+  files: string[];
 }
-export declare function findTierARuleOverrides(configEntries: FlatConfigEntry[]): TierAOverride[];
+export declare function findTierARuleOverrides(
+  configEntries: FlatConfigEntry[],
+): TierAOverride[];
 /**
  * `quiet` (BUG A) suppresses the Tier A exemption diagnostics under `--json`,
  * so the machine-readable output on stdout is never prepended with human text.
  * It defaults to the env flag runPipeline sets, because this function is also
  * re-entered inside a spawned eslint subprocess that only inherits the env.
  */
-export declare function resolveEslintConfig(projectRoot: string, platform: Platform, packageRoot: string, quiet?: boolean): Promise<FlatConfigEntry[]>;
+export declare function resolveEslintConfig(
+  projectRoot: string,
+  platform: Platform,
+  packageRoot: string,
+  quiet?: boolean,
+): Promise<FlatConfigEntry[]>;
 export {};
 //# sourceMappingURL=resolveEslintConfig.d.ts.map

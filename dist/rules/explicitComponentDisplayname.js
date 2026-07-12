@@ -28,83 +28,72 @@
  */
 const ENFORCE_PATTERN = /\/src\/(widgets|ui|core)\//;
 function isPascalCase(name) {
-    if (name.length === 0)
-        return false;
-    const first = name.charAt(0);
-    return first !== first.toLowerCase() && first === first.toUpperCase();
+  if (name.length === 0) return false;
+  const first = name.charAt(0);
+  return first !== first.toLowerCase() && first === first.toUpperCase();
 }
 const rule = {
-    meta: {
-        type: "problem",
-        docs: {
-            description: 'Arrow-form components (`export const Foo = () => …`) must include a `Foo.displayName = "Foo"` assignment so devtools shows the real name in production builds.',
-        },
-        schema: [],
-        messages: {
-            missing: 'Component `{{name}}` is exported as an arrow-form const but has no matching `{{name}}.displayName = "{{name}}"` assignment. Add one in the same file, or rewrite as `export function {{name}}()`. Without it, minified production builds show `<Anonymous>` in React DevTools.',
-        },
+  meta: {
+    type: "problem",
+    docs: {
+      description:
+        'Arrow-form components (`export const Foo = () => …`) must include a `Foo.displayName = "Foo"` assignment so devtools shows the real name in production builds.',
     },
-    create(context) {
-        const filename = context.filename;
-        if (!ENFORCE_PATTERN.test(filename))
-            return {};
-        const arrowComponentExports = new Map();
-        const displayNameAssignments = new Set();
-        return {
-            ExportNamedDeclaration(node) {
-                const decl = node.declaration;
-                if (decl?.type !== "VariableDeclaration")
-                    return;
-                for (const v of decl.declarations) {
-                    const id = v.id;
-                    if (id.type !== "Identifier")
-                        continue;
-                    if (!isPascalCase(id.name))
-                        continue;
-                    const init = v.init;
-                    if (init?.type !== "ArrowFunctionExpression" &&
-                        init?.type !== "FunctionExpression") {
-                        continue;
-                    }
-                    arrowComponentExports.set(id.name, v);
-                }
-            },
-            AssignmentExpression(node) {
-                if (node.operator !== "=")
-                    return;
-                const left = node.left;
-                if (left.type !== "MemberExpression")
-                    return;
-                if (left.computed)
-                    return;
-                if (left.object.type !== "Identifier")
-                    return;
-                if (left.property.type !== "Identifier")
-                    return;
-                if (left.property.name !== "displayName")
-                    return;
-                const right = node.right;
-                if (right.type !== "Literal")
-                    return;
-                if (typeof right.value !== "string")
-                    return;
-                if (right.value !== left.object.name)
-                    return;
-                displayNameAssignments.add(left.object.name);
-            },
-            "Program:exit"() {
-                for (const [name, declaratorNode] of arrowComponentExports) {
-                    if (displayNameAssignments.has(name))
-                        continue;
-                    context.report({
-                        node: declaratorNode,
-                        messageId: "missing",
-                        data: { name },
-                    });
-                }
-            },
-        };
+    schema: [],
+    messages: {
+      missing:
+        'Component `{{name}}` is exported as an arrow-form const but has no matching `{{name}}.displayName = "{{name}}"` assignment. Add one in the same file, or rewrite as `export function {{name}}()`. Without it, minified production builds show `<Anonymous>` in React DevTools.',
     },
+  },
+  create(context) {
+    const filename = context.filename;
+    if (!ENFORCE_PATTERN.test(filename)) return {};
+    const arrowComponentExports = new Map();
+    const displayNameAssignments = new Set();
+    return {
+      ExportNamedDeclaration(node) {
+        const decl = node.declaration;
+        if (decl?.type !== "VariableDeclaration") return;
+        for (const v of decl.declarations) {
+          const id = v.id;
+          if (id.type !== "Identifier") continue;
+          if (!isPascalCase(id.name)) continue;
+          const init = v.init;
+          if (
+            init?.type !== "ArrowFunctionExpression" &&
+            init?.type !== "FunctionExpression"
+          ) {
+            continue;
+          }
+          arrowComponentExports.set(id.name, v);
+        }
+      },
+      AssignmentExpression(node) {
+        if (node.operator !== "=") return;
+        const left = node.left;
+        if (left.type !== "MemberExpression") return;
+        if (left.computed) return;
+        if (left.object.type !== "Identifier") return;
+        if (left.property.type !== "Identifier") return;
+        if (left.property.name !== "displayName") return;
+        const right = node.right;
+        if (right.type !== "Literal") return;
+        if (typeof right.value !== "string") return;
+        if (right.value !== left.object.name) return;
+        displayNameAssignments.add(left.object.name);
+      },
+      "Program:exit"() {
+        for (const [name, declaratorNode] of arrowComponentExports) {
+          if (displayNameAssignments.has(name)) continue;
+          context.report({
+            node: declaratorNode,
+            messageId: "missing",
+            data: { name },
+          });
+        }
+      },
+    };
+  },
 };
 export default rule;
 //# sourceMappingURL=explicitComponentDisplayname.js.map

@@ -22,5 +22,7 @@ import { type FlatConfigEntry } from "./resolveEslintConfig.js";
  * @param metaUrl the delegator's own `import.meta.url`. Its directory is the
  *   project root (where `tsQaConfig/` and the target source live).
  */
-export declare function projectEslintConfig(metaUrl: string): Promise<FlatConfigEntry[]>;
+export declare function projectEslintConfig(
+  metaUrl: string,
+): Promise<FlatConfigEntry[]>;
 //# sourceMappingURL=projectEslintConfig.d.ts.map

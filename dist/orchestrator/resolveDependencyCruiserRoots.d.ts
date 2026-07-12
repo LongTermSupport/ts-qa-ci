@@ -14,5 +14,7 @@
  * ignored (mirrors resolveDisabledTools): a typo must fail loudly, never
  * quietly cruise the wrong tree or nothing.
  */
-export declare function resolveDependencyCruiserRoots(projectRoot: string): string[];
+export declare function resolveDependencyCruiserRoots(
+  projectRoot: string,
+): string[];
 //# sourceMappingURL=resolveDependencyCruiserRoots.d.ts.map

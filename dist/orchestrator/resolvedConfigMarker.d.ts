@@ -21,7 +21,9 @@ export declare const RESOLVED_ESLINT_CONFIG_MARK: unique symbol;
  * so `defineProperty` is valid). Non-enumerable so it never leaks into ESLint's
  * own iteration of the config entries.
  */
-export declare function markResolvedEslintConfig<T extends object>(config: T): T;
+export declare function markResolvedEslintConfig<T extends object>(
+  config: T,
+): T;
 /**
  * True iff `value` carries the resolved-config marker — i.e. it came out of
  * `resolveEslintConfig()` (directly, or via `projectEslintConfig`), rather than

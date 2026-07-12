@@ -25,8 +25,8 @@
  */
 export declare const DEFAULT_NON_APP_SURFACE_DISABLED_RULES: readonly string[];
 export interface NonAppSurfacesSettings {
-    globs: string[];
-    disabledRules: string[];
+  globs: string[];
+  disabledRules: string[];
 }
 /**
  * Reads `nonAppSurfaces` (required globs) and optional `nonAppSurfaceRules`
@@ -34,14 +34,20 @@ export interface NonAppSurfacesSettings {
  * when the key is absent — the common case for a project with no non-app surfaces
  * to carve out. A present-but-malformed value throws rather than being ignored.
  */
-export declare function loadNonAppSurfaces(projectRoot: string): NonAppSurfacesSettings | undefined;
+export declare function loadNonAppSurfaces(
+  projectRoot: string,
+): NonAppSurfacesSettings | undefined;
 /**
  * Builds the single flat-config off-block that turns the component-authoring CDD
  * rules off on the non-app-surface globs. Returns undefined when nothing is
  * configured, so callers can spread `...(block ? [block] : [])`.
  */
-export declare function buildNonAppSurfacesBlock(settings: NonAppSurfacesSettings | undefined): {
-    files: string[];
-    rules: Record<string, "off">;
-} | undefined;
+export declare function buildNonAppSurfacesBlock(
+  settings: NonAppSurfacesSettings | undefined,
+):
+  | {
+      files: string[];
+      rules: Record<string, "off">;
+    }
+  | undefined;
 //# sourceMappingURL=nonAppSurfaces.d.ts.map

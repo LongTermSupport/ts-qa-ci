@@ -18,14 +18,16 @@ export type LlmOutputMode = "auto" | "always" | "never";
  * `"auto"`; a present-but-invalid value throws rather than being silently
  * ignored (mirrors the `disabledTools` validation).
  */
-export declare function resolveLlmOutputMode(projectRoot: string): LlmOutputMode;
+export declare function resolveLlmOutputMode(
+  projectRoot: string,
+): LlmOutputMode;
 export interface LlmResolutionInput {
-    /** CLI tri-state: `true` = `--llm`, `false` = `--no-llm`, `undefined` = neither. */
-    cli: boolean | undefined;
-    /** Whether `--json` was passed — it owns stdout, so `--llm` is never auto-enabled alongside it. */
-    json: boolean;
-    env: NodeJS.ProcessEnv;
-    mode: LlmOutputMode;
+  /** CLI tri-state: `true` = `--llm`, `false` = `--no-llm`, `undefined` = neither. */
+  cli: boolean | undefined;
+  /** Whether `--json` was passed — it owns stdout, so `--llm` is never auto-enabled alongside it. */
+  json: boolean;
+  env: NodeJS.ProcessEnv;
+  mode: LlmOutputMode;
 }
 /** Applies the precedence ladder to a definite on/off decision. */
 export declare function resolveLlm(input: LlmResolutionInput): boolean;

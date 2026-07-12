@@ -26,25 +26,29 @@ import { join } from "node:path";
  * still apply to non-app surfaces.
  */
 export const DEFAULT_NON_APP_SURFACE_DISABLED_RULES = [
-    "ts-qa/no-ad-hoc-html",
-    "ts-qa/no-html-in-front-controllers",
-    "ts-qa/no-classname-prop",
-    "ts-qa/no-classname-public-prop",
-    "ts-qa/require-exported-component-types",
-    "ts-qa/no-inline-component-decl-in-render",
-    "ts-qa/no-duplicate-section-ids",
-    "ts-qa/jsx-truthy-narrow",
+  "ts-qa/no-ad-hoc-html",
+  "ts-qa/no-html-in-front-controllers",
+  "ts-qa/no-classname-prop",
+  "ts-qa/no-classname-public-prop",
+  "ts-qa/require-exported-component-types",
+  "ts-qa/no-inline-component-decl-in-render",
+  "ts-qa/no-duplicate-section-ids",
+  "ts-qa/jsx-truthy-narrow",
 ];
 function asStringArray(value, key, configPath) {
-    if (!Array.isArray(value)) {
-        throw new Error(`ts-qa: "${key}" in ${configPath} must be an array of strings`);
+  if (!Array.isArray(value)) {
+    throw new Error(
+      `ts-qa: "${key}" in ${configPath} must be an array of strings`,
+    );
+  }
+  for (const entry of value) {
+    if (typeof entry !== "string") {
+      throw new Error(
+        `ts-qa: "${key}" entries must be strings (got ${JSON.stringify(entry)} in ${configPath})`,
+      );
     }
-    for (const entry of value) {
-        if (typeof entry !== "string") {
-            throw new Error(`ts-qa: "${key}" entries must be strings (got ${JSON.stringify(entry)} in ${configPath})`);
-        }
-    }
-    return value;
+  }
+  return value;
 }
 /**
  * Reads `nonAppSurfaces` (required globs) and optional `nonAppSurfaceRules`
@@ -53,25 +57,30 @@ function asStringArray(value, key, configPath) {
  * to carve out. A present-but-malformed value throws rather than being ignored.
  */
 export function loadNonAppSurfaces(projectRoot) {
-    const configPath = join(projectRoot, "tsQaConfig", "ts-qa.json");
-    if (!existsSync(configPath))
-        return undefined;
-    let parsed;
-    try {
-        parsed = JSON.parse(readFileSync(configPath, "utf-8"));
-    }
-    catch (cause) {
-        throw new Error(`ts-qa: could not parse ${configPath} as JSON`, { cause });
-    }
-    if (parsed.nonAppSurfaces === undefined)
-        return undefined;
-    const globs = asStringArray(parsed.nonAppSurfaces, "nonAppSurfaces", configPath);
-    if (globs.length === 0)
-        return undefined;
-    const disabledRules = parsed.nonAppSurfaceRules === undefined
-        ? [...DEFAULT_NON_APP_SURFACE_DISABLED_RULES]
-        : asStringArray(parsed.nonAppSurfaceRules, "nonAppSurfaceRules", configPath);
-    return { globs, disabledRules };
+  const configPath = join(projectRoot, "tsQaConfig", "ts-qa.json");
+  if (!existsSync(configPath)) return undefined;
+  let parsed;
+  try {
+    parsed = JSON.parse(readFileSync(configPath, "utf-8"));
+  } catch (cause) {
+    throw new Error(`ts-qa: could not parse ${configPath} as JSON`, { cause });
+  }
+  if (parsed.nonAppSurfaces === undefined) return undefined;
+  const globs = asStringArray(
+    parsed.nonAppSurfaces,
+    "nonAppSurfaces",
+    configPath,
+  );
+  if (globs.length === 0) return undefined;
+  const disabledRules =
+    parsed.nonAppSurfaceRules === undefined
+      ? [...DEFAULT_NON_APP_SURFACE_DISABLED_RULES]
+      : asStringArray(
+          parsed.nonAppSurfaceRules,
+          "nonAppSurfaceRules",
+          configPath,
+        );
+  return { globs, disabledRules };
 }
 /**
  * Builds the single flat-config off-block that turns the component-authoring CDD
@@ -79,11 +88,9 @@ export function loadNonAppSurfaces(projectRoot) {
  * configured, so callers can spread `...(block ? [block] : [])`.
  */
 export function buildNonAppSurfacesBlock(settings) {
-    if (!settings)
-        return undefined;
-    const rules = {};
-    for (const ruleId of settings.disabledRules)
-        rules[ruleId] = "off";
-    return { files: settings.globs, rules };
+  if (!settings) return undefined;
+  const rules = {};
+  for (const ruleId of settings.disabledRules) rules[ruleId] = "off";
+  return { files: settings.globs, rules };
 }
 //# sourceMappingURL=nonAppSurfaces.js.map
