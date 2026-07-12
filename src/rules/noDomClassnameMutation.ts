@@ -19,13 +19,30 @@ import type { AssignmentExpression, CallExpression } from "estree";
  * `eslint.config.mjs` (`{ allow: ['src/core/loader.ts'] }`) — reviewable in the
  * config diff, unlike an inline comment the author grants themselves.
  *
+ * The hardcoded `/\/src\/ui\//` exemption is generalised to the configurable
+ * `sanctionedDirs` option (default `['src/ui/', 'src/components/ui/']`), matched
+ * with the same segment-anchored `pathIncludesAny` helper used by
+ * noClassnameProp.ts — an unanchored `includes` would wrongly exempt any dir
+ * merely ending in one of those segments.
+ *
  * Not auto-fixable.
  */
 const SRC_PATTERN = /\/src\//;
-const UI_PATTERN = /\/src\/ui\//;
 
 interface RuleOptions {
   allow?: string[];
+  /** Dirs where className/classList mutation is sanctioned (default ['src/ui/', 'src/components/ui/']). */
+  sanctionedDirs?: string[];
+}
+
+function pathIncludesAny(filename: string, globs: string[]): boolean {
+  // Segment-anchored (see noClassnameProp.ts): prefix a leading slash to both
+  // sides so `src/ui/` matches `/proj/src/ui/…` but NOT `…/adsrc/ui/…` (which
+  // merely contains the substring). An unanchored `includes` over-matches.
+  const anchored = `/${filename.replace(/^\/+/, "")}`;
+  return globs.some((glob) =>
+    anchored.includes(`/${glob.replace(/^\/+/, "").replace(/\*+$/, "")}`),
+  );
 }
 
 const rule: Rule.RuleModule = {
@@ -34,25 +51,32 @@ const rule: Rule.RuleModule = {
     docs: {
       description:
         "Disallow imperative className / classList mutation outside ~/ui.",
+      url: "https://github.com/LongTermSupport/ts-qa-ci/blob/main/docs/closed-styling-doctrine.md#no-dom-classname-mutation",
     },
     schema: [
       {
         type: "object",
         properties: {
           allow: { type: "array", items: { type: "string" } },
+          sanctionedDirs: { type: "array", items: { type: "string" } },
         },
         additionalProperties: false,
       },
     ],
     messages: {
       mutation:
-        "Imperative className/classList mutation is ad-hoc CSS outside ~/ui. Render through a ~/ui component; if this is loader-level structure, it must be on the rule allowlist in eslint.config.mjs (reviewed).",
+        "Imperative className/classList mutation smuggles ad-hoc CSS past every JSX rule — the same infinite-state problem with worse visibility. Render the state through a primitive's variant prop; genuinely structural loader-level cases go on the rule's reviewed allowlist. Doctrine: https://github.com/LongTermSupport/ts-qa-ci/blob/main/docs/closed-styling-doctrine.md#no-dom-classname-mutation",
     },
   },
   create(context) {
     const filename = context.filename;
-    if (!SRC_PATTERN.test(filename) || UI_PATTERN.test(filename)) return {};
     const options = (context.options[0] ?? {}) as RuleOptions;
+    const sanctionedDirs = options.sanctionedDirs ?? [
+      "src/ui/",
+      "src/components/ui/",
+    ];
+    if (!SRC_PATTERN.test(filename) || pathIncludesAny(filename, sanctionedDirs))
+      return {};
     const allow = options.allow ?? [];
     if (allow.some((entry) => filename.includes(entry))) return {};
     return {

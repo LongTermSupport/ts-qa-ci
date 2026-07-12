@@ -23,11 +23,12 @@ const rule: Rule.RuleModule = {
     docs: {
       description:
         "Enforce the variant-prop API pattern (typed variant props, exhaustive internal class resolution) — NOT YET IMPLEMENTED, see Task 4.6",
+      url: "https://github.com/LongTermSupport/ts-qa-ci/blob/main/docs/closed-styling-doctrine.md#variant-api-enforcement",
     },
     schema: [],
     messages: {
       notYetImplemented:
-        "variant-api-enforcement is a scaffold — real logic lands after Task 4.6 builds the variant-prop catalogue.",
+        "variant-api-enforcement is a scaffold — real logic lands after the variant-prop catalogue exists. Doctrine it will enforce: https://github.com/LongTermSupport/ts-qa-ci/blob/main/docs/closed-styling-doctrine.md#variant-api-enforcement",
     },
   },
   create() {

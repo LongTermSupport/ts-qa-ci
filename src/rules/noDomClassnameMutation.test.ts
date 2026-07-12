@@ -64,6 +64,13 @@ ruleTester.run("no-dom-classname-mutation", rule, {
       filename: "/repo/src/core/loader.ts",
       options: [{ allow: ["src/core/loader.ts"] }],
     },
+    // sanctionedDirs is configurable: a custom dir list exempts a file under
+    // src/components/ui/ even though it is not the hardcoded default src/ui/.
+    {
+      code: "el.className = 'p-4';\n",
+      filename: "/repo/src/components/ui/Button.ts",
+      options: [{ sanctionedDirs: ["src/components/ui/"] }],
+    },
   ],
   invalid: [
     {
@@ -117,6 +124,14 @@ ruleTester.run("no-dom-classname-mutation", rule, {
       code: "el.classList.add('p-4');\n",
       filename: "/repo/src/core/widget.ts",
       options: [{ allow: ["src/core/loader.ts"] }],
+      errors: [{ messageId: "mutation" }],
+    },
+    // A custom sanctionedDirs list does not exempt files outside it — the
+    // hardcoded default (src/ui/) is no longer in effect once overridden.
+    {
+      code: "el.className = 'p-4';\n",
+      filename: "/repo/src/ui/Button.ts",
+      options: [{ sanctionedDirs: ["src/components/ui/"] }],
       errors: [{ messageId: "mutation" }],
     },
   ],

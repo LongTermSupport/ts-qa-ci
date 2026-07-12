@@ -190,6 +190,7 @@ const rule: Rule.RuleModule = {
     docs: {
       description:
         "Disallow raw HTML elements in JSX outside designated component-definition files or UI dirs — the CDD flagship rule",
+      url: "https://github.com/LongTermSupport/ts-qa-ci/blob/main/docs/closed-styling-doctrine.md#no-ad-hoc-html",
     },
     schema: [
       {
@@ -206,7 +207,7 @@ const rule: Rule.RuleModule = {
     ],
     messages: {
       adHocHtml:
-        "Raw <{{tag}}> is banned outside component-definition files (Component-Driven Development). Use or create a typed, variant-driven component instead.",
+        "Raw <{{tag}}> in a composing file (page/feature/screen). Ad-hoc markup+styling here reproduces what should be a primitive's finite, testable state — and cannot be enumerated in stories/tests. Use an existing typed component, or extract this markup into a primitive with a closed variant API. Doctrine: https://github.com/LongTermSupport/ts-qa-ci/blob/main/docs/closed-styling-doctrine.md#no-ad-hoc-html",
     },
   },
   create(context) {

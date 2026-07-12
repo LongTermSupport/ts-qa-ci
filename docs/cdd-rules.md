@@ -1,5 +1,15 @@
 # CDD & Core ESLint Rules
 
+> **The closed-styling family** (`no-classname-prop`, `no-classname-public-prop`,
+> `no-ad-hoc-html`, `no-ad-hoc-classnames`, `variant-api-enforcement`,
+> `no-dom-classname-mutation`) is governed by one doctrine:
+> **[closed-styling-doctrine.md](./closed-styling-doctrine.md)** — the single
+> source of truth for _why_ these rules exist (finite, testable component
+> states) and how to fix a violation (extend/extract a primitive, never a
+> `className` prop or a `cn()`-wrapped pile). Every closed-styling rule links
+> there from its failure message. The `ts-qa-ci_cdd-reviewer` and
+> `ts-qa-ci_cdd-fixer` agents apply it in code review and fixes.
+
 `ts-qa-ci` ships ESLint rules in three tiers (see `PLAN.md` Decision 4/§4 in the design doc for the full rationale):
 
 - **Tier A — always-on core.** Cannot be disabled file-by-file; the only sanctioned override is a justified entry in `tsQaConfig/tier-a-exemptions.json`. Never via inline suppression comments (see `no-eslint-disable` below).

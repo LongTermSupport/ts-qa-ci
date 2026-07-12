@@ -49,6 +49,7 @@ const rule: Rule.RuleModule = {
     docs: {
       description:
         "`className` may not appear as a member of any interface or object type. Components own their styling via variant props; never accept className.",
+      url: "https://github.com/LongTermSupport/ts-qa-ci/blob/main/docs/closed-styling-doctrine.md#no-classname-public-prop",
     },
     schema: [
       {
@@ -61,7 +62,7 @@ const rule: Rule.RuleModule = {
     ],
     messages: {
       classNameDeclared:
-        "`className` may not be declared as a public prop. Remove it from this interface/type and express the desired presentation as a variant/size/tone/density prop on the component.",
+        "Declaring `className` (or re-publishing it via `extends React.HTMLAttributes<…>`/`ComponentProps<…>`) as a public prop opens the component to arbitrary CSS from every caller — the visual state space becomes infinite and no test/story can enumerate it. Delete the prop and model the needed looks as named variant/size/tone/state props. Doctrine: https://github.com/LongTermSupport/ts-qa-ci/blob/main/docs/closed-styling-doctrine.md#no-classname-public-prop",
     },
   },
   create(context) {

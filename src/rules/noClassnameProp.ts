@@ -51,6 +51,7 @@ const rule: Rule.RuleModule = {
     docs: {
       description:
         "`className` may not be passed to a custom component. Express presentation via variant/size/tone/density props on the component itself.",
+      url: "https://github.com/LongTermSupport/ts-qa-ci/blob/main/docs/closed-styling-doctrine.md#no-classname-prop",
     },
     schema: [
       {
