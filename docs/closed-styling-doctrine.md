@@ -103,7 +103,12 @@ it through:
 ```tsx
 // ❌ BODGE — wrapping the pile in cn() does not make it a finite state.
 // The state space is still infinite; the <button> is still untestable.
-<button className={cn("h-12 text-base font-semibold border-red-200", urgent && "bg-red-50")} />
+<button
+  className={cn(
+    "h-12 text-base font-semibold border-red-200",
+    urgent && "bg-red-50",
+  )}
+/>
 ```
 
 Wrapping styling in `cn()`, or moving it onto a lowercase tag, does not make it a

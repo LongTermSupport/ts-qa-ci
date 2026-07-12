@@ -79,12 +79,15 @@ controls should merge. Propose the option; don't invent visual design silently.
 CDD FIXES APPLIED:
 
 Extended primitive — Button (src/components/ui/button.tsx):
+
 - Added `flush?: boolean` (hover:bg-transparent) and `tone="warningStrong"` (text-yellow-900) states.
 
 Extracted primitive — TimeSlotButton (src/components/ui/time-slot-button.tsx + .stories.tsx):
+
 - state={"selected"|"available"|"unavailable"}; owns the raw <button> and all 3-state classes.
 
 Call sites migrated (raw class piles deleted):
+
 - src/components/feature/booking/RescheduleTimeSlotCard.tsx:127 → <TimeSlotButton …>
 - src/screens/subscriber/Login.tsx:114 → <Button variant="linkStatic" tone="dangerStrong">
 
