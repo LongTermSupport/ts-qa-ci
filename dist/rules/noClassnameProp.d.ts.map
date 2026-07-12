@@ -1,1 +1,1 @@
-{"version":3,"file":"noClassnameProp.d.ts","sourceRoot":"","sources":["../../src/rules/noClassnameProp.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,IAAI,EAAE,MAAM,QAAQ,CAAC;AA+CnC,QAAA,MAAM,IAAI,EAAE,IAAI,CAAC,UAuEhB,CAAC;AAEF,eAAe,IAAI,CAAC"}
+{"version":3,"file":"noClassnameProp.d.ts","sourceRoot":"","sources":["../../src/rules/noClassnameProp.ts"],"names":[],"mappings":"AAAA,OAAO,KAAK,EAAE,IAAI,EAAE,MAAM,QAAQ,CAAC;AAgDnC,QAAA,MAAM,IAAI,EAAE,IAAI,CAAC,UAuEhB,CAAC;AAEF,eAAe,IAAI,CAAC"}

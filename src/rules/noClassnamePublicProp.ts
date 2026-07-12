@@ -207,7 +207,8 @@ const rule: Rule.RuleModule = {
       // bare `type FooProps = HTMLAttributes<HTMLDivElement>` (alias IS the base).
       TSTypeAliasDeclaration(node: object) {
         const ann = (node as { typeAnnotation?: NamedNode }).typeAnnotation;
-        for (const member of flattenTypeMembers(ann)) reportBearing(member, member);
+        for (const member of flattenTypeMembers(ann))
+          reportBearing(member, member);
       },
     };
   },

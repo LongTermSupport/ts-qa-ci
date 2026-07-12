@@ -42,7 +42,10 @@ ruleTester.run("no-classname-public-prop", rule, {
       code: "interface FooProps extends ButtonHTMLAttributes<HTMLButtonElement> {}\n",
       filename: "/proj/src/ui/Foo.tsx",
       options: [
-        { classNameBearingTypes: [], classNameBearingSuffixes: ["SVGAttributes"] },
+        {
+          classNameBearingTypes: [],
+          classNameBearingSuffixes: ["SVGAttributes"],
+        },
       ],
     },
   ],
