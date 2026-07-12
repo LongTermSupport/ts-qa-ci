@@ -7,6 +7,7 @@ import {
   loadNonAppSurfaces,
 } from "./nonAppSurfaces.js";
 import { markResolvedEslintConfig } from "./resolvedConfigMarker.js";
+import { loadSurfaces, surfaceIgnores, surfaceOffBlocks } from "./surfaces.js";
 import { TIER_A_RULE_IDS } from "./tierARules.js";
 function loadExemptions(projectRoot) {
   const exemptionsPath = join(
@@ -90,9 +91,22 @@ export async function resolveEslintConfig(
   // applies even to a base-only project (no tsQaConfig/eslint.config.js).
   const nonAppBlock = buildNonAppSurfacesBlock(loadNonAppSurfaces(projectRoot));
   const nonAppTail = nonAppBlock ? [nonAppBlock] : [];
+  // Surface model (surfaces.ts): the named-surface taxonomy. `generated`/ignore
+  // surfaces contribute a global-ignores block (prepended); non-app surfaces
+  // (tests/stories/e2e/scripts) contribute off-blocks (appended after the guard,
+  // like nonAppTail). A project opts in with `surfaces` in ts-qa.json.
+  const surfaces = loadSurfaces(projectRoot);
+  const ignoreGlobs = surfaceIgnores(surfaces);
+  const ignoreHead = ignoreGlobs.length > 0 ? [{ ignores: ignoreGlobs }] : [];
+  const surfaceTail = surfaceOffBlocks(surfaces);
   const projectConfigPath = join(projectRoot, "tsQaConfig", "eslint.config.js");
   if (!existsSync(projectConfigPath)) {
-    return markResolvedEslintConfig([...base, ...nonAppTail]);
+    return markResolvedEslintConfig([
+      ...ignoreHead,
+      ...base,
+      ...nonAppTail,
+      ...surfaceTail,
+    ]);
   }
   const projectAdditions = await importConfig(projectConfigPath);
   const exemptions = loadExemptions(projectRoot);
@@ -120,9 +134,11 @@ export async function resolveEslintConfig(
     }
   }
   return markResolvedEslintConfig([
+    ...ignoreHead,
     ...base,
     ...projectAdditions,
     ...nonAppTail,
+    ...surfaceTail,
   ]);
 }
 //# sourceMappingURL=resolveEslintConfig.js.map

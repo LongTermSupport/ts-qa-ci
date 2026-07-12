@@ -69,6 +69,48 @@ Stories, tests, and dev scripts legitimately break the closed-styling / componen
 
 ts-qa appends a final override that turns **only** the component-authoring CDD rules off on those globs (`no-ad-hoc-html`, `no-classname-prop`, `no-classname-public-prop`, `no-html-in-front-controllers`, `require-exported-component-types`, `no-inline-component-decl-in-render`, `no-duplicate-section-ids`, `jsx-truthy-narrow`) — every safety/correctness rule stays live. Override the disabled set with an optional `nonAppSurfaceRules` array.
 
+### `surfaces`: the named-surface model (recommended over hand-rolled globs)
+
+`nonAppSurfaces` above is the raw, low-level escape hatch: you list every glob yourself and you only ever get one behaviour (turn the CDD rules off). Every project ends up re-typing the same stories/tests/e2e/scripts globs, and the machine-generated dir still has to be `ignore`d separately in `eslint.config.js` — exactly the blind-spot generator that lets files silently fall out of linting.
+
+The `surfaces` key replaces that with a **standard taxonomy owned by ts-qa-ci**. Every project has the same handful of code surfaces, each wanting a different QA posture, so ts-qa-ci ships the defaults and you only NAME the dirs that differ:
+
+```json
+// tsQaConfig/ts-qa.json
+{
+  "surfaces": true
+}
+```
+
+`"surfaces": true` (or `{}`) opts in to all the built-in defaults. Override just what differs — a surface value is a **directory** (`"e2e"` → `e2e/**`), an explicit **glob array**, `false` to disable a surface, or `{ "globs": …, "rules": [...] }` to also customise which rules switch off:
+
+```json
+{
+  "surfaces": {
+    "e2e": "tests/e2e",
+    "scripts": ["scripts/**", "*.config.ts", "capture-*.ts"],
+    "stories": false
+  }
+}
+```
+
+The built-in surfaces and their default globs:
+
+| Surface     | Posture                    | Default globs                                                                |
+| ----------- | -------------------------- | ---------------------------------------------------------------------------- |
+| `source`    | ALL ts-qa rules **ON**     | `src/**`                                                                     |
+| `tests`     | ts-qa's own rules **off**  | `**/*.test.{ts,tsx}`, `**/*.spec.{ts,tsx}`, `src/test/**`, `**/__tests__/**` |
+| `stories`   | ts-qa's own rules **off**  | `**/*.stories.{ts,tsx}`, `**/*.mdx`                                          |
+| `e2e`       | ts-qa's own rules **off**  | `e2e/**`, `tests/e2e/**`, `**/*.e2e.{ts,tsx}`                                |
+| `scripts`   | ts-qa's own rules **off**  | `scripts/**`, `*.config.{ts,js,mjs,cts,mts}`, `capture-*.ts`                 |
+| `generated` | **IGNORED** (not authored) | `src/generated/**`, `**/*.gen.ts`                                            |
+
+- **source** is the shipped app — every ts-qa rule applies (the whole point). (The type-aware strict-TS block stays in your `eslint.config.js` because it depends on your tsconfig layout; `source` just names the app dir.)
+- **non-app** surfaces (tests/stories/e2e/scripts) get **all** ts-qa rule ids turned off — computed from the plugin's own tier maps, so a newly-shipped rule is covered automatically — appended after the Tier A override guard (ts-qa's sanctioned carve-out, no exemption needed). The files are **still fully linted** by your own rules (strict-TS, `local/*`, storybook); ts-qa's component-authoring doctrine simply doesn't apply to non-app code. **No blind spot.**
+- **generated** surfaces contribute to the resolved config's global `ignores` — machine-generated code is not authored, so it is not linted.
+
+A custom surface name you invent (not in the table) defaults to the **non-app** posture. Prefer `surfaces` for the standard case; drop to `nonAppSurfaces` only for a bespoke off-list that doesn't fit the taxonomy.
+
 ## Disabling tools (`tsQaConfig/ts-qa.json`)
 
 Some projects can't run every tool in a single `ts-qa` invocation. The canonical case is **Playwright**: it needs a served site, so a project may run browser tests as a separate CI job (build → serve → `BASE_URL` → `playwright test`) and want `ts-qa` itself to cover only the static + unit surface.
