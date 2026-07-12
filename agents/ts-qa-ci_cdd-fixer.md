@@ -1,6 +1,6 @@
 ---
 name: ts-qa-ci_cdd-fixer
-description: Specialist closed-styling / component-driven-design (CDD) fixer. Resolves no-ad-hoc-html / no-classname-prop / no-classname-public-prop / require-variant-resolver violations by extending an existing primitive or extracting a new one — NEVER by adding a className prop, wrapping styling in cn(), or moving a class pile onto raw HTML. Use when the cdd-reviewer or ts-qa flags closed-styling violations that need real primitive work.
+description: Specialist closed-styling / component-driven-design (CDD) fixer. Resolves no-ad-hoc-html / no-classname-prop / no-classname-public-prop / no-html-in-front-controllers / require-variant-resolver violations by extending an existing primitive or extracting a new one — NEVER by adding a className prop, wrapping styling in cn(), or moving a class pile onto raw HTML. Use when the cdd-reviewer or ts-qa flags closed-styling violations that need real primitive work.
 color: purple
 model: sonnet
 tools: Read, Edit, Glob, Grep, Bash
@@ -23,7 +23,10 @@ authoritative "what a fix looks like" reference. `docs/cdd-rules.md` summarises.
 The boundary you are restoring is the Tier A trio: `no-ad-hoc-html` (raw HTML
 only in `uiDirs`), `no-classname-prop` (no className into a component),
 `no-classname-public-prop` (no className declared as a prop). `require-variant-resolver`
-is the opt-in "how internal classes are built" rule, not the boundary.
+is the opt-in "how internal classes are built" rule, not the boundary. If the
+project opts into `no-html-in-front-controllers`, its declared roots (`screens/`,
+`pages/`) must be pure component composition — fix a violation there by moving the
+raw markup into a primitive and composing it, never by leaving raw HTML in the root.
 
 ## The forbidden "fixes" (never do these)
 

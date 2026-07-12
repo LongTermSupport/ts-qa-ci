@@ -191,6 +191,10 @@ Companion to `no-classname-prop`: bans a `className` member on any interface or 
 
 _Formerly `no-ad-hoc-classnames`._ Requires a component's **own internal** `className` strings to be built through an allowlisted variant-resolver call (`cva`, `cn`, `clsx`, `twMerge` by default — configurable via `variantResolverNames`) rather than a bare string/template literal. This is a _how-you-build-internal-classes_ opinion for projects that have adopted a CVA + tailwind-merge catalogue — **not** the closed-styling boundary (that is the Tier A trio above). Kept opt-in so a project using plain static Tailwind strings internally is not forced into meaningless `cn('static')` wrappers.
 
+### `no-html-in-front-controllers`
+
+Designates certain dirs as **front controllers** (composition roots — typically `screens/`, `pages/`) and bans **all** raw HTML there: a front controller must be assembled entirely from typed components. Distinct from `no-ad-hoc-html` (which self-exempts a screen whose export matches its filename in its default model, and bans raw HTML everywhere outside `uiDirs` in its allowlist model) — this rule pins only the declared roots to zero raw HTML, composing with the primitive-boundary rule rather than replacing it. Opt-in because the "which dirs are front controllers" convention is per-project. Config: `frontControllerDirs` (default `['src/screens/', 'src/pages/']`), `bannedElements` (default `['*']`), `allowedElements`, `exemptFileSuffixes` (default `['.stories.tsx']`). Enable as `["error", { frontControllerDirs: [...] }]`. See [`closed-styling-doctrine.md`](./closed-styling-doctrine.md#no-html-in-front-controllers).
+
 ### `variant-api-enforcement`
 
 **Not yet implemented.** Scaffolded as a registered rule ID with `create()` reporting nothing, so config wiring and the Tier B `recommended: false` default are in place ahead of time. Its real logic (enforce every styleable component exposes typed variant props) is authored once a variant-prop catalogue actually exists to derive the convention from — see the parent plan's Task 4.6.

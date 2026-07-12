@@ -144,6 +144,19 @@ or extract the markup into a primitive with a closed variant API. Adopt the
 **allowlist-dir mode** (`uiDirs` + `bannedElements: ['*']`) to make the boundary
 airtight — raw HTML legal only in primitive dirs, everything else policed.
 
+### no-html-in-front-controllers
+
+**Opt-in (Tier B) — the composition-root axis.** Designates certain dirs as
+**front controllers** (typically `screens/`, `pages/`) and forbids **all** raw
+HTML there: a composition root's only job is to assemble typed components, so its
+every state stays enumerable. This is distinct from — and composes with —
+`no-ad-hoc-html`: that rule's default model _self-exempts_ a screen whose export
+matches its filename (so its raw HTML slips through), while its allowlist-dir mode
+bans raw HTML everywhere outside `uiDirs` (often too aggressive — feature/composite
+primitives may legitimately own raw HTML). This rule instead pins **only** the
+declared roots to zero raw HTML, leaving the primitive boundary to `no-ad-hoc-html`.
+Enable as `["error", { frontControllerDirs: ["src/screens/", "src/pages/"] }]`.
+
 ### no-classname-prop
 
 Forbids passing `className` to a custom component. A class passed from outside
@@ -201,6 +214,8 @@ directories and policed scope). Wire the strict, airtight boundary like this:
     "ts-qa/no-classname-public-prop": "error",
     // Opt-in "how": build internal classes through a resolver.
     "ts-qa/require-variant-resolver": ["warn", { variantResolverNames: ["cva", "cn", "clsx", "twMerge"] }],
+    // Opt-in composition-root axis: screens/pages must be pure component composition.
+    "ts-qa/no-html-in-front-controllers": ["error", { frontControllerDirs: ["src/screens/", "src/pages/"] }],
   },
 }
 ```

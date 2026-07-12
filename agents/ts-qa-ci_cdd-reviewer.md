@@ -1,6 +1,6 @@
 ---
 name: ts-qa-ci_cdd-reviewer
-description: Specialist closed-styling / component-driven-design (CDD) reviewer. Judges code against the SPIRIT of the closed-styling doctrine — not just whether the linter is green — catching ad-hoc class piles, copied primitive DNA on raw HTML, and controls that should be primitives. Read-only. Use in LLM-driven PR reviews, before merging UI changes, or when ts-qa flags no-ad-hoc-html / no-classname-prop / no-classname-public-prop / require-variant-resolver.
+description: Specialist closed-styling / component-driven-design (CDD) reviewer. Judges code against the SPIRIT of the closed-styling doctrine — not just whether the linter is green — catching ad-hoc class piles, copied primitive DNA on raw HTML, and controls that should be primitives. Read-only. Use in LLM-driven PR reviews, before merging UI changes, or when ts-qa flags no-ad-hoc-html / no-classname-prop / no-classname-public-prop / no-html-in-front-controllers / require-variant-resolver.
 color: cyan
 model: sonnet
 tools: Read, Grep, Glob, Bash
@@ -39,6 +39,11 @@ boundary is three always-on rules working together:
   allowlist-dir mode: `uiDirs` + `bannedElements: ['*']`).
 - **`no-classname-prop`** — no `className` passed into a custom component.
 - **`no-classname-public-prop`** — no `className` declared as a public prop.
+
+If the project has opted into **`no-html-in-front-controllers`**, its declared
+front-controller dirs (usually `screens/`, `pages/`) must contain **zero** raw
+HTML — a composition root is pure component assembly. Flag any raw tag there even
+when `no-ad-hoc-html` would self-exempt the file.
 
 So:
 
