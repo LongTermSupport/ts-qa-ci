@@ -2,6 +2,11 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { globIntersects } from "./glob.js";
+import {
+  buildNonAppSurfacesBlock,
+  loadNonAppSurfaces,
+} from "./nonAppSurfaces.js";
+import { markResolvedEslintConfig } from "./resolvedConfigMarker.js";
 import { TIER_A_RULE_IDS } from "./tierARules.js";
 function loadExemptions(projectRoot) {
   const exemptionsPath = join(
@@ -79,8 +84,16 @@ export async function resolveEslintConfig(
     ? platformBasePath
     : genericBasePath;
   const base = await importConfig(basePath);
+  // Non-app-surface carve-out (nonAppSurfaces.ts): appended LAST so its CDD
+  // rule-offs win last-entry-wins over anything the base or project additions
+  // declared for stories/tests/scripts. Read from tsQaConfig/ts-qa.json, so it
+  // applies even to a base-only project (no tsQaConfig/eslint.config.js).
+  const nonAppBlock = buildNonAppSurfacesBlock(loadNonAppSurfaces(projectRoot));
+  const nonAppTail = nonAppBlock ? [nonAppBlock] : [];
   const projectConfigPath = join(projectRoot, "tsQaConfig", "eslint.config.js");
-  if (!existsSync(projectConfigPath)) return base;
+  if (!existsSync(projectConfigPath)) {
+    return markResolvedEslintConfig([...base, ...nonAppTail]);
+  }
   const projectAdditions = await importConfig(projectConfigPath);
   const exemptions = loadExemptions(projectRoot);
   const touchedTierARules = findTierARuleOverrides(projectAdditions);
@@ -106,6 +119,10 @@ export async function resolveEslintConfig(
       );
     }
   }
-  return [...base, ...projectAdditions];
+  return markResolvedEslintConfig([
+    ...base,
+    ...projectAdditions,
+    ...nonAppTail,
+  ]);
 }
 //# sourceMappingURL=resolveEslintConfig.js.map

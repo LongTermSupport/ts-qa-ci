@@ -12,9 +12,13 @@ For every tool's config file, `ts-qa` looks in three places, first match wins:
 
 **Exception**: `eslint.config.js` does not work this way — see below.
 
-## The one exception: `eslint.config.js`
+## ESLint: one config, two entrypoints (SSoT)
 
-ESLint carries `ts-qa-ci`'s always-on core rules (Tier A — see [`cdd-rules.md`](cdd-rules.md)). If your own `eslint.config.js` could wholesale-replace the base config, you could silently drop the entire core tier. Instead:
+ESLint is special because it has **two** ways to run — `npx eslint` (and your editor's inline lint) and `npx ts-qa` — and the whole promise of qa-ci is that they run the **identical** rule set. If they diverge, a green result from either proves nothing.
+
+### `tsQaConfig/eslint.config.js` is the single home for ALL project lint opinion
+
+Everything project-specific goes here — extra plugins, your own rules, a strict-TypeScript preset, per-directory overrides. `ts-qa` composes it **after** its always-on Tier A core (see [`cdd-rules.md`](cdd-rules.md)) into one resolved config, and runs ESLint against that. Because the Tier A base is the delivery mechanism for the always-on guarantee, your additions can only **add**:
 
 - `tsQaConfig/eslint.config.js` is **merged after** the base config — it can add rules, but not replace the base.
 - Any rule object in your file that touches a Tier A rule ID is **rejected** unless you have a matching entry in `tsQaConfig/tier-a-exemptions.json`.
@@ -32,6 +36,39 @@ ESLint carries `ts-qa-ci`'s always-on core rules (Tier A — see [`cdd-rules.md`
 
 Every active exemption is printed on every `ts-qa` run — never silent.
 
+### The project-root `eslint.config.js` is an OPTIONAL delegator that MUST stay in sync
+
+A project-root `eslint.config.js` is **not required** — you can lint solely through `npx ts-qa` (it uses its own generated config under `node_modules/.cache/ts-qa/`). But most projects want `npx eslint` and IDE inline lint to work too. If you keep a root config, it **must** be a thin delegator to ts-qa's resolved config — never a hand-rolled second rule set:
+
+```js
+// eslint.config.js (project root) — scaffolded by `ts-qa init`
+import { projectEslintConfig } from "@longtermsupport/ts-qa-ci";
+
+export default await projectEslintConfig(import.meta.url);
+```
+
+`projectEslintConfig` returns the **same** composed config ts-qa runs, so `npx eslint`, your editor, and `npx ts-qa` are identical by construction. The `eslintConfigParity` Phase 0 check enforces this: if a root config is present but does **not** delegate, the pipeline fails immediately with migration guidance. (No root config at all is fine — nothing can diverge.)
+
+**Do not** put project rules in the root config. Put them in `tsQaConfig/eslint.config.js`; the root delegator picks them up automatically for both entrypoints.
+
+### `nonAppSurfaces`: lint stories/tests/scripts without the component-authoring rules
+
+Stories, tests, and dev scripts legitimately break the closed-styling / component-authoring doctrine (a story renders raw HTML on purpose; a test passes a `className` to probe a primitive). The wrong fix is an ESLint `ignores` entry — that drops the files from **all** linting, so safety and type rules stop covering them too. Instead list them under `nonAppSurfaces` in `tsQaConfig/ts-qa.json`:
+
+```json
+// tsQaConfig/ts-qa.json
+{
+  "nonAppSurfaces": [
+    "**/*.stories.tsx",
+    "**/*.test.{ts,tsx}",
+    "e2e/**",
+    "scripts/**"
+  ]
+}
+```
+
+ts-qa appends a final override that turns **only** the component-authoring CDD rules off on those globs (`no-ad-hoc-html`, `no-classname-prop`, `no-classname-public-prop`, `no-html-in-front-controllers`, `require-exported-component-types`, `no-inline-component-decl-in-render`, `no-duplicate-section-ids`, `jsx-truthy-narrow`) — every safety/correctness rule stays live. Override the disabled set with an optional `nonAppSurfaceRules` array.
+
 ## Disabling tools (`tsQaConfig/ts-qa.json`)
 
 Some projects can't run every tool in a single `ts-qa` invocation. The canonical case is **Playwright**: it needs a served site, so a project may run browser tests as a separate CI job (build → serve → `BASE_URL` → `playwright test`) and want `ts-qa` itself to cover only the static + unit surface.
@@ -47,7 +84,7 @@ Opt a tool out with a `disabledTools` array in `tsQaConfig/ts-qa.json` (a pipeli
 
 - A phase whose every tool is disabled is dropped entirely — so `disabledTools: ["playwright"]` leaves Phase 4 running just Vitest, and `["vitest", "playwright"]` skips Phase 4 altogether.
 - Each disabled tool is **logged on every run** (`ts-qa: playwright: disabled (tsQaConfig/ts-qa.json)`) — never silently skipped, same principle as Tier A exemptions.
-- An unknown tool name **fails loudly** rather than silently disabling nothing. Valid names: `oxlint`, `prettier`, `eslintFix`, `eslintReport`, `remarkValidateLinks`, `knip`, `tsc`, `dependencyCruiser`, `vitest`, `playwright`, `stryker`.
+- An unknown tool name **fails loudly** rather than silently disabling nothing. Valid names: `eslintConfigParity`, `oxlint`, `prettier`, `eslintFix`, `eslintReport`, `remarkValidateLinks`, `knip`, `tsc`, `dependencyCruiser`, `vitest`, `playwright`, `stryker`.
 
 For a one-off run, `--skip <tool>` does the same without touching config (repeatable): `ts-qa --skip playwright`.
 
@@ -71,7 +108,7 @@ env var override  >  tsQaConfig/*.json  >  built-in default
 
 Lessons from dogfooding `ts-qa-ci` on a real, pre-existing codebase (`lts-commerce-site`, Plan 011 Task 4.3) — the failure modes below were all real bugs, now fixed, but the symptoms are worth knowing if something in a fork or a future tool addition regresses the same way.
 
-**ESLint seems to ignore your `tsQaConfig/eslint.config.js` entirely, or a Tier A rule you'd expect to fire doesn't.** Every `ts-qa` ESLint invocation generates a resolved config file under `node_modules/.cache/ts-qa/eslint.config.generated.mjs` and passes it explicitly via `--config`. If you're invoking `eslint` directly (bypassing `ts-qa`), you'll get ESLint's native config discovery instead — that's expected, not a bug, but it means `eslint .` and `ts-qa -t eslintReport` are not equivalent commands. Always go through `ts-qa` to get the Tier A guarantee.
+**`npx eslint` reports differently from `ts-qa -t eslintReport` (a Tier A/CDD rule fires in one but not the other).** They **must** be equivalent — that is the SSoT invariant. `ts-qa` runs ESLint against a generated resolved config (`node_modules/.cache/ts-qa/eslint.config.generated.mjs`, passed via `--config`); `npx eslint` uses native discovery of your project-root `eslint.config.js`. They agree **only** when the root config delegates to `projectEslintConfig` (see "ESLint: one config, two entrypoints" above). If they disagree, your root config is hand-rolling its own rules — the `eslintConfigParity` Phase 0 check exists to catch exactly this and will fail the pipeline. Fix it by replacing the root config with the two-line delegator and moving any project rules into `tsQaConfig/eslint.config.js`; or delete the root config to lint solely through `ts-qa`.
 
 **The first real run reports a huge number of CDD violations (hundreds, not a handful).** Treat this as at least as likely to be a rule bug as real debt. Spot-check 5-10 flagged files by hand before assuming the codebase needs mass remediation — an exemption-logic bug that makes a rule fire on files it should skip produces exactly this signature (see Plan 011's retrospective: an early run reported 320 violations from one such bug; the true count was 0).
 

@@ -8,6 +8,7 @@ import { join } from "node:path";
  * runPipeline.ts and the opt-in tools.
  */
 export const KNOWN_TOOLS = [
+  "eslintConfigParity",
   "supplyChain",
   "oxlint",
   "prettier",

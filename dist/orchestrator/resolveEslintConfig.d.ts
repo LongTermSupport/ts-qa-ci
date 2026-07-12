@@ -13,7 +13,7 @@ import type { Platform } from "./types.js";
  * matches. This function explicitly scans for and gates that case; do not
  * "simplify" this back down to a plain array spread.
  */
-interface FlatConfigEntry {
+export interface FlatConfigEntry {
   files?: string[];
   rules?: Record<string, unknown>;
   [key: string]: unknown;

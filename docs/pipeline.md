@@ -4,7 +4,7 @@
 
 | Phase | Name              | What                                                       | Mutates?      |
 | ----- | ----------------- | ---------------------------------------------------------- | ------------- |
-| 0     | Fast Fail         | supplyChain audit, then oxlint — near-instant checks       | Yes (`--fix`) |
+| 0     | Fast Fail         | eslintConfigParity (SSoT guard), supplyChain audit, oxlint | Yes (`--fix`) |
 | 1     | Code Modification | Prettier, ESLint `--fix`                                   | Yes           |
 | 2     | Lint & Validation | ESLint report pass (incl. CDD rules), markdown links, knip | No            |
 | 3     | Static Analysis   | `tsc --noEmit`, dependency-cruiser                         | No            |
@@ -13,6 +13,8 @@
 That's the whole mental model. Everything below is detail you'll need eventually, not on day one.
 
 ## Why Phase 0 exists
+
+`eslintConfigParity` runs first — a near-instant SSoT guard. If your project keeps a root `eslint.config.js`, it proves the file delegates to ts-qa's resolved config, so `npx eslint`/your editor and `npx ts-qa` run identical rules. A divergent root config is caught here, before any result is measured against the wrong rule set. See [configuration.md](configuration.md#eslint-one-config-two-entrypoints-ssot).
 
 oxlint is a Rust-based linter that's roughly 50-100x faster than ESLint, but it can't run custom rules — so it can't enforce this package's own CDD rules. It exists purely so that obvious mistakes (unused variables, undefined references) get caught and the whole run aborts in milliseconds, before you pay for Prettier, the full ESLint pass, `tsc`, or tests on code that was going to fail anyway. This mirrors `php-qa-ci`'s own tool ordering (cheap checks before expensive ones).
 

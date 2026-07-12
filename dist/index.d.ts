@@ -1,5 +1,15 @@
 export { runPipeline } from "./orchestrator/runPipeline.js";
 export { resolveEslintConfig } from "./orchestrator/resolveEslintConfig.js";
+export { projectEslintConfig } from "./orchestrator/projectEslintConfig.js";
+export {
+  RESOLVED_ESLINT_CONFIG_MARK,
+  isResolvedEslintConfig,
+  markResolvedEslintConfig,
+} from "./orchestrator/resolvedConfigMarker.js";
+export {
+  DEFAULT_NON_APP_SURFACE_DISABLED_RULES,
+  loadNonAppSurfaces,
+} from "./orchestrator/nonAppSurfaces.js";
 export { resolveConfigPath } from "./orchestrator/resolveConfigPath.js";
 export {
   detectCi,

@@ -21,7 +21,12 @@ const PHASES = [
   {
     number: 0,
     name: "Fast Fail",
-    tools: ["supplyChain", "oxlint"],
+    // eslintConfigParity runs FIRST: it is a near-instant SSoT guard that proves a
+    // project-root eslint.config.js (if any) delegates to ts-qa's resolved config, so
+    // `npx eslint` and `npx ts-qa` run identical rules. If the two entrypoints
+    // disagree, every downstream result is measured against the wrong ruleset — fail
+    // before paying for anything else. See src/tools/eslintConfigParity.ts.
+    tools: ["eslintConfigParity", "supplyChain", "oxlint"],
     mutates: true,
   },
   {

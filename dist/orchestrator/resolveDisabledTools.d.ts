@@ -6,6 +6,7 @@
  * runPipeline.ts and the opt-in tools.
  */
 export declare const KNOWN_TOOLS: readonly [
+  "eslintConfigParity",
   "supplyChain",
   "oxlint",
   "prettier",
