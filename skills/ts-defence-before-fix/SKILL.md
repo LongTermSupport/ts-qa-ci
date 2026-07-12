@@ -1,5 +1,5 @@
 ---
-name: defence-before-fix
+name: ts-defence-before-fix
 description: |
   Defence Before Fix workflow for TypeScript/React projects using ts-qa-ci.
   Implements the ratcheting pattern: analyse bug -> author a CDD ESLint rule
