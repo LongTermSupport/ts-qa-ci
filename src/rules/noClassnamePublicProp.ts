@@ -24,9 +24,12 @@ import type { Rule } from "eslint";
  *      `SVGProps`, etc. Inheriting one re-publishes `className` (and every other
  *      DOM attribute) transitively — the same breach, just hidden behind an
  *      `extends`. Detection is SYNTACTIC (matches the base type's rightmost name
- *      against `classNameBearingTypes` / `classNameBearingSuffixes`); a transitive
- *      re-publish through ANOTHER component's props type needs type resolution and
- *      is the `ts-qa-ci_cdd-reviewer` agent's job, not this lint's.
+ *      against `classNameBearingTypes` / `classNameBearingSuffixes`; intersections
+ *      AND unions are flattened, including nested ones). Cases needing type
+ *      resolution — a re-publish through ANOTHER component's props type, a
+ *      `Omit<HTMLAttributes<…>, 'x'>` wrapper, a `JSX.IntrinsicElements['div']`
+ *      indexed access, or a renamed `import { HTMLAttributes as HA }` — are beyond
+ *      this syntactic lint and are the `ts-qa-ci_cdd-reviewer` agent's job.
  *
  * The hardcoded admin-ts `/src/` scope is generalised to the `scopeGlobs`
  * option so non-`src/`-rooted consumers can point it at their own tree.
@@ -50,7 +53,6 @@ interface RuleOptions {
 
 const DEFAULT_BEARING_TYPES = [
   "HTMLProps",
-  "AllHTMLProps",
   "DetailedHTMLProps",
   "ComponentProps",
   "ComponentPropsWithoutRef",
@@ -76,6 +78,23 @@ interface NamedNode {
   right?: NamedNode;
   expression?: NamedNode;
   typeName?: NamedNode;
+  types?: NamedNode[];
+}
+
+/**
+ * Flatten a type-alias annotation into its leaf members, recursing through
+ * nested `TSIntersectionType` / `TSUnionType` (so `A & (B | C)` and
+ * `A | B | C` all yield their leaf references). Each leaf is a candidate base
+ * type to test for className-bearing. Union is included because a polymorphic
+ * `type P = ButtonHTMLAttributes<X> | AnchorHTMLAttributes<Y>` re-publishes
+ * className on every branch.
+ */
+function flattenTypeMembers(node: NamedNode | undefined): NamedNode[] {
+  if (!node) return [];
+  if (node.type === "TSIntersectionType" || node.type === "TSUnionType") {
+    return (node.types ?? []).flatMap(flattenTypeMembers);
+  }
+  return [node];
 }
 
 /**
@@ -183,17 +202,12 @@ const rule: Rule.RuleModule = {
         const heritage = (node as { extends?: NamedNode[] }).extends ?? [];
         for (const clause of heritage) reportBearing(clause, clause);
       },
-      // `type FooProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {...}`
+      // `type FooProps = React.ButtonHTMLAttributes<HTMLButtonElement> & {...}`,
+      // `A & (B | C)`, `ButtonHTMLAttributes<X> | AnchorHTMLAttributes<Y>`, or a
+      // bare `type FooProps = HTMLAttributes<HTMLDivElement>` (alias IS the base).
       TSTypeAliasDeclaration(node: object) {
         const ann = (node as { typeAnnotation?: NamedNode }).typeAnnotation;
-        if (!ann) return;
-        if (ann.type === "TSIntersectionType") {
-          const members = (ann as unknown as { types?: NamedNode[] }).types ?? [];
-          for (const member of members) reportBearing(member, member);
-        } else if (ann.type === "TSTypeReference") {
-          // `type FooProps = HTMLAttributes<HTMLDivElement>` (alias IS the base).
-          reportBearing(ann, ann);
-        }
+        for (const member of flattenTypeMembers(ann)) reportBearing(member, member);
       },
     };
   },

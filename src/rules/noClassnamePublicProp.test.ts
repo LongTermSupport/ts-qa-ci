@@ -96,6 +96,21 @@ ruleTester.run("no-classname-public-prop", rule, {
       filename: "/proj/src/ui/Foo.tsx",
       errors: [{ messageId: "classNameInherited" }],
     },
+    // INHERITED: polymorphic UNION — className re-published on every branch.
+    {
+      code: "type FooProps = ButtonHTMLAttributes<HTMLButtonElement> | AnchorHTMLAttributes<HTMLAnchorElement>;\n",
+      filename: "/proj/src/ui/Foo.tsx",
+      errors: [
+        { messageId: "classNameInherited" },
+        { messageId: "classNameInherited" },
+      ],
+    },
+    // INHERITED: NESTED intersection member is flattened and still caught.
+    {
+      code: "type FooProps = ({ variant: string } & React.HTMLAttributes<HTMLDivElement>) & { size: number };\n",
+      filename: "/proj/src/ui/Foo.tsx",
+      errors: [{ messageId: "classNameInherited" }],
+    },
     // Both breaches at once: inherited base + an explicit className member.
     {
       code: "interface FooProps extends React.SVGProps<SVGSVGElement> { className?: string; }\n",

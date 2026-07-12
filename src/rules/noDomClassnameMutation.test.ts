@@ -64,6 +64,18 @@ ruleTester.run("no-dom-classname-mutation", rule, {
       filename: "/repo/src/core/loader.ts",
       options: [{ allow: ["src/core/loader.ts"] }],
     },
+    // Custom uiDirs: a file under the configured primitive dir is exempt.
+    {
+      code: "el.className = 'p-4';\n",
+      filename: "/repo/src/components/ui/Button.tsx",
+      options: [{ uiDirs: ["src/components/ui/"] }],
+    },
+    // Custom scopeGlobs: a file outside the configured scope is not policed.
+    {
+      code: "el.className = 'p-4';\n",
+      filename: "/repo/app/widget.ts",
+      options: [{ scopeGlobs: ["packages/"] }],
+    },
   ],
   invalid: [
     {

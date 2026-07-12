@@ -74,9 +74,15 @@ reason a composing-dir pile is wrong; cite the boundary trio.
    a primitive with a `state` prop and a story per state.
 4. **The same visual intent styled divergently** across sibling files — proof
    the missing primitive was never extracted.
-5. **`className` on a public API** — a `className`/`style` prop, or
-   `extends React.HTMLAttributes<…>`/`ComponentProps<…>` re-publishing it, that
-   then spreads onto the DOM.
+5. **`className` on a public API** — a `className`/`style` prop, or a props type
+   that `extends`/intersects a DOM-attribute base re-publishing it. The lint
+   (`no-classname-public-prop`) catches the direct forms and named bases
+   (`React.HTMLAttributes<…>`, `ComponentPropsWithoutRef<'div'>`, the
+   `*HTMLAttributes` family), but you MUST also catch the forms it can't see
+   syntactically: `Omit<React.HTMLAttributes<…>, 'onX'>` (keeps `className`!),
+   `JSX.IntrinsicElements['div']`, a renamed `import { HTMLAttributes as HA }`,
+   or `ComponentProps<typeof AnotherComponent>` — all re-publish `className` and
+   are your job, not the linter's.
 6. **Layout utilities leaking to call sites** (`ml-auto`, `mb-4`, `flex-1`,
    responsive hiding) instead of layout primitives / finite props.
 7. **Imperative `el.className = …` / `classList.add("literal")`** outside
