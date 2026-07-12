@@ -51,6 +51,7 @@ const rule: Rule.RuleModule = {
     docs: {
       description:
         "`className` may not be passed to a custom component. Express presentation via variant/size/tone/density props on the component itself.",
+      url: "https://github.com/LongTermSupport/ts-qa-ci/blob/main/docs/closed-styling-doctrine.md#no-classname-prop",
     },
     schema: [
       {
@@ -64,7 +65,7 @@ const rule: Rule.RuleModule = {
     ],
     messages: {
       classNameOnComponent:
-        "`className` may not be passed to `<{{component}}>`. Use the component's variant props (variant/size/tone/density/align/gap/wrap/justify). If the desired visual isn't expressible as a variant, extend the component rather than overriding at the call site.",
+        "`className` may not be passed to `<{{component}}>` — a class from outside makes the component's visual states unbounded and untestable. Use the component's variant props (variant/size/tone/density/align/gap/wrap/justify). If the desired visual isn't expressible as a variant, extend the component rather than overriding at the call site. Doctrine: https://github.com/LongTermSupport/ts-qa-ci/blob/main/docs/closed-styling-doctrine.md",
     },
   },
   create(context) {

@@ -125,6 +125,7 @@ const rule = {
     docs: {
       description:
         "Disallow raw HTML elements in JSX outside designated component-definition files or UI dirs — the CDD flagship rule",
+      url: "https://github.com/LongTermSupport/ts-qa-ci/blob/main/docs/closed-styling-doctrine.md#no-ad-hoc-html",
     },
     schema: [
       {
@@ -141,7 +142,7 @@ const rule = {
     ],
     messages: {
       adHocHtml:
-        "Raw <{{tag}}> is banned outside component-definition files (Component-Driven Development). Use or create a typed, variant-driven component instead.",
+        "Raw <{{tag}}> is banned outside component-definition files (closed component styling). Raw HTML belongs INSIDE a primitive that owns its finite states — authoring it here makes the visual state space infinite and untestable. Use or create a typed, variant-driven component instead. Doctrine: https://github.com/LongTermSupport/ts-qa-ci/blob/main/docs/closed-styling-doctrine.md",
     },
   },
   create(context) {

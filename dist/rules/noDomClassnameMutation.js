@@ -26,6 +26,7 @@ const rule = {
     docs: {
       description:
         "Disallow imperative className / classList mutation outside ~/ui.",
+      url: "https://github.com/LongTermSupport/ts-qa-ci/blob/main/docs/closed-styling-doctrine.md#no-dom-classname-mutation",
     },
     schema: [
       {
@@ -38,7 +39,7 @@ const rule = {
     ],
     messages: {
       mutation:
-        "Imperative className/classList mutation is ad-hoc CSS outside ~/ui. Render through a ~/ui component; if this is loader-level structure, it must be on the rule allowlist in eslint.config.mjs (reviewed).",
+        "Imperative className/classList mutation is ad-hoc CSS outside ~/ui — it smuggles arbitrary CSS past every JSX rule, the same infinite-state problem with worse visibility. Render through a ~/ui component's variant prop; if this is loader-level structure, it must be on the rule allowlist in eslint.config.mjs (reviewed). Doctrine: https://github.com/LongTermSupport/ts-qa-ci/blob/main/docs/closed-styling-doctrine.md",
     },
   },
   create(context) {
