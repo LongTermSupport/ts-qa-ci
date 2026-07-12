@@ -160,6 +160,13 @@ The generic base config wires `no-restricted-syntax` at `error` with three selec
 
 ### Closed component styling (Tier A doctrine)
 
+> **See [`closed-styling-doctrine.md`](./closed-styling-doctrine.md)** — the focused
+> single source of truth for the _spirit_ of this doctrine (the test, why
+> "just go green" bodges fail, and the only correct way to fix a violation). Every
+> closed-styling rule links there from its `meta.docs.url`, and two specialist
+> subagents (`ts-qa-ci_cdd-reviewer`, `ts-qa-ci_cdd-fixer`, shipped in `agents/`)
+> apply it beyond what a linter can. The reference below stays the per-rule catalogue.
+
 The established encapsulation pattern **"closed / encapsulated component styling"**: a component owns all its CSS **internally** (static or dynamic — either is fine) and exposes styling **only** through semantic variant props (`variant`, `size`, `tone`, …). There is **no `className`/`style` passthrough** — the styling API is _closed_, so the implementation can change once for the whole codebase and call-site intent stays explicit. It is plain encapsulation + Open/Closed applied to styling; the banned anti-pattern is "className passthrough" / style-prop drilling.
 
 Three always-on rules enforce it together, and none of them touch a component's _internal_ classes:
