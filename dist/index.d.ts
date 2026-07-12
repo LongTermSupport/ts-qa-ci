@@ -10,6 +10,13 @@ export {
   DEFAULT_NON_APP_SURFACE_DISABLED_RULES,
   loadNonAppSurfaces,
 } from "./orchestrator/nonAppSurfaces.js";
+export {
+  ALL_TSQA_DISABLEABLE_RULE_IDS,
+  DEFAULT_SURFACES,
+  loadSurfaces,
+  surfaceIgnores,
+  surfaceOffBlocks,
+} from "./orchestrator/surfaces.js";
 export { resolveConfigPath } from "./orchestrator/resolveConfigPath.js";
 export {
   detectCi,
