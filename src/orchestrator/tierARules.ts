@@ -34,6 +34,11 @@ export const TIER_A_RULE_IDS: readonly string[] = [
   // (opt-in Tier B), which is about adopting a cva/cn resolver for INTERNAL classes.
   "ts-qa/no-classname-prop",
   "ts-qa/no-classname-public-prop",
+  // Ported correctness rule (CounselBook Plan 00107 BUG-A): bans a naive/
+  // hardcoded-offset datetime template literal. Wired into
+  // TIER_A_ESLINT_RULES + the generic base config, so it MUST be listed here
+  // too or the override-guard would let a consumer silently downgrade it.
+  "ts-qa/no-naive-datetime-template",
   // Always-on strict-TS baseline pieces wired into the generic base config
   // (Plan 00004 Task 1.4). These are core-ESLint, not ts-qa/* rules:
   //   - no-restricted-syntax carries the always-on as/enum ban.

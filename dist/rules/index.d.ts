@@ -30,6 +30,7 @@ export declare const TIER_A_ESLINT_RULES: {
   readonly "ts-qa/exhaustive-discriminated": "error";
   readonly "ts-qa/no-classname-prop": "error";
   readonly "ts-qa/no-classname-public-prop": "error";
+  readonly "ts-qa/no-naive-datetime-template": "error";
 };
 /** Tier B rule IDs — opt-in, NOT spread by default (consumer must enable explicitly). */
 export declare const TIER_B_ESLINT_RULES: {
