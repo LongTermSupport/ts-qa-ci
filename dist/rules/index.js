@@ -12,6 +12,7 @@ import noErrorHidingFallback from "./noErrorHidingFallback.js";
 import noEslintDisable from "./noEslintDisable.js";
 import noHtmlInFrontControllers from "./noHtmlInFrontControllers.js";
 import noInlineComponentDeclInRender from "./noInlineComponentDeclInRender.js";
+import noNaiveDatetimeTemplate from "./noNaiveDatetimeTemplate.js";
 import noPlaceholder from "./noPlaceholder.js";
 import noTypedQuerySelector from "./noTypedQuerySelector.js";
 import oneComponentPerFile from "./oneComponentPerFile.js";
@@ -55,6 +56,9 @@ export const tsQaPlugin = {
     "no-cross-module-relative": noCrossModuleRelative,
     "no-classname-prop": noClassnameProp,
     "no-classname-public-prop": noClassnamePublicProp,
+    // Ported from CounselBook's eslint-rules/no-naive-datetime-template.js
+    // (Plan 00107 BUG-A).
+    "no-naive-datetime-template": noNaiveDatetimeTemplate,
   },
 };
 /**
@@ -86,6 +90,10 @@ export const TIER_A_ESLINT_RULES = {
   // built — a cva/cn resolver call — not about the passthrough boundary.)
   "ts-qa/no-classname-prop": "error",
   "ts-qa/no-classname-public-prop": "error",
+  // Ported correctness rule (CounselBook Plan 00107 BUG-A): bans a naive/
+  // hardcoded-offset datetime template literal — a universal RFC 3339
+  // correctness hazard, not an opinionated/stylistic choice.
+  "ts-qa/no-naive-datetime-template": "error",
 };
 /** Tier B rule IDs — opt-in, NOT spread by default (consumer must enable explicitly). */
 export const TIER_B_ESLINT_RULES = {

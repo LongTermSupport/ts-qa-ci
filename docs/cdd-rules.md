@@ -187,6 +187,28 @@ Three always-on rules enforce it together, and none of them touch a component's 
 
 Companion to `no-classname-prop`: bans _publishing_ `className` as a public prop, two ways — (1) **direct**: a `className` member on any interface or inline object type (`TSPropertySignature`); (2) **inherited**: a props type that `extends`/intersects a className-bearing DOM base (`React.HTMLAttributes<T>`, the per-element `*HTMLAttributes` family, `ComponentPropsWithoutRef<'div'>`, `HTMLProps`, `DetailedHTMLProps`, `SVGProps`), which re-publishes `className` transitively. Detection is syntactic (rightmost base-type name); a transitive re-publish through another component's props type is the `cdd-reviewer` agent's job. Config: `scopeGlobs`, `classNameBearingTypes`, `classNameBearingSuffixes`.
 
+### `no-naive-datetime-template`
+
+_Ported from CounselBook's `eslint-rules/no-naive-datetime-template.js` (Plan 00107 BUG-A)._ Bans template literals that build a `<...>T<...>:00<...>`-shaped datetime string with a **static or absent UTC offset** — a genuine RFC 3339 correctness hazard, not an opinionated style choice. Detection is shape-based: a template literal's quasis are joined (with a placeholder standing in for each `${expression}`) and checked for a `T…:00` boundary whose seconds marker is **not** immediately followed by another interpolated expression.
+
+```ts
+// ❌ no offset at all — rejected by a strict RFC 3339 API (422), or parsed
+// in the reader's local timezone at runtime
+const startsAt = `${dateStr}T${timeStr}:00`;
+
+// ❌ hardcoded UTC offset — wrong whenever the subject isn't observing UTC
+// (the BST/DST class of bug)
+const startsAt = `${dateStr}T${timeStr}:00+00:00`;
+const startsAt = `${dateStr}T${timeStr}:00Z`;
+
+// ✅ the offset is a DYNAMIC expression — computed, not hardcoded/absent
+const startsAt = `${dateStr}T${timeStr}:00${offset}`;
+```
+
+**Not flagged**: plain string literals (this rule only inspects `TemplateLiteral` nodes — e.g. a deliberate test fixture `"2020-01-01T10:00:00+00:00"`), a call to an offset-computing helper (no template literal at the call site), and unrelated template literals with no `T…:00` boundary at all (URLs, paths, a bare `` `${dateStr}T${timeStr}` `` with no seconds).
+
+**Consuming-project concern, not part of this rule**: if your project's own offset-computing helper has an internal UTC probe that legitimately builds a static-`Z` template (to ask `Intl` what offset a timezone observes at a given instant, never sent to any API), grandfather that helper's definition file via a `tsQaConfig/tier-a-exemptions.json` entry — do not weaken this rule for everyone else.
+
 ## Tier B rules (opt-in CDD)
 
 ### `require-variant-resolver`
