@@ -19,9 +19,11 @@ import type { RunContext } from "../orchestrator/types.js";
 const { execToolMock } = vi.hoisted(() => ({ execToolMock: vi.fn() }));
 vi.mock("./execTool.js", () => ({ execTool: execToolMock }));
 
-const { default: tool, pnpmPackageGlobs, memberTsconfigs } = await import(
-  "./tsc.js"
-);
+const {
+  default: tool,
+  pnpmPackageGlobs,
+  memberTsconfigs,
+} = await import("./tsc.js");
 
 const ctx = (cwd: string): RunContext => ({
   cwd,
@@ -50,7 +52,7 @@ describe("pnpmPackageGlobs", () => {
   });
 
   it("strips surrounding quotes and trailing inline comments", () => {
-    const yaml = ['packages:', "  - 'apps/web'", '  - packages/* # libs'].join(
+    const yaml = ["packages:", "  - 'apps/web'", "  - packages/* # libs"].join(
       "\n",
     );
 
@@ -160,11 +162,10 @@ describe("tsc tool run()", () => {
       mkdirSync(join(root, pkg), { recursive: true });
       writeFileSync(join(root, pkg, "tsconfig.json"), "{}");
     }
-    execToolMock.mockImplementation(
-      async (_cmd: string, args: string[]) =>
-        args.includes(join("pkg-b", "tsconfig.json"))
-          ? { exitCode: 2, stdout: "TS error", stderr: "" }
-          : { exitCode: 0, stdout: "", stderr: "" },
+    execToolMock.mockImplementation(async (_cmd: string, args: string[]) =>
+      args.includes(join("pkg-b", "tsconfig.json"))
+        ? { exitCode: 2, stdout: "TS error", stderr: "" }
+        : { exitCode: 0, stdout: "", stderr: "" },
     );
 
     const result = await tool.run(ctx(root));
