@@ -11,7 +11,7 @@ import { resolveDependencyCruiserRoots } from "./resolveDependencyCruiserRoots.j
  * does not keep all sources under a single top-level ./src — notably a pnpm
  * monorepo whose packages live under `apps/<pkg>/src`, `packages/<pkg>/src`.
  * `dependencyCruiserScanRoots` in tsQaConfig/ts-qa.json makes the targets
- * configurable; absent, it defaults to the historical `["src"]` so
+ * configurable; absent, it defaults to `["."]`, the run directory, so
  * single-package repos are completely unaffected. A present-but-malformed value
  * throws (mirrors resolveDisabledTools): a typo must fail loudly, never quietly
  * cruise the wrong tree or nothing.
@@ -35,13 +35,13 @@ describe("resolveDependencyCruiserRoots", () => {
       rmSync(dirs.pop() as string, { recursive: true, force: true });
   });
 
-  it("defaults to ['src'] when there is no config file", () => {
-    expect(resolveDependencyCruiserRoots(proj())).toEqual(["src"]);
+  it("defaults to ['.'] when there is no config file", () => {
+    expect(resolveDependencyCruiserRoots(proj())).toEqual(["."]);
   });
 
-  it("defaults to ['src'] when the config omits dependencyCruiserScanRoots", () => {
+  it("defaults to ['.'] when the config omits dependencyCruiserScanRoots", () => {
     expect(resolveDependencyCruiserRoots(proj({ disabledTools: [] }))).toEqual([
-      "src",
+      ".",
     ]);
   });
 

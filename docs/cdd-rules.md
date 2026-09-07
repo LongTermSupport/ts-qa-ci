@@ -249,6 +249,16 @@ Bans `export default` — named exports keep rename/find-refs tooling reliable. 
 
 Bans `../`-climbing imports that cross a top-level module boundary; use the `~/`-style alias instead so module boundaries stay visible. Config: `modules` (the top-level module list), `alias`, `srcMarker`.
 
+## Internal rules (ts-qa-ci's own source only)
+
+### `no-hardcoded-tool-source-path`
+
+Bans the literal `"src"` as an argument to `execTool()` inside `src/tools/*.ts`, the files that implement each `ToolModule`. Not in any tier and never active in a consumer project, because no consumer code calls `execTool()`; enforced on ts-qa-ci itself through `tsQaConfig/eslint.config.js`.
+
+Why: a tool module must not bake a guess at the consumer's layout into the subprocess it spawns. `dependencyCruiser.ts` once passed a hardcoded `"src"` as depcruise's positional scan root, so any consumer whose sources live elsewhere (for example `apps/web/src/`) failed with `Can't open 'src' for reading`. Scope comes from the `RunContext` (`ctx.cwd`, `ctx.path`) or from the underlying tool's own config file.
+
+Fix: pass `"."` (the tool already runs in `ctx.cwd`), or for a `pathSupporting` tool `ctx.path ?? "."` as `eslintReport.ts` does. Only the exact literal `"src"` is banned, because bare subcommand literals such as `"eslint"` or `"run"` are legitimate arguments.
+
 ## Strict-TypeScript baseline preset
 
 Two opt-in severity maps exported from the package: `STRICT_TYPESCRIPT_RULES` (load-bearing) and `STRICT_TYPESCRIPT_STYLISTIC_RULES` (opinionated, further opt-in). They are **not** always-on Tier A because they are type-aware `@typescript-eslint` rules: they require the consumer's own `parserOptions.projectService`/`.project` (ESLint hard-crashes without it) and the `@typescript-eslint` plugin registered. Shipping them as plain severity maps keeps `ts-qa-ci` free of a `typescript-eslint` dependency — the consumer's own plugin supplies the rule definitions; the package supplies the opinion.

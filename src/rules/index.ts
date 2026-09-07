@@ -11,6 +11,7 @@ import noDefaultExport from "./noDefaultExport.js";
 import noDomClassnameMutation from "./noDomClassnameMutation.js";
 import noDuplicateSectionIds from "./noDuplicateSectionIds.js";
 import noErrorHidingFallback from "./noErrorHidingFallback.js";
+import noHardcodedToolSourcePath from "./noHardcodedToolSourcePath.js";
 import noEslintDisable from "./noEslintDisable.js";
 import noHtmlInFrontControllers from "./noHtmlInFrontControllers.js";
 import noInlineComponentDeclInRender from "./noInlineComponentDeclInRender.js";
@@ -62,6 +63,10 @@ export const tsQaPlugin: { rules: Record<string, Rule.RuleModule> } = {
     // Ported from CounselBook's eslint-rules/no-naive-datetime-template.js
     // (Plan 00107 BUG-A).
     "no-naive-datetime-template": noNaiveDatetimeTemplate,
+    // Internal meta-rule over how a ToolModule (src/tools/*.ts) is authored,
+    // not consumer code, so it is in no Tier; enforced on ts-qa-ci's own
+    // source via tsQaConfig/eslint.config.js. See docs/cdd-rules.md#no-hardcoded-tool-source-path.
+    "no-hardcoded-tool-source-path": noHardcodedToolSourcePath,
   },
 };
 
