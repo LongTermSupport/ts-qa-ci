@@ -18,4 +18,15 @@ export default [
       "ts-qa/no-placeholder": "off",
     },
   },
+  {
+    // A ToolModule must derive subprocess scope from the RunContext or leave
+    // it to the tool's own config, never a literal guess at the consumer's
+    // layout. Internal to ts-qa-ci's tool-authoring surface, so enforced here
+    // rather than shipped in a consumer tier. See
+    // docs/cdd-rules.md#no-hardcoded-tool-source-path.
+    files: ["src/tools/**/*.ts"],
+    rules: {
+      "ts-qa/no-hardcoded-tool-source-path": "error",
+    },
+  },
 ];

@@ -101,4 +101,14 @@ export default [
       'ts-qa/no-classname-public-prop': TIER_A_ESLINT_RULES['ts-qa/no-classname-public-prop'],
     },
   },
+  {
+    // Tier A, and deliberately covering plain JavaScript: the hazard lives in
+    // Node CLI entry scripts, which a project ships as a bin/*.js file, so a
+    // ts/tsx-only glob would never see the file class this rule defends.
+    files: ['**/*.{js,mjs,cjs,ts,tsx,mts,cts}'],
+    plugins: { 'ts-qa': tsQaPlugin },
+    rules: {
+      'ts-qa/no-unresolved-entrypoint-check': TIER_A_ESLINT_RULES['ts-qa/no-unresolved-entrypoint-check'],
+    },
+  },
 ]

@@ -44,5 +44,23 @@ ruleTester.run("no-eslint-disable", rule, {
       code: "// @ts-nocheck\nconst x = 1;\n",
       errors: [{ messageId: "noSuppression" }],
     },
+    // oxlint is the phase 0 pre-filter; its directive forms mirror ESLint's and
+    // suppress its findings with nothing in the project record seeing them.
+    {
+      code: "// oxlint-disable no-unused-vars\nconst x = 1;\n",
+      errors: [{ messageId: "noSuppression" }],
+    },
+    {
+      code: "// oxlint-disable-next-line no-unused-vars\nconst x = 1;\n",
+      errors: [{ messageId: "noSuppression" }],
+    },
+    {
+      code: "const x = 1; // oxlint-disable-line no-unused-vars\n",
+      errors: [{ messageId: "noSuppression" }],
+    },
+    {
+      code: "/* oxlint-enable */\nconst x = 1;\n",
+      errors: [{ messageId: "noSuppression" }],
+    },
   ],
 });

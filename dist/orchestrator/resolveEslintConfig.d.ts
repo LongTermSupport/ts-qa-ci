@@ -18,6 +18,12 @@ export interface FlatConfigEntry {
   rules?: Record<string, unknown>;
   [key: string]: unknown;
 }
+export interface TierAExemption {
+  ruleId: string;
+  files: string[];
+  justification: string;
+}
+export declare function loadExemptions(projectRoot: string): TierAExemption[];
 interface TierAOverride {
   ruleId: string;
   files: string[];

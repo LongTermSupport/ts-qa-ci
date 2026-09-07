@@ -44,6 +44,41 @@ ts-qa --skip playwright # run everything EXCEPT the named tool(s); repeatable
 
 To disable a tool persistently (e.g. run browser tests in a separate CI job), use `disabledTools` in `tsQaConfig/ts-qa.json` — see [`configuration.md`](configuration.md#disabling-tools-tsqaconfigts-qajson).
 
+## Working with a single rule
+
+Three commands answer questions about defences without running the pipeline. Each accepts `--json`.
+
+```bash
+ts-qa rules                                   # every active rule, derived from the resolved config
+ts-qa rule-doc ts-qa/no-eslint-disable        # the documentation for a printed identifier
+ts-qa rule ts-qa/no-eslint-disable src/a.ts   # did this ONE rule fire on this path, and where
+```
+
+`rules` lists each active rule's identifier, severity, summary and documentation route, then the
+project record (`tsQaConfig/tier-a-exemptions.json`) alongside them. It is computed from the same
+resolved configuration `eslint` runs with, so a project's own plugin rules appear next to the
+bundled ones and the list cannot drift from what is enforced.
+
+`rule-doc` takes the identifier exactly as a failure prints it. A bundled `ts-qa/<name>` resolves
+to its section of [`cdd-rules.md`](cdd-rules.md), shipped in the package, so it works offline and
+at the installed version; an ESLint core rule resolves to its description and upstream URL. An
+identifier that cannot be resolved is an error, and the package's own tests audit every bundled
+rule for that.
+
+`rule` is the single-rule harness: it runs the ordinary `eslintReport` lane over one path with the
+project's own configuration and narrows the report to one identifier. Exit 0 means it did not fire,
+1 means it fired with every location printed, 2 means ESLint did not produce a run. Use it to prove
+a new rule sees its fixture before trusting a green full run.
+
+## The conformance declaration
+
+`package.json` carries a `defenceBeforeFix` key naming the version of the Defence Before Fix method
+specification and of its toolchain specification that this package implements, with a `knownGaps`
+list. A gap the package learns of, from its own self-checks or from a practitioner's report, is
+recorded there against the clause it fails, and the package does not claim conformance whilst that
+list is non-empty. The key is machine-readable so a consumer can check the claim against the
+installed artefact rather than against a sentence in a README.
+
 ## Output modes (`--llm`, `--json`)
 
 By default `ts-qa` prints each tool's captured output inline as it runs. Two flags change what lands on stdout:

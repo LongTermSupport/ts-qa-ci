@@ -43,7 +43,17 @@ export function parseArgs(argv) {
     switch (arg) {
       case "deploy-skills":
       case "init":
+      case "rules":
         command = arg;
+        break;
+      case "rule-doc":
+        command = arg;
+        options.identifier = requireOperand(argv, ++i, "rule-doc");
+        break;
+      case "rule":
+        command = arg;
+        options.identifier = requireOperand(argv, ++i, "rule");
+        options.rulePath = requireOperand(argv, ++i, "rule <identifier>");
         break;
       case "-t":
         options.tool = requireOperand(argv, ++i, "-t");
@@ -140,6 +150,59 @@ async function main() {
     const { init } = await import("../dist/deploy/init.js");
     await init(options);
     return;
+  }
+
+  // The three defence commands (docs/pipeline.md "Working with a single rule"):
+  // `rules` lists the active defences and the project record, `rule-doc`
+  // resolves a printed identifier to its documentation, `rule` is the
+  // single-rule harness. None runs the pipeline.
+  if (command === "rules") {
+    const { detectPlatform } =
+      await import("../dist/orchestrator/detectPlatform.js");
+    const { listActiveDefences, formatDefenceListing } =
+      await import("../dist/defences/activeDefences.js");
+    const listing = await listActiveDefences(
+      options.cwd,
+      detectPlatform(options.cwd),
+      packageRoot,
+    );
+    process.stdout.write(
+      options.json
+        ? `${JSON.stringify(listing, null, 2)}\n`
+        : formatDefenceListing(listing),
+    );
+    return;
+  }
+
+  if (command === "rule-doc") {
+    const { resolveRuleDoc, formatRuleDoc } =
+      await import("../dist/defences/ruleDoc.js");
+    const doc = resolveRuleDoc(options.identifier, packageRoot);
+    process.stdout.write(
+      options.json ? `${JSON.stringify(doc, null, 2)}\n` : formatRuleDoc(doc),
+    );
+    return;
+  }
+
+  if (command === "rule") {
+    const { detectPlatform } =
+      await import("../dist/orchestrator/detectPlatform.js");
+    const { runSingleRule } = await import("../dist/defences/singleRule.js");
+    const result = await runSingleRule(options.identifier, options.rulePath, {
+      cwd: options.cwd,
+      platform: detectPlatform(options.cwd),
+      ci: true,
+      readOnly: true,
+      aggregate: false,
+      hasBeenRestarted: false,
+      json: true,
+      llm: false,
+      packageRoot,
+    });
+    process.stdout.write(
+      options.json ? `${JSON.stringify(result, null, 2)}\n` : result.output,
+    );
+    process.exit(result.exitCode);
   }
 
   // Resolve the tri-state CLI flag into a definite on/off decision, applying the

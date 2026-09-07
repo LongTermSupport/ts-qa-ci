@@ -33,13 +33,13 @@ export interface FlatConfigEntry {
   [key: string]: unknown;
 }
 
-interface TierAExemption {
+export interface TierAExemption {
   ruleId: string;
   files: string[];
   justification: string;
 }
 
-function loadExemptions(projectRoot: string): TierAExemption[] {
+export function loadExemptions(projectRoot: string): TierAExemption[] {
   const exemptionsPath = join(
     projectRoot,
     "tsQaConfig",
@@ -55,8 +55,35 @@ function loadExemptions(projectRoot: string): TierAExemption[] {
         `ts-qa: tsQaConfig/tier-a-exemptions.json has an entry missing ruleId, files, or justification: ${JSON.stringify(entry)}`,
       );
     }
+    assertJustificationHasContent(entry);
   }
   return raw;
+}
+
+/**
+ * The exemptions file is the project record: the one place a suppressed rule
+ * is meant to be reviewable later. A justification that could be pasted onto
+ * any exemption unchanged records nothing, so it is rejected here, by a check
+ * this comment documents: a minimum length that a hazard and a scope cannot
+ * fit under, and a list of phrases that name neither. The check cannot tell
+ * whether a sentence is true; that stays the owner's judgement, and every
+ * justification is printed on every run so a vacuous one is seen next to its
+ * neighbours.
+ */
+const JUSTIFICATION_MIN_LENGTH = 40;
+const GENERIC_JUSTIFICATION =
+  /^(needed for now|for now|legacy( code)?|todo|fixme|wip|temporary|temp|will fix later|fix later|too noisy|noisy|known issue|ignore)\W*$/i;
+
+function assertJustificationHasContent(entry: TierAExemption): void {
+  const text = entry.justification.trim();
+  if (
+    text.length < JUSTIFICATION_MIN_LENGTH ||
+    GENERIC_JUSTIFICATION.test(text)
+  ) {
+    throw new Error(
+      `ts-qa: tsQaConfig/tier-a-exemptions.json entry for ${entry.ruleId} has a justification that names neither the hazard being accepted nor the scope of the exemption: ${JSON.stringify(entry.justification)}. State what the rule would catch here, why that is acceptable in exactly these files, and nothing that could be pasted onto another exemption unchanged.`,
+    );
+  }
 }
 
 interface TierAOverride {

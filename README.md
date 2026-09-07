@@ -8,6 +8,12 @@ npx ts-qa init      # scaffold tsQaConfig/
 npx ts-qa           # run the full pipeline
 ```
 
+```bash
+npx ts-qa rules                                  # what is enforced here, derived from the config
+npx ts-qa rule-doc ts-qa/no-eslint-disable       # the docs for an identifier a failure printed
+npx ts-qa rule ts-qa/no-eslint-disable src/a.ts  # does this one rule fire on this path
+```
+
 One command runs formatting, linting (including a Component-Driven Development rule tier), type-checking, structural/architecture checks, and tests — auto-fixing locally, failing the gate on any pending diff in CI. A fast Rust-based pre-filter (oxlint) catches obvious problems before anything slower runs.
 
 ## Docs

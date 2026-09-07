@@ -12,7 +12,7 @@ The rule-severity maps are exported from the package for consumers to spread int
 
 ### `no-eslint-disable`
 
-Bans all `eslint-disable*`, `eslint-enable`, `@ts-ignore`, `@ts-expect-error`, and `@ts-nocheck` suppression comments (the union of every directive form).
+Bans all `eslint-disable*`, `eslint-enable`, `oxlint-disable*`, `oxlint-enable`, `@ts-ignore`, `@ts-expect-error`, and `@ts-nocheck` suppression comments (the union of every directive form, including the phase 0 oxlint pre-filter's).
 
 ```js
 // ❌ Banned
@@ -209,6 +209,24 @@ const startsAt = `${dateStr}T${timeStr}:00${offset}`;
 
 **Consuming-project concern, not part of this rule**: if your project's own offset-computing helper has an internal UTC probe that legitimately builds a static-`Z` template (to ask `Intl` what offset a timezone observes at a given instant, never sent to any API), grandfather that helper's definition file via a `tsQaConfig/tier-a-exemptions.json` entry — do not weaken this rule for everyone else.
 
+### `no-unresolved-entrypoint-check`
+
+Bans comparing `import.meta.url` with an unresolved `process.argv[1]` to decide "was this script invoked directly, not merely imported", in any of the common spellings: `pathToFileURL(process.argv[1]).href` against `import.meta.url`, or `fileURLToPath(import.meta.url)` against `process.argv[1]` with or without `path.resolve`. Applies to plain JavaScript as well as TypeScript, because a project's CLI entry script is usually a `bin/*.js` file.
+
+**Hazard**: `import.meta.url` is the module's real, symlink-resolved path. `process.argv[1]` is the path the process was launched with, unresolved. `node_modules/.bin/<name>`, which every package manager creates and which `npx` and a project's own scripts invoke, is a symlink, so the two never match once the package is installed normally: the gated `main()` never runs and the process exits `0` having done nothing. Found in this package's own `bin/ts-qa.js`.
+
+```js
+// ❌ silent no-op behind a symlinked bin
+const invokedDirectly = import.meta.url === pathToFileURL(process.argv[1]).href;
+
+// ✅ resolve argv[1] first
+import { realpathSync } from "node:fs";
+const invokedDirectly =
+  import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href;
+```
+
+**Not flagged**: any comparison whose `argv[1]` side passes through a `realpath` call, and comparisons that involve only one of the two operands.
+
 ## Tier B rules (opt-in CDD)
 
 ### `require-variant-resolver`
@@ -248,6 +266,16 @@ Bans `export default` — named exports keep rename/find-refs tooling reliable. 
 ### `no-cross-module-relative`
 
 Bans `../`-climbing imports that cross a top-level module boundary; use the `~/`-style alias instead so module boundaries stay visible. Config: `modules` (the top-level module list), `alias`, `srcMarker`.
+
+## Internal rules (ts-qa-ci's own source only)
+
+### `no-hardcoded-tool-source-path`
+
+Bans the literal `"src"` as an argument to `execTool()` inside `src/tools/*.ts`, the files that implement each `ToolModule`. Not in any tier and never active in a consumer project, because no consumer code calls `execTool()`; enforced on ts-qa-ci itself through `tsQaConfig/eslint.config.js`.
+
+Why: a tool module must not bake a guess at the consumer's layout into the subprocess it spawns. `dependencyCruiser.ts` once passed a hardcoded `"src"` as depcruise's positional scan root, so any consumer whose sources live elsewhere (for example `apps/web/src/`) failed with `Can't open 'src' for reading`. Scope comes from the `RunContext` (`ctx.cwd`, `ctx.path`) or from the underlying tool's own config file.
+
+Fix: pass `"."` (the tool already runs in `ctx.cwd`), or for a `pathSupporting` tool `ctx.path ?? "."` as `eslintReport.ts` does. Only the exact literal `"src"` is banned, because bare subcommand literals such as `"eslint"` or `"run"` are legitimate arguments.
 
 ## Strict-TypeScript baseline preset
 

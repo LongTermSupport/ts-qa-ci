@@ -33,11 +33,10 @@ const tool: ToolModule = {
       "dependency-cruiser.config.cjs",
       ctx.packageRoot,
     );
-    // depcruise needs at least one positional scan target. `src` was hardcoded,
-    // which fails `Can't open 'src'` on any repo not rooted at a single ./src
-    // (e.g. a pnpm monorepo with apps/<pkg>/src, packages/<pkg>/src). The targets
-    // are configurable via tsQaConfig/ts-qa.json `dependencyCruiserScanRoots`,
-    // defaulting to ["src"] so single-package repos are unaffected.
+    // depcruise needs at least one positional scan target. Scope is derived
+    // from the run directory (`.`) unless tsQaConfig/ts-qa.json names
+    // `dependencyCruiserScanRoots`; a literal directory name here is banned by
+    // ts-qa/no-hardcoded-tool-source-path.
     const scanRoots = resolveDependencyCruiserRoots(ctx.cwd);
     // Bundled dependency (not a peer): spawn ts-qa-ci's own copy directly. See bundledBin.
     const bin = bundledBin(ctx.packageRoot, "depcruise");

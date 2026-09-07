@@ -36,6 +36,8 @@ Everything project-specific goes here — extra plugins, your own rules, a stric
 
 Every active exemption is printed on every `ts-qa` run — never silent.
 
+The justification is checked for content, not only presence: it must be long enough to name the hazard being accepted and the scope of the exemption, and a phrase that could be pasted onto any exemption unchanged (`needed for now`, `legacy`, `TODO`, `temporary` and the like) is rejected with the entry named. The check cannot tell whether a sentence is true; that is the reviewer's judgement, which is why every justification is printed where a vacuous one sits next to its neighbours.
+
 ### The project-root `eslint.config.js` is an OPTIONAL delegator that MUST stay in sync
 
 A project-root `eslint.config.js` is **not required** — you can lint solely through `npx ts-qa` (it uses its own generated config under `node_modules/.cache/ts-qa/`). But most projects want `npx eslint` and IDE inline lint to work too. If you keep a root config, it **must** be a thin delegator to ts-qa's resolved config — never a hand-rolled second rule set:
