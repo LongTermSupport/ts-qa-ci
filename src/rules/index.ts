@@ -18,6 +18,7 @@ import noInlineComponentDeclInRender from "./noInlineComponentDeclInRender.js";
 import noNaiveDatetimeTemplate from "./noNaiveDatetimeTemplate.js";
 import noPlaceholder from "./noPlaceholder.js";
 import noTypedQuerySelector from "./noTypedQuerySelector.js";
+import noUnresolvedEntrypointCheck from "./noUnresolvedEntrypointCheck.js";
 import oneComponentPerFile from "./oneComponentPerFile.js";
 // Ported from admin-ts's eslint-plugin-dbf during the adoption (Plan 00004).
 import requireErrorCause from "./requireErrorCause.js";
@@ -63,6 +64,9 @@ export const tsQaPlugin: { rules: Record<string, Rule.RuleModule> } = {
     // Ported from CounselBook's eslint-rules/no-naive-datetime-template.js
     // (Plan 00107 BUG-A).
     "no-naive-datetime-template": noNaiveDatetimeTemplate,
+    // Defence Before Fix execution test 6: a CLI that exits 0 having run
+    // nothing because its entry-point check compared an unresolved argv[1].
+    "no-unresolved-entrypoint-check": noUnresolvedEntrypointCheck,
     // Internal meta-rule over how a ToolModule (src/tools/*.ts) is authored,
     // not consumer code, so it is in no Tier; enforced on ts-qa-ci's own
     // source via tsQaConfig/eslint.config.js. See docs/cdd-rules.md#no-hardcoded-tool-source-path.
@@ -103,6 +107,9 @@ export const TIER_A_ESLINT_RULES = {
   // hardcoded-offset datetime template literal — a universal RFC 3339
   // correctness hazard, not an opinionated/stylistic choice.
   "ts-qa/no-naive-datetime-template": "error",
+  // A Node CLI whose "invoked directly" check compares an unresolved argv[1]
+  // exits 0 in silence behind node_modules/.bin. Universal correctness hazard.
+  "ts-qa/no-unresolved-entrypoint-check": "error",
 } as const;
 
 /** Tier B rule IDs — opt-in, NOT spread by default (consumer must enable explicitly). */

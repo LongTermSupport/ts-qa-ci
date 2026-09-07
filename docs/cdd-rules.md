@@ -209,6 +209,24 @@ const startsAt = `${dateStr}T${timeStr}:00${offset}`;
 
 **Consuming-project concern, not part of this rule**: if your project's own offset-computing helper has an internal UTC probe that legitimately builds a static-`Z` template (to ask `Intl` what offset a timezone observes at a given instant, never sent to any API), grandfather that helper's definition file via a `tsQaConfig/tier-a-exemptions.json` entry — do not weaken this rule for everyone else.
 
+### `no-unresolved-entrypoint-check`
+
+Bans comparing `import.meta.url` with an unresolved `process.argv[1]` to decide "was this script invoked directly, not merely imported", in any of the common spellings: `pathToFileURL(process.argv[1]).href` against `import.meta.url`, or `fileURLToPath(import.meta.url)` against `process.argv[1]` with or without `path.resolve`. Applies to plain JavaScript as well as TypeScript, because a project's CLI entry script is usually a `bin/*.js` file.
+
+**Hazard**: `import.meta.url` is the module's real, symlink-resolved path. `process.argv[1]` is the path the process was launched with, unresolved. `node_modules/.bin/<name>`, which every package manager creates and which `npx` and a project's own scripts invoke, is a symlink, so the two never match once the package is installed normally: the gated `main()` never runs and the process exits `0` having done nothing. Found in this package's own `bin/ts-qa.js`.
+
+```js
+// ❌ silent no-op behind a symlinked bin
+const invokedDirectly = import.meta.url === pathToFileURL(process.argv[1]).href;
+
+// ✅ resolve argv[1] first
+import { realpathSync } from "node:fs";
+const invokedDirectly =
+  import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href;
+```
+
+**Not flagged**: any comparison whose `argv[1]` side passes through a `realpath` call, and comparisons that involve only one of the two operands.
+
 ## Tier B rules (opt-in CDD)
 
 ### `require-variant-resolver`
