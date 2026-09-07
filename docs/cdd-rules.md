@@ -12,7 +12,7 @@ The rule-severity maps are exported from the package for consumers to spread int
 
 ### `no-eslint-disable`
 
-Bans all `eslint-disable*`, `eslint-enable`, `@ts-ignore`, `@ts-expect-error`, and `@ts-nocheck` suppression comments (the union of every directive form).
+Bans all `eslint-disable*`, `eslint-enable`, `oxlint-disable*`, `oxlint-enable`, `@ts-ignore`, `@ts-expect-error`, and `@ts-nocheck` suppression comments (the union of every directive form, including the phase 0 oxlint pre-filter's).
 
 ```js
 // ❌ Banned

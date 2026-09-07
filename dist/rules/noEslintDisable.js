@@ -18,15 +18,20 @@
  * match a real directive. `@ts-check` is deliberately NOT banned — it opts INTO
  * type-checking rather than suppressing it; the ban-ts-comment strict-baseline
  * config governs that directive instead.
+ *
+ * oxlint's directive forms (`oxlint-disable*`, `oxlint-enable`) mirror ESLint's
+ * and are banned on the same reasoning: oxlint is the phase 0 pre-filter, and a
+ * comment that removes its findings is a suppression route the project record
+ * never sees.
  */
 const SUPPRESSION_PATTERN =
-  /^(eslint-disable(-next-line|-line)?|eslint-enable|@ts-(ignore|expect-error|nocheck))\b/;
+  /^((eslint|oxlint)-disable(-next-line|-line)?|(eslint|oxlint)-enable|@ts-(ignore|expect-error|nocheck))\b/;
 const rule = {
   meta: {
     type: "problem",
     docs: {
       description:
-        "Disallow eslint-disable*, eslint-enable, and @ts-ignore/@ts-expect-error/@ts-nocheck suppression comments",
+        "Disallow eslint-disable*, eslint-enable, oxlint-disable*, oxlint-enable, and @ts-ignore/@ts-expect-error/@ts-nocheck suppression comments",
     },
     schema: [],
     messages: {
