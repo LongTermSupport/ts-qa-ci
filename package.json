@@ -28,7 +28,7 @@
     "test": "vitest run",
     "prepublishOnly": "npm run build"
   },
-  "_peerDependenciesPolicy": "Floors are set to the CURRENT major generation as of the last version check (npm view <pkg> version), not an old baseline carried forward out of habit — ts-qa-ci should push consumers toward current stable tooling, not accommodate years-old installs. Re-run `npm view <pkg> version` for every peerDependency before each ts-qa-ci release and bump these floors to the then-current major; do not silently let them go stale. EXCEPTIONS (both found 2026-07-10 while dogfooding on lts-commerce-site, Plan 011 Task 4.1 — verify `npm view <plugin> peerDependencies` for the key ecosystem plugin, not just the tool's own version, before raising either floor again): (1) typescript is capped below its own latest major because typescript-eslint 8.63.0 (latest, and its canary) still caps at `typescript >=4.8.4 <6.1.0` even though TypeScript 7.x has shipped stable — floor set to 6.0.3, the newest version actually inside that ceiling. (2) eslint is capped below its own latest major because eslint-plugin-react 7.37.5 (latest, last published 2025-04-03, no `next` tag support for it either) still caps at `eslint ^3...^9.7` — using ESLint 10 would break every consumer running eslint-plugin-react (i.e. effectively every React consumer). Floor set to 9.39.4, the newest 9.x release.",
+  "_peerDependenciesPolicy": "Floors are set to the CURRENT major generation as of the last version check (npm view <pkg> version), not an old baseline carried forward out of habit \u2014 ts-qa-ci should push consumers toward current stable tooling, not accommodate years-old installs. Re-run `npm view <pkg> version` for every peerDependency before each ts-qa-ci release and bump these floors to the then-current major; do not silently let them go stale. EXCEPTIONS (both found 2026-07-10 while dogfooding on lts-commerce-site, Plan 011 Task 4.1 \u2014 verify `npm view <plugin> peerDependencies` for the key ecosystem plugin, not just the tool's own version, before raising either floor again): (1) typescript is capped below its own latest major because typescript-eslint 8.63.0 (latest, and its canary) still caps at `typescript >=4.8.4 <6.1.0` even though TypeScript 7.x has shipped stable \u2014 floor set to 6.0.3, the newest version actually inside that ceiling. (2) eslint is capped below its own latest major because eslint-plugin-react 7.37.5 (latest, last published 2025-04-03, no `next` tag support for it either) still caps at `eslint ^3...^9.7` \u2014 using ESLint 10 would break every consumer running eslint-plugin-react (i.e. effectively every React consumer). Floor set to 9.39.4, the newest 9.x release.",
   "peerDependencies": {
     "@playwright/test": ">=1.60.0",
     "@stryker-mutator/core": ">=9.0.0",
@@ -78,5 +78,10 @@
   },
   "engines": {
     "node": ">=22.0.0"
+  },
+  "defenceBeforeFix": {
+    "method": "1.0.0",
+    "toolchain": "0.1.0",
+    "knownGaps": []
   }
 }

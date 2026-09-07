@@ -70,6 +70,15 @@ project's own configuration and narrows the report to one identifier. Exit 0 mea
 1 means it fired with every location printed, 2 means ESLint did not produce a run. Use it to prove
 a new rule sees its fixture before trusting a green full run.
 
+## The conformance declaration
+
+`package.json` carries a `defenceBeforeFix` key naming the version of the Defence Before Fix method
+specification and of its toolchain specification that this package implements, with a `knownGaps`
+list. A gap the package learns of, from its own self-checks or from a practitioner's report, is
+recorded there against the clause it fails, and the package does not claim conformance whilst that
+list is non-empty. The key is machine-readable so a consumer can check the claim against the
+installed artefact rather than against a sentence in a README.
+
 ## Output modes (`--llm`, `--json`)
 
 By default `ts-qa` prints each tool's captured output inline as it runs. Two flags change what lands on stdout:
