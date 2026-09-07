@@ -33,13 +33,13 @@ export interface FlatConfigEntry {
   [key: string]: unknown;
 }
 
-interface TierAExemption {
+export interface TierAExemption {
   ruleId: string;
   files: string[];
   justification: string;
 }
 
-function loadExemptions(projectRoot: string): TierAExemption[] {
+export function loadExemptions(projectRoot: string): TierAExemption[] {
   const exemptionsPath = join(
     projectRoot,
     "tsQaConfig",

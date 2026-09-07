@@ -36,4 +36,14 @@ export {
   STRICT_TYPESCRIPT_STYLISTIC_RULES,
   AS_ENUM_BAN_SELECTORS,
 } from "./configs/strictTypescript.js";
+export {
+  formatDefenceListing,
+  listActiveDefences,
+} from "./defences/activeDefences.js";
+export { formatRuleDoc, resolveRuleDoc } from "./defences/ruleDoc.js";
+export {
+  firingsOf,
+  formatFirings,
+  runSingleRule,
+} from "./defences/singleRule.js";
 //# sourceMappingURL=index.js.map

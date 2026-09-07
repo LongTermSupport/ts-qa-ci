@@ -44,4 +44,20 @@ export type {
   PhaseDefinition,
 } from "./orchestrator/types.js";
 export type { HookContext } from "./orchestrator/hooks.js";
+export {
+  formatDefenceListing,
+  listActiveDefences,
+} from "./defences/activeDefences.js";
+export type {
+  ActiveDefence,
+  DefenceListing,
+} from "./defences/activeDefences.js";
+export { formatRuleDoc, resolveRuleDoc } from "./defences/ruleDoc.js";
+export type { RuleDoc } from "./defences/ruleDoc.js";
+export {
+  firingsOf,
+  formatFirings,
+  runSingleRule,
+} from "./defences/singleRule.js";
+export type { Firing, SingleRuleResult } from "./defences/singleRule.js";
 //# sourceMappingURL=index.d.ts.map

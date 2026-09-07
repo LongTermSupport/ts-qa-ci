@@ -9,7 +9,7 @@ import {
 import { markResolvedEslintConfig } from "./resolvedConfigMarker.js";
 import { loadSurfaces, surfaceIgnores, surfaceOffBlocks } from "./surfaces.js";
 import { TIER_A_RULE_IDS } from "./tierARules.js";
-function loadExemptions(projectRoot) {
+export function loadExemptions(projectRoot) {
   const exemptionsPath = join(
     projectRoot,
     "tsQaConfig",
