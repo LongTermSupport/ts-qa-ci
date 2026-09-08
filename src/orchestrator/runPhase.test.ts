@@ -1,10 +1,98 @@
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { runPhase } from "./runPhase.js";
+import { DEFENCE_BEFORE_FIX_LINE } from "./methodLine.js";
+import { logToolResult, runPhase } from "./runPhase.js";
 import type { PhaseDefinition, RunContext } from "./types.js";
+
+/**
+ * Human output on a failing tool names the method and links its canonical
+ * specification, once per failing tool, directly after the `ts-qa: <tool>:
+ * <exitClass>` line and before the tool's own output. Never on a clean
+ * result, never in --json mode.
+ */
+describe("logToolResult", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  const spyStdout = (): { log: string[]; raw: string[] } => {
+    const log: string[] = [];
+    const raw: string[] = [];
+    vi.spyOn(console, "log").mockImplementation((...args: unknown[]) => {
+      log.push(args.map(String).join(" "));
+    });
+    vi.spyOn(process.stdout, "write").mockImplementation(
+      (chunk: string | Uint8Array) => {
+        raw.push(String(chunk));
+        return true;
+      },
+    );
+    vi.spyOn(process.stderr, "write").mockImplementation(() => true);
+    return { log, raw };
+  };
+
+  it("prints the Defence Before Fix line directly after the failure header, before tool output", () => {
+    const { log, raw } = spyStdout();
+
+    logToolResult(
+      "eslintReport",
+      { exitClass: "failure", stdout: "lint out\n", stderr: "" },
+      false,
+    );
+
+    expect(log).toStrictEqual([
+      "ts-qa: eslintReport: failure",
+      "Defence Before Fix: https://defence-before-fix.github.io/",
+    ]);
+    expect(log[1]).toBe(DEFENCE_BEFORE_FIX_LINE);
+    // The tool's own output follows the two header lines.
+    expect(raw).toStrictEqual(["lint out\n"]);
+  });
+
+  it("prints the line for a crash too", () => {
+    const { log } = spyStdout();
+
+    logToolResult(
+      "tsc",
+      { exitClass: "crash", stdout: "", stderr: "boom" },
+      false,
+    );
+
+    expect(log).toStrictEqual([
+      "ts-qa: tsc: crash",
+      "Defence Before Fix: https://defence-before-fix.github.io/",
+    ]);
+  });
+
+  it("does not print the line on a clean result", () => {
+    const { log, raw } = spyStdout();
+
+    logToolResult(
+      "knip",
+      { exitClass: "clean", stdout: "", stderr: "" },
+      false,
+    );
+
+    expect(log).toStrictEqual(["ts-qa: knip: clean"]);
+    expect(raw).toStrictEqual([]);
+  });
+
+  it("prints nothing at all in --json mode", () => {
+    const { log, raw } = spyStdout();
+
+    logToolResult(
+      "eslintReport",
+      { exitClass: "failure", stdout: "lint out\n", stderr: "" },
+      true,
+    );
+
+    expect(log).toStrictEqual([]);
+    expect(raw).toStrictEqual([]);
+  });
+});
 
 /**
  * runPhase aggregation semantics (GitHub issue #6, BUG B): a plain `failure`

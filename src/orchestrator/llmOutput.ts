@@ -1,6 +1,7 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 
+import { DEFENCE_BEFORE_FIX_LINE } from "./methodLine.js";
 import type { PhaseResult } from "./runPhase.js";
 import type { PipelineResult } from "./runPipeline.js";
 import type { ToolResult } from "./types.js";
@@ -81,6 +82,7 @@ export function formatLlmSummary(
     const firstFail = result.phases.find((p) => p.failed);
     const where = firstFail !== undefined ? ` at phase ${firstFail.phase}` : "";
     lines.push(`Verdict: FAIL${where}`);
+    lines.push(DEFENCE_BEFORE_FIX_LINE);
   }
   if (result.hasBeenRestarted) {
     lines.push(
