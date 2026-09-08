@@ -9,6 +9,7 @@ import {
   llmCachePath,
   writeLlmCache,
 } from "./llmOutput.js";
+import { DEFENCE_BEFORE_FIX_LINE } from "./methodLine.js";
 import type { PipelineResult } from "./runPipeline.js";
 
 /**
@@ -76,6 +77,17 @@ describe("llmOutput", () => {
       );
 
       expect(summary).toContain("Verdict: FAIL at phase 2");
+      // The method line follows the verdict directly and links the
+      // canonical specification.
+      const lines = summary.split("\n");
+      expect(lines[2]).toBe("Verdict: FAIL at phase 2");
+      expect(lines[3]).toBe(
+        "Defence Before Fix: https://longtermsupport.github.io/defence-before-fix/",
+      );
+      expect(lines[3]).toBe(DEFENCE_BEFORE_FIX_LINE);
+      expect(lines.filter((l) => l === DEFENCE_BEFORE_FIX_LINE)).toHaveLength(
+        1,
+      );
       // Per-phase PASS/FAIL table with each tool's exitClass.
       expect(summary).toContain(
         "0      PASS    supplyChain:clean oxlint:clean",
@@ -96,6 +108,8 @@ describe("llmOutput", () => {
 
       expect(summary).toContain("Verdict: PASS — all phases clean");
       expect(summary).not.toContain("Failing tools:");
+      expect(summary).not.toContain(DEFENCE_BEFORE_FIX_LINE);
+      expect(summary).not.toContain("Defence Before Fix");
     });
 
     it("is deterministic — identical input yields identical output", () => {

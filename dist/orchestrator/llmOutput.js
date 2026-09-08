@@ -1,5 +1,6 @@
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+import { DEFENCE_BEFORE_FIX_LINE } from "./methodLine.js";
 /**
  * `--llm` output mode. Where `--json` dumps the whole PipelineResult to stdout
  * (flooding an agent's context, and truncated the moment it's piped to head),
@@ -60,6 +61,7 @@ export function formatLlmSummary(result, cachePath) {
     const firstFail = result.phases.find((p) => p.failed);
     const where = firstFail !== undefined ? ` at phase ${firstFail.phase}` : "";
     lines.push(`Verdict: FAIL${where}`);
+    lines.push(DEFENCE_BEFORE_FIX_LINE);
   }
   if (result.hasBeenRestarted) {
     lines.push(

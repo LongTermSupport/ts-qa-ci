@@ -1,3 +1,4 @@
+import { DEFENCE_BEFORE_FIX_LINE } from "./methodLine.js";
 import { resolveToolModule } from "./resolveToolModule.js";
 import { runTool } from "./runTool.js";
 import type { PhaseDefinition, RunContext, ToolResult } from "./types.js";
@@ -35,6 +36,7 @@ export function logToolResult(
     return;
   }
   console.log(`ts-qa: ${toolName}: ${result.exitClass}`);
+  console.log(DEFENCE_BEFORE_FIX_LINE);
   if (result.stdout.trim()) process.stdout.write(result.stdout);
   if (result.stderr.trim()) process.stderr.write(result.stderr);
 }
