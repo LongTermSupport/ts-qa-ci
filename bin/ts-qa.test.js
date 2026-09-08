@@ -1,12 +1,12 @@
 import { spawnSync } from "node:child_process";
 import assert from "node:assert/strict";
-import { mkdtempSync, rmSync, symlinkSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, symlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 
-import { parseArgs } from "./ts-qa.js";
+import { formatUsage, parseArgs } from "./ts-qa.js";
 
 /**
  * Unit tests for the CLI arg parser (GitHub issue #6, BUG C/D). Run with
@@ -141,4 +141,50 @@ test("--llm --aggregate is allowed and forces read-only", () => {
   assert.equal(options.llm, true);
   assert.equal(options.aggregate, true);
   assert.equal(options.forceReadOnly, true);
+});
+
+// --help / -h: the only way to discover subcommands and flags without reading
+// source. Must print usage to STDOUT and exit 0, even when combined with other
+// arguments that would otherwise be rejected.
+const SUBCOMMANDS = ["deploy-skills", "init", "rules", "rule-doc", "rule"];
+
+for (const flag of ["--help", "-h"]) {
+  test(`${flag} prints usage to stdout and exits 0`, () => {
+    const bin = fileURLToPath(new URL("./ts-qa.js", import.meta.url));
+    const res = spawnSync(process.execPath, [bin, flag], { encoding: "utf-8" });
+    assert.equal(res.status, 0, `expected exit 0; stderr: ${res.stderr}`);
+    assert.match(res.stdout, /^Usage: ts-qa/);
+    assert.equal(res.stderr, "");
+    for (const name of SUBCOMMANDS) {
+      assert.match(res.stdout, new RegExp(`^  ${name}\\b`, "m"));
+    }
+  });
+}
+
+test("parseArgs reports help: true for --help and -h", () => {
+  assert.equal(parseArgs(["--help"]).help, true);
+  assert.equal(parseArgs(["-h"]).help, true);
+  assert.equal(parseArgs([]).help, undefined);
+});
+
+// Drift guard: every `case "<arg>":` the parser's switch accepts must have its
+// own line in the usage text, so a case cannot be added without documenting it.
+test("every parser switch case has a usage line", () => {
+  const source = readFileSync(
+    fileURLToPath(new URL("./ts-qa.js", import.meta.url)),
+    "utf-8",
+  );
+  const cases = [...source.matchAll(/^\s+case "([^"]+)":/gm)].map((m) => m[1]);
+  assert.ok(
+    cases.length >= 15,
+    `expected to find the switch cases, got ${cases.length}`,
+  );
+  const usage = formatUsage();
+  for (const name of cases) {
+    assert.match(
+      usage,
+      new RegExp(`(^  |, )${name}\\b`, "m"),
+      `usage is missing a line for "${name}"`,
+    );
+  }
 });
