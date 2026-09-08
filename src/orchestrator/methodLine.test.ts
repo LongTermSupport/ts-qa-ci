@@ -11,7 +11,7 @@ import { DEFENCE_BEFORE_FIX_LINE } from "./methodLine.js";
 describe("DEFENCE_BEFORE_FIX_LINE", () => {
   it("names the method and links the canonical specification exactly", () => {
     expect(DEFENCE_BEFORE_FIX_LINE).toBe(
-      "Defence Before Fix: https://longtermsupport.github.io/defence-before-fix/",
+      "Defence Before Fix: https://defence-before-fix.github.io/",
     );
   });
 });

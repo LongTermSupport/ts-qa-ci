@@ -45,7 +45,7 @@ describe("logToolResult", () => {
 
     expect(log).toStrictEqual([
       "ts-qa: eslintReport: failure",
-      "Defence Before Fix: https://longtermsupport.github.io/defence-before-fix/",
+      "Defence Before Fix: https://defence-before-fix.github.io/",
     ]);
     expect(log[1]).toBe(DEFENCE_BEFORE_FIX_LINE);
     // The tool's own output follows the two header lines.
@@ -63,7 +63,7 @@ describe("logToolResult", () => {
 
     expect(log).toStrictEqual([
       "ts-qa: tsc: crash",
-      "Defence Before Fix: https://longtermsupport.github.io/defence-before-fix/",
+      "Defence Before Fix: https://defence-before-fix.github.io/",
     ]);
   });
 

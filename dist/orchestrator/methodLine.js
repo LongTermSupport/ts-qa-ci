@@ -5,5 +5,5 @@
  * between the two.
  */
 export const DEFENCE_BEFORE_FIX_LINE =
-  "Defence Before Fix: https://longtermsupport.github.io/defence-before-fix/";
+  "Defence Before Fix: https://defence-before-fix.github.io/";
 //# sourceMappingURL=methodLine.js.map

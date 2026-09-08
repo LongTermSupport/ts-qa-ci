@@ -79,7 +79,7 @@ recorded there against the clause it fails, and the package does not claim confo
 list is non-empty. The key is machine-readable so a consumer can check the claim against the
 installed artefact rather than against a sentence in a README. Failure output names the method
 too: every failing tool, and a `--llm` FAIL verdict, is followed by the line
-`Defence Before Fix: https://longtermsupport.github.io/defence-before-fix/` linking the canonical specification.
+`Defence Before Fix: https://defence-before-fix.github.io/` linking the canonical specification.
 
 ## Output modes (`--llm`, `--json`)
 
