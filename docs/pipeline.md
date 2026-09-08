@@ -80,7 +80,10 @@ Before Fix method specification and of its toolchain specification the package i
 every clause the package is known to fail, one sentence each. The nested `project` object carries
 the same four keys for this repository as a project following the method with its own assembled
 tooling, which is a different question with a different reader: a contributor wants to know
-whether the package practises what it ships, a consumer wants to know what they will get.
+whether the package practises what it ships, a consumer wants to know what they will get. A gap
+in a mechanism the package ships is usually a gap on its own run as well, since the repository
+lints itself with the shipped configuration, so the same clause can appear at both levels with a
+sentence written for each reader.
 
 A gap either level learns of, from its own self-checks or from a practitioner's report, is recorded
 against the clause it fails, and neither level claims conformance whilst its list is non-empty.
