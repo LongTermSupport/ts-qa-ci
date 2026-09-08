@@ -72,13 +72,21 @@ a new rule sees its fixture before trusting a green full run.
 
 ## The conformance declaration
 
-`package.json` carries a `defenceBeforeFix` key naming the version of the Defence Before Fix method
-specification and of its toolchain specification that this package implements, with a `knownGaps`
-list. A gap the package learns of, from its own self-checks or from a practitioner's report, is
-recorded there against the clause it fails, and the package does not claim conformance whilst that
-list is non-empty. The key is machine-readable so a consumer can check the claim against the
-installed artefact rather than against a sentence in a README. Failure output names the method
-too: every failing tool, and a `--llm` FAIL verdict, is followed by the line
+`package.json` carries a `defenceBeforeFix` key with two levels of claim, graded and declared
+separately as the toolchain specification's clause 9.1 requires. The top-level keys describe the
+artefact a consuming project installs: `method` and `toolchain` name the version of the Defence
+Before Fix method specification and of its toolchain specification the package implements,
+`detector` is `null` because the package is a toolchain and not a detector, and `knownGaps` lists
+every clause the package is known to fail, one sentence each. The nested `project` object carries
+the same four keys for this repository as a project following the method with its own assembled
+tooling, which is a different question with a different reader: a contributor wants to know
+whether the package practises what it ships, a consumer wants to know what they will get.
+
+A gap either level learns of, from its own self-checks or from a practitioner's report, is recorded
+against the clause it fails, and neither level claims conformance whilst its list is non-empty.
+The key is machine-readable so a consumer can check the claim against the installed artefact
+rather than against a sentence in a README. Failure output names the method too: every failing
+tool, and a `--llm` FAIL verdict, is followed by the line
 `Defence Before Fix: https://defence-before-fix.github.io/` linking the canonical specification.
 
 ## Output modes (`--llm`, `--json`)

@@ -81,7 +81,25 @@
   },
   "defenceBeforeFix": {
     "method": "1.0.0",
-    "toolchain": "0.1.0",
-    "knownGaps": []
+    "detector": null,
+    "toolchain": "0.2.0",
+    "knownGaps": [
+      "Toolchain 4.1 and 4.4: the dependency-cruiser lane has no single-rule harness and ignores -p, so the bundled no-circular defence cannot be run alone or over a subset (detector specification 4.2 and 5.2).",
+      "Toolchain 4.2: ts-qa rule-doc resolves ts-qa/ identifiers only; the bundled dependency-cruiser defence no-circular is unknown to it and the Tier A core rule no-restricted-syntax resolves to an upstream URL rather than to the shipped as/enum ban documentation.",
+      "Toolchain 4.3: ESLint reads an eslint-suppressions.json file from the project root and a finding it lists is silenced; nothing disables the file or fails on its presence.",
+      "Toolchain 5.1 and 5.3: ts-qa rules is derived from the resolved ESLint configuration only, so the bundled dependency-cruiser defence no-circular is absent from the listing.",
+      "Toolchain 8.1: the release self-audit covers ts-qa/ identifiers only; no-circular is outside it.",
+      "Toolchain 8.2: ts-qa/no-naive-datetime-template is declared Tier A but the shipped generic configuration never enables it, so it runs neither on this package nor in a consuming project."
+    ],
+    "project": {
+      "method": "1.0.0",
+      "detector": null,
+      "toolchain": "0.2.0",
+      "knownGaps": [
+        "Method 3.3: ts-qa/no-duplicate-section-ids and ts-qa/no-placeholder have no fixture test proving they fire.",
+        "Toolchain 4.3: the eslint-suppressions.json route is open on this repository's own tooling as it is for consumers.",
+        "Toolchain 5.1: this repository's dependency-cruiser defence no-circular is absent from ts-qa rules."
+      ]
+    }
   }
 }
