@@ -27,6 +27,59 @@ function requireOperand(argv, index, flag) {
   return value;
 }
 
+/**
+ * One entry per argument the parseArgs switch accepts. bin/ts-qa.test.js
+ * asserts every `case "..."` in parseArgs has a matching line here, so a new
+ * case cannot land undocumented.
+ */
+const USAGE_SUBCOMMANDS = [
+  ["deploy-skills", "Copy the bundled skills/ and agents/ into the project"],
+  ["init", "Scaffold ts-qa config and CI workflow into the project"],
+  ["rules", "List the active defences and the project record"],
+  ["rule-doc <identifier>", "Print the documentation for one rule"],
+  [
+    "rule <identifier> <path>",
+    "Run a single rule against one file or directory",
+  ],
+];
+
+const USAGE_FLAGS = [
+  ["-t <tool>", "Run a single tool, bypassing phase grouping"],
+  ["-p <path>", "Restrict the run to one path"],
+  ["--skip <tool>", "Skip a tool (repeatable)"],
+  ["--phase <0-4>", "Run only the given phase"],
+  ["--write", "Force write mode (apply auto-fixes)"],
+  ["--read-only", "Force read-only mode (report only)"],
+  [
+    "--aggregate",
+    "Run every tool and report all failures (implies --read-only)",
+  ],
+  ["--json", "Dump the full result as JSON to stdout"],
+  ["--llm", "Print a compact summary and cache the full result for an LLM"],
+  ["--no-llm", "Disable LLM output mode"],
+  ["--help, -h", "Show this usage and exit"],
+];
+
+export function formatUsage() {
+  const width = Math.max(
+    ...[...USAGE_SUBCOMMANDS, ...USAGE_FLAGS].map(([name]) => name.length),
+  );
+  const row = ([name, description]) =>
+    `  ${name.padEnd(width)}  ${description}`;
+  return [
+    "Usage: ts-qa [subcommand] [flags]",
+    "",
+    "With no subcommand, runs the full QA pipeline in the current directory.",
+    "",
+    "Subcommands:",
+    ...USAGE_SUBCOMMANDS.map(row),
+    "",
+    "Flags:",
+    ...USAGE_FLAGS.map(row),
+    "",
+  ].join("\n");
+}
+
 export function parseArgs(argv) {
   const options = {
     cwd: process.cwd(),
@@ -41,6 +94,11 @@ export function parseArgs(argv) {
   for (let i = 0; i < argv.length; i++) {
     const arg = argv[i];
     switch (arg) {
+      case "--help":
+      case "-h":
+        // Help wins over everything else on the line, including arguments
+        // that would otherwise be rejected, so bail out before validating.
+        return { command, options, help: true };
       case "deploy-skills":
       case "init":
       case "rules":
@@ -138,7 +196,12 @@ export function parseArgs(argv) {
 }
 
 async function main() {
-  const { command, options } = parseArgs(process.argv.slice(2));
+  const { command, options, help } = parseArgs(process.argv.slice(2));
+
+  if (help) {
+    process.stdout.write(formatUsage());
+    return;
+  }
 
   if (command === "deploy-skills") {
     const { deploySkills } = await import("../dist/deploy/deploySkills.js");
