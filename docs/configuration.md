@@ -98,14 +98,15 @@ The `surfaces` key replaces that with a **standard taxonomy owned by ts-qa-ci**.
 
 The built-in surfaces and their default globs:
 
-| Surface     | Posture                    | Default globs                                                                |
-| ----------- | -------------------------- | ---------------------------------------------------------------------------- |
-| `source`    | ALL ts-qa rules **ON**     | `src/**`                                                                     |
-| `tests`     | ts-qa's own rules **off**  | `**/*.test.{ts,tsx}`, `**/*.spec.{ts,tsx}`, `src/test/**`, `**/__tests__/**` |
-| `stories`   | ts-qa's own rules **off**  | `**/*.stories.{ts,tsx}`, `**/*.mdx`                                          |
-| `e2e`       | ts-qa's own rules **off**  | `e2e/**`, `tests/e2e/**`, `**/*.e2e.{ts,tsx}`                                |
-| `scripts`   | ts-qa's own rules **off**  | `scripts/**`, `*.config.{ts,js,mjs,cts,mts}`, `capture-*.ts`                 |
-| `generated` | **IGNORED** (not authored) | `src/generated/**`, `**/*.gen.ts`                                            |
+| Surface     | Posture                    | Default globs                                                                                                                                                                      |
+| ----------- | -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `source`    | ALL ts-qa rules **ON**     | `src/**`                                                                                                                                                                           |
+| `tests`     | ts-qa's own rules **off**  | `**/*.test.{ts,tsx}`, `**/*.spec.{ts,tsx}`, `src/test/**`, `**/__tests__/**`                                                                                                       |
+| `stories`   | ts-qa's own rules **off**  | `**/*.stories.{ts,tsx}`, `**/*.mdx`                                                                                                                                                |
+| `e2e`       | ts-qa's own rules **off**  | `e2e/**`, `tests/e2e/**`, `**/*.e2e.{ts,tsx}`                                                                                                                                      |
+| `scripts`   | ts-qa's own rules **off**  | `scripts/**`, `*.config.{ts,js,mjs,cts,mts}`, `capture-*.ts`                                                                                                                       |
+| `devSource` | ts-qa's own rules **off**  | `src-dev/**` — dev-only source that is neither test nor story (fixtures, MSW handlers, story decorators); the always-on `no-dev-only-import` rule keeps `src/**` from importing it |
+| `generated` | **IGNORED** (not authored) | `src/generated/**`, `**/*.gen.ts`                                                                                                                                                  |
 
 - **source** is the shipped app — every ts-qa rule applies (the whole point). (The type-aware strict-TS block stays in your `eslint.config.js` because it depends on your tsconfig layout; `source` just names the app dir.)
 - **non-app** surfaces (tests/stories/e2e/scripts) get **all** ts-qa rule ids turned off — computed from the plugin's own tier maps, so a newly-shipped rule is covered automatically — appended after the Tier A override guard (ts-qa's sanctioned carve-out, no exemption needed). The files are **still fully linted** by your own rules (strict-TS, `local/*`, storybook); ts-qa's component-authoring doctrine simply doesn't apply to non-app code. **No blind spot.**

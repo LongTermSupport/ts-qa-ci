@@ -39,6 +39,10 @@ export const TIER_A_RULE_IDS = [
   // TIER_A_ESLINT_RULES + the generic base config, so it MUST be listed here
   // too or the override-guard would let a consumer silently downgrade it.
   "ts-qa/no-naive-datetime-template",
+  // Shipped source must not import dev-only source (tests, stories, src-dev/).
+  // Wired into TIER_A_ESLINT_RULES + the generic base config, so it MUST be
+  // listed here too or the override-guard would let a consumer downgrade it.
+  "ts-qa/no-dev-only-import",
   // Always-on strict-TS baseline pieces wired into the generic base config
   // (Plan 00004 Task 1.4). These are core-ESLint, not ts-qa/* rules:
   //   - no-restricted-syntax carries the always-on as/enum ban.
