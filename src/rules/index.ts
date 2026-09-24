@@ -8,6 +8,7 @@ import noClassnameProp from "./noClassnameProp.js";
 import noClassnamePublicProp from "./noClassnamePublicProp.js";
 import noCrossModuleRelative from "./noCrossModuleRelative.js";
 import noDefaultExport from "./noDefaultExport.js";
+import noDevOnlyImport from "./noDevOnlyImport.js";
 import noDomClassnameMutation from "./noDomClassnameMutation.js";
 import noDuplicateSectionIds from "./noDuplicateSectionIds.js";
 import noErrorHidingFallback from "./noErrorHidingFallback.js";
@@ -59,6 +60,10 @@ export const tsQaPlugin: { rules: Record<string, Rule.RuleModule> } = {
     "no-dom-classname-mutation": noDomClassnameMutation,
     "no-default-export": noDefaultExport,
     "no-cross-module-relative": noCrossModuleRelative,
+    // Shipped source must not import tests, stories or the dev-only source
+    // tree (src-dev/) — the surface taxonomy's non-app code stays out of the
+    // production import graph. See docs/cdd-rules.md#no-dev-only-import.
+    "no-dev-only-import": noDevOnlyImport,
     "no-classname-prop": noClassnameProp,
     "no-classname-public-prop": noClassnamePublicProp,
     // Ported from CounselBook's eslint-rules/no-naive-datetime-template.js
@@ -110,6 +115,10 @@ export const TIER_A_ESLINT_RULES = {
   // A Node CLI whose "invoked directly" check compares an unresolved argv[1]
   // exits 0 in silence behind node_modules/.bin. Universal correctness hazard.
   "ts-qa/no-unresolved-entrypoint-check": "error",
+  // Shipped source importing a test, a story, a test helper or the dev-only
+  // source tree pulls non-app code into the production bundle and the bundler
+  // never objects. Universal correctness hazard, purely syntactic.
+  "ts-qa/no-dev-only-import": "error",
 } as const;
 
 /** Tier B rule IDs — opt-in, NOT spread by default (consumer must enable explicitly). */

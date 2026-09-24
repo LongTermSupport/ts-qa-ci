@@ -56,6 +56,11 @@ export const DEFAULT_SURFACES = {
     kind: "nonApp",
     globs: ["scripts/**", "*.config.{ts,js,mjs,cts,mts}", "capture-*.ts"],
   },
+  // Dev-only SOURCE that is neither a test nor a story: MSW fixtures, scenario
+  // data, story decorators — the TypeScript equivalent of a PHP dev autoloader.
+  // Non-app posture like tests; the Tier A no-dev-only-import rule keeps it out
+  // of the shipped import graph.
+  devSource: { kind: "nonApp", globs: ["src-dev/**"] },
   generated: { kind: "ignore", globs: ["src/generated/**", "**/*.gen.ts"] },
 };
 /** A bare directory (`"e2e"`, `"src/test"`) becomes `"e2e/**"`; anything already

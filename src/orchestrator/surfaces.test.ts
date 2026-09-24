@@ -120,6 +120,7 @@ describe("surfaceIgnores / surfaceOffBlocks", () => {
         stories: false,
         e2e: false,
         scripts: false,
+        devSource: false,
       },
     });
     const blocks = surfaceOffBlocks(loadSurfaces(CWD));

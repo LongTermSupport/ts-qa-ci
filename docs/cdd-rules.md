@@ -227,6 +227,28 @@ const invokedDirectly =
 
 **Not flagged**: any comparison whose `argv[1]` side passes through a `realpath` call, and comparisons that involve only one of the two operands.
 
+### `no-dev-only-import`
+
+Bans shipped source (`src/**`) importing dev-only source: a test or spec module, a Storybook story, anything under a `__tests__/` or `tests/` dir, or anything under the dev-only source tree `src-dev/` — by alias (`~dev/…`, `~tests/…`), by relative path, in `import`, `import type`, `export … from`, `export * from` and dynamic `import()`.
+
+**Hazard**: a bundler follows the import graph and nothing else. One import of an MSW handler, a fixture, a story or a test helper from production code ships that module — its fake data, its mock server, its relaxed lint posture (the non-app surfaces switch the ts-qa doctrine off) — and no tool objects. The dependency also runs backwards: dev code exists to exercise the app, so the app depending on it is a cycle in disguise.
+
+**The `src-dev/` convention**: dev-only source that is neither a test nor a story (MSW scenario data, shared handlers, story decorators) lives in `src-dev/`, the TypeScript equivalent of a PHP dev autoloader. Alias it as `~dev/*` in `tsconfig.json`, `vite.config.ts` and `vitest.config.ts`; it is a non-app surface by default (`devSource`), so ts-qa's own rules are off there while the project's strict-TS rules still apply. Tests, stories and Storybook config import from it freely; `src/**` never does.
+
+```ts
+// ❌ src/widgets/accounts/Widget.tsx
+import { accountsHandlers } from "~dev/msw/accounts/handlers.js";
+import { fixture } from "./__tests__/fixtures.js";
+
+// ✅ the shared piece moves INTO src/ (a contract type, a path builder), and the
+// fixture that USES it stays in src-dev/ importing from src/
+import { ACCOUNTS_PATHS } from "~/api-client/admin/accountsContract.js";
+```
+
+**Not flagged**: a file that is itself dev-only (a test, a story, or one under a dev-only dir); any file outside `src/` (tooling, `.storybook/`, config); a bare package specifier (`msw`, `@scope/pkg`) — only path imports can name a dev-only dir; and a path that merely contains a dev-looking word (`./devices.js`).
+
+**Config**: `devAliases` (default `["~dev", "~tests"]`), `devSourceDirs` (default `["src-dev", "tests", "__tests__"]`), `srcMarker` (default `"/src/"`).
+
 ## Tier B rules (opt-in CDD)
 
 ### `require-variant-resolver`

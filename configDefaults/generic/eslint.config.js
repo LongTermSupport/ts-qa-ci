@@ -90,6 +90,10 @@ export default [
     rules: {
       'ts-qa/no-eslint-disable': TIER_A_ESLINT_RULES['ts-qa/no-eslint-disable'],
       'ts-qa/no-placeholder': TIER_A_ESLINT_RULES['ts-qa/no-placeholder'],
+      // Shipped source (src/**) must not import tests, stories or the dev-only
+      // source tree (src-dev/) — the bundler follows the import graph and
+      // nothing else. Repo-wide: a .ts barrel can re-export as easily as a .tsx.
+      'ts-qa/no-dev-only-import': TIER_A_ESLINT_RULES['ts-qa/no-dev-only-import'],
       'ts-qa/require-explicit-type-annotations': TIER_A_ESLINT_RULES['ts-qa/require-explicit-type-annotations'],
       // Repo-wide Tier A rules ported from admin-ts (Plan 00004).
       'ts-qa/require-error-cause': TIER_A_ESLINT_RULES['ts-qa/require-error-cause'],
