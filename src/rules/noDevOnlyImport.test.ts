@@ -62,7 +62,12 @@ ruleTester.run("no-dev-only-import", rule, {
     {
       code: "import { handlers } from '~dev/msw/accounts/handlers.js';\n",
       filename: "/proj/src/widgets/accounts/Widget.tsx",
-      errors: [{ messageId: "devOnly", data: { source: "~dev/msw/accounts/handlers.js" } }],
+      errors: [
+        {
+          messageId: "devOnly",
+          data: { source: "~dev/msw/accounts/handlers.js" },
+        },
+      ],
     },
     // Shipped source importing the tests tree via its alias.
     {

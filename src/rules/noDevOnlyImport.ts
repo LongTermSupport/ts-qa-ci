@@ -42,7 +42,10 @@ interface RuleOptions {
   srcMarker?: string;
 }
 
-const isDevOnlyFile = (filename: string, devSourceDirs: readonly string[]): boolean => {
+const isDevOnlyFile = (
+  filename: string,
+  devSourceDirs: readonly string[],
+): boolean => {
   const segments = filename.split("/");
   if (segments.some((segment) => devSourceDirs.includes(segment))) return true;
   const basename = segments[segments.length - 1] ?? "";
@@ -54,12 +57,19 @@ const isDevOnlySpecifier = (
   devAliases: readonly string[],
   devSourceDirs: readonly string[],
 ): boolean => {
-  if (devAliases.some((alias) => specifier === alias || specifier.startsWith(`${alias}/`))) {
+  if (
+    devAliases.some(
+      (alias) => specifier === alias || specifier.startsWith(`${alias}/`),
+    )
+  ) {
     return true;
   }
   // Only a path import (relative or aliased) can name a dev-only dir. A bare
   // package specifier (`msw`, `@scope/pkg/tests`) is a dependency, not a path.
-  const isPath = specifier.startsWith(".") || specifier.startsWith("/") || specifier.startsWith("~");
+  const isPath =
+    specifier.startsWith(".") ||
+    specifier.startsWith("/") ||
+    specifier.startsWith("~");
   if (!isPath) return false;
   return isDevOnlyFile(specifier, devSourceDirs);
 };
@@ -94,16 +104,28 @@ const rule: Rule.RuleModule = {
     const srcMarker = options.srcMarker ?? DEFAULT_SRC_MARKER;
 
     const filename = context.filename;
-    if (!filename.includes(srcMarker) || isDevOnlyFile(filename, devSourceDirs)) {
+    if (
+      !filename.includes(srcMarker) ||
+      isDevOnlyFile(filename, devSourceDirs)
+    ) {
       return {};
     }
 
     const check = (sourceNode: Node | null | undefined): void => {
-      if (sourceNode === null || sourceNode === undefined || sourceNode.type !== "Literal") return;
+      if (
+        sourceNode === null ||
+        sourceNode === undefined ||
+        sourceNode.type !== "Literal"
+      )
+        return;
       const specifier = sourceNode.value;
       if (typeof specifier !== "string") return;
       if (!isDevOnlySpecifier(specifier, devAliases, devSourceDirs)) return;
-      context.report({ node: sourceNode, messageId: "devOnly", data: { source: specifier } });
+      context.report({
+        node: sourceNode,
+        messageId: "devOnly",
+        data: { source: specifier },
+      });
     };
 
     return {
