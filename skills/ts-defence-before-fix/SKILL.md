@@ -114,7 +114,7 @@ If `create()` already exists (you're widening an existing rule's gap), the new `
    ```
    Route any real occurrences found through the `eslint-fixer` skill/agent, or fix directly if this IS the bug's own fix commit.
 3. Verify the pipeline is clean end-to-end — invoke the `ts-qa` orchestrator skill (or `ts-qa-runner` directly) rather than assuming green from the rule test alone; the new rule must not have introduced false positives elsewhere in the codebase.
-4. If the bug being fixed pre-dates the rule (this is the common case — you found a live bug, not a hypothetical), fix that specific instance as part of the same change; the rule's job is to stop it recurring, not to retroactively fix history you haven't touched.
+4. If the bug being fixed pre-dates the rule (this is the common case — you found a live bug, not a hypothetical), fix that specific instance as part of the same change. Every other instance the sweep in step 2 found is fixed too, not left behind: the specification's clause 3.4 is "sweep the codebase, then fix every instance", and a baseline nobody ever shrinks is just a list of defects you have agreed to keep.
 
 ## Escalation / Scope Boundaries
 
