@@ -35,6 +35,8 @@ npx ts-qa deploy-skills
 
 Pushes this package's skills/agents into `.claude/`, and registers a hooks-daemon project-handler if one is detected (never writes classic hook files when a daemon is present).
 
+The deployed `ts-defence-before-fix` skill does not carry the Defence Before Fix method; it points to the [Defence Before Fix plugin](https://github.com/Defence-Before-Fix/claude-plugin), whose `/dbf` skill runs it, and lists only the ts-qa-ci commands and rule files the method uses here. Install the plugin with `/plugin marketplace add Defence-Before-Fix/claude-plugin` then `/plugin install defence-before-fix@defence-before-fix`.
+
 ## Status
 
 v0.1.0 — pre-publish. Currently being dogfooded on [`lts-commerce-site`](https://github.com/LongTermSupport/lts-commerce-site) before wider rollout. See that repo's `CLAUDE/Plan/011-ts-qa-ci-package/PLAN.md` for the build plan and progress.
