@@ -90,7 +90,8 @@ against the clause it fails, and neither level claims conformance whilst its lis
 The key is machine-readable so a consumer can check the claim against the installed artefact
 rather than against a sentence in a README. Failure output names the method too: every failing
 tool, and a `--llm` FAIL verdict, is followed by the line
-`Defence Before Fix: https://defence-before-fix.github.io/` linking the canonical specification.
+`Defence Before Fix (DBF): https://defence-before-fix.github.io/ - agent prompt: https://defence-before-fix.github.io/defence-before-fix-project-prompt.md`
+linking the canonical specification and the project prompt an agent reads to apply the method.
 
 ## Output modes (`--llm`, `--json`)
 

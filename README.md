@@ -2,6 +2,8 @@
 
 Orchestrated QA/CI pipeline for TypeScript/React projects — the TypeScript analogue of [`lts/php-qa-ci`](https://github.com/LongTermSupport/php-qa-ci).
 
+Defence Before Fix (DBF) is a phase that runs before a defect is fixed: the instance is treated as evidence of a class, and the defence that detects the class is built and seen to fire before the fix is made. Specification: https://defence-before-fix.github.io/
+
 ```bash
 npm install --save-dev @longtermsupport/ts-qa-ci
 npx ts-qa init      # scaffold tsQaConfig/

@@ -9,9 +9,9 @@ import { DEFENCE_BEFORE_FIX_LINE } from "./methodLine.js";
  * URL is the published specification and must not drift.
  */
 describe("DEFENCE_BEFORE_FIX_LINE", () => {
-  it("names the method and links the canonical specification exactly", () => {
+  it("names the method and links the canonical specification and agent prompt exactly", () => {
     expect(DEFENCE_BEFORE_FIX_LINE).toBe(
-      "Defence Before Fix: https://defence-before-fix.github.io/",
+      "Defence Before Fix (DBF): https://defence-before-fix.github.io/ - agent prompt: https://defence-before-fix.github.io/defence-before-fix-project-prompt.md",
     );
   });
 });

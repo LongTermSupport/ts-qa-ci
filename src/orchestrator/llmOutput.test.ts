@@ -81,9 +81,6 @@ describe("llmOutput", () => {
       // canonical specification.
       const lines = summary.split("\n");
       expect(lines[2]).toBe("Verdict: FAIL at phase 2");
-      expect(lines[3]).toBe(
-        "Defence Before Fix: https://defence-before-fix.github.io/",
-      );
       expect(lines[3]).toBe(DEFENCE_BEFORE_FIX_LINE);
       expect(lines.filter((l) => l === DEFENCE_BEFORE_FIX_LINE)).toHaveLength(
         1,
