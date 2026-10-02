@@ -202,5 +202,5 @@ Stop cycling and report when:
 - `ts-qa-runner` skill → `ts-qa-ci_ts-qa-runner` agent (haiku)
 - `eslint-fixer` skill → `ts-qa-ci_eslint-fixer` agent (sonnet)
 - `tsc-fixer` skill → `ts-qa-ci_tsc-fixer` agent (sonnet)
-- `ts-defence-before-fix` skill — invoke separately once a bug is fixed, to ratchet a rule against it recurring (not part of this orchestrator's auto-cycle)
+- `ts-defence-before-fix` skill — where Defence Before Fix (https://defence-before-fix.github.io/) is run with the plugin's `/dbf` skill, and the ts-qa-ci commands and rule files it uses; the method runs before a defect is fixed, and is not part of this orchestrator's auto-cycle
 - `docs/pipeline.md`, `docs/tools.md`, `docs/configuration.md` — full pipeline reference

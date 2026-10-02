@@ -1,123 +1,106 @@
 ---
 name: ts-defence-before-fix
 description: |
-  Defence Before Fix workflow for TypeScript/React projects using ts-qa-ci.
-  Implements the ratcheting pattern: analyse bug -> author a CDD ESLint rule
-  -> red test (ruleTester) -> fix -> verify.
+  ts-qa-ci mechanics for running Defence Before Fix (DBF) in a TypeScript/React
+  project. The method itself is run by the Defence Before Fix plugin's dbf skill
+  (/dbf); this skill only says where the method lives and how its steps map onto
+  ts-qa-ci's commands, rule files and tests.
 
   Use when:
-  - A bug has been found and you want to prevent the entire bug class
-  - "defence before fix", "create an ESLint rule for this bug"
-  - "detect this pattern with static analysis", "ratchet this bug class"
-  - User wants to encode institutional knowledge as a CDD ESLint rule
-
-  This skill orchestrates 4 phases:
-  1. ANALYSE - Understand the bug pattern
-  2. DETECT  - Author a CDD ESLint rule that catches the pattern
-  3. TDD     - Write a failing RuleTester case reproducing the specific bug
-  4. FIX     - Implement the fix, verify the rule and the pipeline pass
-allowed-tools: Read, Write, Edit, Grep, Glob, Task
+  - The user says "DBF" or "defence before fix", or a ts-qa failure prints the
+    Defence Before Fix line, in a project that uses ts-qa-ci
+  - A bug, defect or failing check is found in a ts-qa-ci project and a detector
+    rule is to be written for its class
+  - You need to list the active rules, look up a rule identifier, or add and
+    test a ts-qa-ci ESLint rule
+allowed-tools: Read, Write, Edit, Grep, Glob, Bash, Skill
 ---
 
-# Defence Before Fix (TypeScript variant)
+# Defence Before Fix in a ts-qa-ci project
 
-**Never fix a bug in isolation.** A bug found once will recur unless the pattern is encoded as a static-analysis rule that fails the build the next time it appears. This is the TS/ESLint analogue of `php-qa-ci`'s `defence-before-fix` skill — same philosophy (`Analyse Pattern -> Create/Enable Rule -> Red Test -> Green Fix -> Verify QA`), applied via `ts-qa-ci`'s CDD ESLint rule system instead of PHPStan.
+This skill does not describe the method. The method has one version, the specification at
+https://defence-before-fix.github.io/, and it is run by the Defence Before Fix plugin's `dbf`
+skill. Follow that, and use the mechanics below when it asks for this toolchain's rule listing,
+rule documentation, single-rule harness or rule tests.
 
-## Phase 1: ANALYSE
+## Running the method
 
-Before writing any rule, understand the pattern precisely enough to state it as an AST shape:
+With the plugin installed, invoke `/dbf` or say "DBF". To install it in Claude Code:
 
-1. **Read the bug** — the actual diff/commit that introduced it, or the failing scenario the human reported.
-2. **Generalise the pattern** — not "this specific line was wrong" but "this SHAPE of code is always wrong". E.g. not "`paymentService.ts:42` threw without cause" but "any `new *Error(...)` thrown inside a `catch` without a `{ cause }` argument".
-3. **Check it isn't already covered** — read `docs/cdd-rules.md` and `src/rules/index.ts` for an existing rule that's close but has a gap (a scope bug, a missed AST node type) rather than authoring a duplicate. If an existing rule has a gap, widening it is usually better than a new rule with overlapping intent.
-4. **Decide the tier** (see `docs/cdd-rules.md`):
-   - **Tier A** (always-on) — universal correctness, no project presuppositions. Most bug-class defences belong here.
-   - **Tier B** (opt-in CDD) — presupposes a variant-prop component catalogue.
-   - **Tier C** (opt-in, architecture/convention) — project/framework-specific.
-
-## Phase 2: DETECT — author the rule
-
-Rules live in `src/rules/<camelCaseName>.ts` as plain ESLint `Rule.RuleModule` objects (parser-agnostic, over ESTree/estree-jsx types — no `@typescript-eslint`-specific type-aware machinery unless the pattern truly needs type info, in which case see the `STRICT_TYPESCRIPT_RULES` preset instead of a bespoke rule).
-
-Read an existing rule of similar shape as your template — e.g. `src/rules/requireErrorCause.ts` for a `catch`/`throw` AST pattern, `src/rules/noClassnameProp.ts` for a JSX-prop pattern. Structure:
-
-```ts
-import type { Rule } from "eslint";
-
-/**
- * JSDoc: state the pattern, the bad example, the good example, and WHY
- * (what breaks if this pattern ships). This comment is read by both humans
- * and the eslint-fixer agent before it attempts a fix.
- */
-const rule: Rule.RuleModule = {
-  meta: {
-    type: "problem",
-    docs: { description: "..." },
-    schema: [],
-    messages: { violationId: "..." },
-  },
-  create(context) {
-    return {
-      // AST visitor(s) matching the pattern from Phase 1
-    };
-  },
-};
-
-export default rule;
+```text
+/plugin marketplace add Defence-Before-Fix/claude-plugin
+/plugin install defence-before-fix@defence-before-fix
 ```
 
-Register it in `src/rules/index.ts`:
+From a shell, the same is `claude plugin marketplace add Defence-Before-Fix/claude-plugin` then
+`claude plugin install defence-before-fix@defence-before-fix`; add `--scope project` to both to
+record it in the project's `.claude/settings.json`.
 
-1. Import the rule module.
-2. Add it to the `tsQaPlugin.rules` map under its kebab-case ID (`ts-qa/<rule-id>`).
-3. Add the ID to the appropriate tier export (`TIER_A_ESLINT_RULES` / `TIER_B_ESLINT_RULES` / `TIER_C_ESLINT_RULES`) at severity `"error"` (Tier A/C) or `"warn"`/`"off"` (Tier B, matching sibling conventions).
+Without the plugin, fetch and follow the agent prompt:
+https://defence-before-fix.github.io/defence-before-fix-project-prompt.md
 
-Document it in `docs/cdd-rules.md` under the matching tier section: one bad/good example pair, one sentence of why.
+Where anything here appears to disagree with the specification, the specification wins.
 
-## Phase 3: TDD — red test first
+## ts-qa-ci mechanics
 
-Write `src/rules/<camelCaseName>.test.ts` using the shared `RuleTester` from `src/testSupport/ruleTester.ts`:
+### Listing and looking up rules
 
-```ts
-import { makeRuleTester } from "../testSupport/ruleTester.js";
-import rule from "./<camelCaseName>.js";
-
-const ruleTester = makeRuleTester();
-
-ruleTester.run("<rule-id>", rule, {
-  valid: [
-    // The sanctioned form(s) — including edge cases the rule must NOT flag
-  ],
-  invalid: [
-    // The EXACT bug that was found, reduced to a minimal reproduction
-    { code: "...", errors: [{ messageId: "violationId" }] },
-    // Plus adjacent variations of the same pattern (nested scope, different
-    // error subclass, etc.) so the rule doesn't just match the one snippet
-  ],
-});
+```bash
+npx ts-qa rules                                  # every active rule, from the resolved config
+npx ts-qa rule-doc ts-qa/no-eslint-disable       # the docs for an identifier a failure printed
+npx ts-qa rule ts-qa/no-eslint-disable src/a.ts  # does this ONE rule fire on this path
 ```
 
-Run it and confirm RED (the invalid cases the rule is meant to catch must fail until `create()` is implemented, and the specific bug's reproduction must be among them):
+Each accepts `--json`. `rule` exits 0 when the rule did not fire, 1 when it fired (with every
+location printed) and 2 when ESLint did not produce a run. The package's `docs/pipeline.md`
+("Working with a single rule") is the reference, and the `knownGaps` in its `package.json`
+`defenceBeforeFix` key list what these commands do not yet cover (the dependency-cruiser
+`no-circular` defence, for one).
+
+`rule-doc` resolves a bundled `ts-qa/<name>` to its section of `docs/cdd-rules.md`, which ships
+in the package, and an ESLint core rule to its upstream URL.
+
+### Sweeping
+
+```bash
+npx ts-qa -t eslintReport --llm                  # the ESLint report lane over the whole project
+npx ts-qa -t eslintReport -p src/feature --llm   # the same lane over one path
+npx ts-qa --llm                                  # the full pipeline
+```
+
+### Where a new ESLint rule goes
+
+- **In a consuming project**, a project-specific rule belongs in the project's own
+  `tsQaConfig/eslint.config.js`, which ts-qa merges after its Tier A core (see
+  `docs/configuration.md`). A rule added there appears in `ts-qa rules` and runs under
+  `ts-qa rule` like a bundled one. The project's own test runner tests it; ESLint's `RuleTester`
+  works under vitest.
+- **In ts-qa-ci itself**, a rule every consumer should get lives in `src/rules/<camelCaseName>.ts`
+  as a plain, parser-agnostic ESLint `Rule.RuleModule` over ESTree/estree-jsx types (no type-aware
+  machinery; for type-level patterns check the `STRICT_TYPESCRIPT_RULES` preset first). Register
+  it in `src/rules/index.ts`: add it to the `tsQaPlugin.rules` map under its kebab-case name
+  (identifier `ts-qa/<rule-id>`) and to `TIER_A_ESLINT_RULES`, `TIER_B_ESLINT_RULES` or
+  `TIER_C_ESLINT_RULES`. Document it under the matching tier in `docs/cdd-rules.md`, which is
+  what `rule-doc` prints; the package's tests fail on a bundled rule that does not resolve.
+  Rebuild `dist/` with `npm run build`, since it is committed.
+
+### Testing a rule
+
+ts-qa-ci's own rules are tested with the shared `makeRuleTester()` from
+`src/testSupport/ruleTester.ts` (ESLint's `RuleTester` with `@typescript-eslint/parser`, so
+fixtures may hold TypeScript and JSX). It is test-only and not shipped. Put the test beside the
+rule as `src/rules/<camelCaseName>.test.ts` and run it alone with:
 
 ```bash
 npx vitest run src/rules/<camelCaseName>.test.ts
 ```
 
-If `create()` already exists (you're widening an existing rule's gap), the new `invalid` case you add for the missed shape should fail FIRST, proving the gap existed, before you touch the visitor logic.
+An existing rule of a similar shape is the best template, for example
+`src/rules/requireErrorCause.ts` for a `catch`/`throw` pattern or `src/rules/noClassnameProp.ts`
+for a JSX prop pattern.
 
-## Phase 4: FIX
+### Exemptions
 
-1. Implement/extend `create()` until the RuleTester suite is green.
-2. Run the rule against the real codebase to find existing occurrences of the pattern (not just the test fixtures):
-   ```bash
-   npx ts-qa -t eslintReport --llm
-   ```
-   Route any real occurrences found through the `eslint-fixer` skill/agent, or fix directly if this IS the bug's own fix commit.
-3. Verify the pipeline is clean end-to-end — invoke the `ts-qa` orchestrator skill (or `ts-qa-runner` directly) rather than assuming green from the rule test alone; the new rule must not have introduced false positives elsewhere in the codebase.
-4. If the bug being fixed pre-dates the rule (this is the common case — you found a live bug, not a hypothetical), fix that specific instance as part of the same change. Every other instance the sweep in step 2 found is fixed too, not left behind: the specification's clause 3.4 is "sweep the codebase, then fix every instance". Leaving an instance unfixed is a project-owner decision, recorded as an exemption (see the last point under Escalation below), never something this workflow decides.
-
-## Escalation / Scope Boundaries
-
-- **A pattern needs real type information** (not just syntactic AST shape) — e.g. "this value's inferred type is a union that includes `null`" — check whether `STRICT_TYPESCRIPT_RULES` (a `@typescript-eslint` type-aware preset) already covers it before authoring a bespoke type-aware rule; `ts-qa-ci` deliberately keeps its OWN rules parser-agnostic and non-type-aware (see `docs/cdd-rules.md` "Strict-TypeScript baseline preset") so it stays a plain-ESLint-only dependency.
-- **The pattern is genuinely project-specific**, not something every `ts-qa-ci` consumer would want — author it in the CONSUMING project's own `tsQaConfig/eslint.config.js` instead of upstreaming it into `ts-qa-ci`'s Tier A/B/C.
-- **Never suppress instead of fixing**: `no-eslint-disable` (Tier A) exists precisely so a rule you just wrote can't be inline-suppressed away — the only sanctioned override is a justified `tsQaConfig/tier-a-exemptions.json` entry, which is a project-owner decision, not something this workflow does silently.
+Inline suppression is itself a Tier A violation (`ts-qa/no-eslint-disable`). The project's record
+of exemptions is `tsQaConfig/tier-a-exemptions.json` (`{ ruleId, files, justification }`), which
+`ts-qa rules` prints and every run logs.
