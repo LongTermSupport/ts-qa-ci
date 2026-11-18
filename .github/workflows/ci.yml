@@ -8,10 +8,26 @@
 # committed on purpose for clone-and-go installs), commit any resulting changes
 # back to the branch, and fail only on issues ts-qa cannot auto-fix. Pushes made
 # with GITHUB_TOKEN do not trigger a new run, so there is no commit loop.
+#
+# A push that changes only documentation starts no run; pull requests are never filtered. The
+# Markdown the package ships and reads stays in: docs/cdd-rules.md (rule-doc resolves bundled
+# rules to it) and skills/ and agents/ (deployed into consumers). README.md is left out: a
+# README-only change is checked on its pull request.
 name: CI
 on:
   push:
     branches: [main]
+    paths:
+      - "**"
+      - "!**.md"
+      - "!docs/**"
+      - "docs/cdd-rules.md"
+      - "skills/**"
+      - "agents/**"
+      - "**/CLAUDE.md"
+      - "**/AGENTS.md"
+      - ".claude/**"
+      - ".github/**"
   pull_request:
     branches: [main]
 
@@ -69,3 +85,17 @@ jobs:
         run: |
           echo "::error::ts-qa failed on issues that cannot be auto-fixed — see the 'Run ts-qa' step log above."
           exit 1
+
+  # The workflow lint (LongTermSupport/actions-qa-ci), on pull requests.
+  actions-qa-ci:
+    name: actions-qa-ci
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: LongTermSupport/actions-qa-ci@2784a484769348f14ed780db9b45cd3a402bf31e # v0.1.0

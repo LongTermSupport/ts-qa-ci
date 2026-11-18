@@ -1,0 +1,10 @@
+version: 1
+
+analyse:
+  unanalysed:
+    # The consumer archetype that `ts-qa init` copies into a project's .github/workflows/, where
+    # that project's own actions-qa-ci run analyses it.
+    - path: configDefaults/github-workflows/**
+      justification:
+        hazard: "A mistake in the template workflow reaches every project that copies it, unchecked here"
+        scope: "Only the configDefaults/github-workflows templates, which no workflow of this repository runs"
